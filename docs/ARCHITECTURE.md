@@ -14,6 +14,7 @@
 8. Credential chỉ được lấy sau khi Authorization ALLOW.
 9. Provider-specific logic nằm trong Provider/Tool layer.
 10. Muốn đổi kiến trúc phải cập nhật Decision Log.
+11. Mọi timestamp lưu trong PostgreSQL phải theo UTC; khi trả dữ liệu cho người dùng/API phải chuyển sang múi giờ hiển thị đã quy định, mặc định GMT+7 (`Asia/Ho_Chi_Minh`).
 
 ## 2. V2.1 — Tenant, Resource, Session, Task và Multi-Agent
 
@@ -245,7 +246,15 @@ Khi phát sinh yêu cầu mới:
 
 Google OAuth thuộc infrastructure/application integration boundary. OAuth state phải gắn với account, user và organization, được ký và có thời hạn. Authorization code chỉ được đổi thành credential trong callback; credential phải được mã hóa trước khi lưu `account_credentials`. Không lưu token plaintext, không đưa secret vào AgentContext/prompt/audit/HTTP response. Sau khi OAuth hoàn tất, runtime quay lại CredentialResolver để kiểm tra readiness trước ToolResolver.
 
-## 16. Trạng thái
+## 16. Quy ước ngày giờ
+
+- PostgreSQL là nguồn lưu trữ thời gian và dùng UTC làm chuẩn thống nhất.
+- Tầng persistence phải ghi timestamp theo UTC; không lưu giờ địa phương GMT+7 trong các cột timestamp nghiệp vụ.
+- Khi đọc dữ liệu để hiển thị cho người dùng hoặc response API, application/presentation layer chuyển UTC sang `Asia/Ho_Chi_Minh` (GMT+7).
+- Provider có thể yêu cầu timezone riêng theo API contract; việc chuyển đổi đó chỉ áp dụng ở provider boundary và không thay đổi chuẩn UTC của database.
+- Các thời gian nhận từ người dùng phải được chuẩn hóa về UTC trước khi ghi database.
+
+## 17. Trạng thái
 
 Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, device-resource binding, activity session, task/work order, agent-to-agent communication và anomaly detection.
 
