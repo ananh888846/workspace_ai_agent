@@ -220,6 +220,14 @@ LangChain cung cấp LLM, retrieval, tool và agent primitives. CrewAI cung cấ
 
 Operation nhạy cảm phải truy được request_id, user, session/device, capability/action, account, resource/package, tool, result và thời gian.
 
+## 13. Quy tắc ghi chú trong Python
+
+- Tất cả comment, docstring và ghi chú trong file `.py` phải viết bằng **tiếng Việt**.
+- Các tên kỹ thuật bắt buộc giữ nguyên như tên biến/hàm, package, class, API, exception, protocol, framework và thuật ngữ chính thức không cần dịch.
+- Không viết comment/docstring tiếng Anh mới trong code Python nếu có thể diễn đạt rõ bằng tiếng Việt.
+- Khi sửa file Python có comment/docstring tiếng Anh, ưu tiên chuyển phần ghi chú liên quan sang tiếng Việt trong cùng thay đổi.
+- Quy tắc này áp dụng cho code mới và các phần code được chỉnh sửa về sau.
+
 ## 13. Quy tắc thay đổi
 
 Khi phát sinh yêu cầu mới:
