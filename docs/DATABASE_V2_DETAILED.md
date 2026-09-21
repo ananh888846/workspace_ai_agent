@@ -2,7 +2,7 @@
 
 > Thiết kế database chi tiết chính thức cho Architecture V2.
 >
-> Trạng thái: Schema source of truth; Migration 001 → 010 đã được triển khai và verify trên PostgreSQL 18.6. Application runtime chưa triển khai trong gate này.
+> Trạng thái: **Schema source of truth — Database V2.1 CLOSED.** Migration 001 → 045 và hậu review 046 → 050 đã được verify trên PostgreSQL 18.6. Application runtime chưa triển khai.
 >
 > Tài liệu này triển khai chi tiết docs/DATABASE.md và phải nhất quán với ARCHITECTURE.md, AUTHORIZATION.md và DECISIONS.md.
 
