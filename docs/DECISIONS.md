@@ -162,3 +162,10 @@ Migration 021→030 được khóa theo source of truth hiện hành: Observatio
 **Date:** 2026-09-21 17:20 +07:00
 
 Production SQL 021→030 và acceptance AT-021→AT-030 đã được tạo theo schema lock. Chưa coi gate 021→030 là CLOSED cho đến khi chạy thực tế trên PostgreSQL 18.6 và toàn bộ acceptance PASS.
+
+
+## Decision 035 — Migration 011→033 Integration Verification Gate
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Migration 011 → 033 integration acceptance đã được chạy trên PostgreSQL 18.6 với ON_ERROR_STOP=1. AT-035 → AT-040 đều PASS (6/6). Test transaction kết thúc bằng ROLLBACK. Gate integration 011 → 033 được coi là đã verify và đóng. Production verification của từng migration block vẫn được duy trì theo gate tương ứng khi cần clean-database acceptance.
