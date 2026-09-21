@@ -111,3 +111,13 @@
 - Thêm unit contract test `tests/unit/providers/test_google_calendar_adapter.py`.
 - Chưa tạo Migration 052.
 - Chưa tích hợp Google OAuth/API runtime; bước kế tiếp là nối CredentialResolver/AccountResolver và Google Calendar API client.
+
+
+## 2026-09-21 — Google Calendar API client boundary
+
+- Thêm `app/providers/google/calendar/client.py`.
+- Client nhận credential context đã được authorize; không tự resolve account/permission/secret.
+- Định nghĩa Calendar read/write OAuth scopes.
+- Thêm unit contract test cho scope constants.
+- Đồng bộ `docs/GOOGLE_CALENDAR.md` với credential boundary và runtime dependency.
+- Chưa tạo Migration 052.
