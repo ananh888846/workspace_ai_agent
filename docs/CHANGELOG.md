@@ -1,3 +1,12 @@
+## 2026-09-21 08:16:10 +07:00
+
+### Final V2.1 documentation consistency fixes
+
+- Sửa section numbering trong `docs/SOURCE_TREE_V2.md`.
+- Đồng bộ `organization_members` trong `docs/DATABASE.md` với schema source of truth: `member_role`, composite membership key và `joined_at`.
+- Sửa migration order trong `docs/DATABASE_V2_DETAILED.md`: `users` phải được tạo trước `organization_members` để thỏa FK dependency.
+- Giữ nguyên migration gate; chưa tạo migration hoặc application runtime code.
+
 
 ## 2026-09-21 08:14:24 +07:00
 
