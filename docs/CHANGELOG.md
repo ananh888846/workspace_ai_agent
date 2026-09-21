@@ -1,3 +1,15 @@
+## 2026-09-21 09:20:00 +07:00
+
+### Migration 041–045 DDL design
+
+- Thêm [`docs/MIGRATION_041_045_DDL.md`](./MIGRATION_041_045_DDL.md).
+- Thiết kế Automation Trigger, Automation Action, Anomaly, Anomaly Evidence và Audit Log.
+- Khóa tenant integrity cho Anomaly/Evidence và audit security boundary.
+- Chốt polymorphic Evidence phải có DB-level implementation strategy trước production SQL.
+- Chốt Audit Log append-only trong normal runtime và không chứa credential/secret.
+- Ghi nhận các implementation gate còn mở: Agent ↔ Organization binding và Evidence source constraint strategy.
+- Chưa tạo SQL migration production, chưa tạo database thật và chưa thay đổi application/runtime code.
+
 ## 2026-09-21 09:10:00 +07:00
 
 ### Migration 031–040 DDL design
