@@ -1,3 +1,20 @@
+## 2026-09-21 10:10:00 +07:00 — Production SQL Migration 011 → 020
+
+- Thêm [database/migrations/011_create_resources.sql](../database/migrations/011_create_resources.sql).
+- Thêm [database/migrations/012_create_resource_permissions.sql](../database/migrations/012_create_resource_permissions.sql).
+- Thêm [database/migrations/013_create_data_packages.sql](../database/migrations/013_create_data_packages.sql).
+- Thêm [database/migrations/014_create_data_package_versions.sql](../database/migrations/014_create_data_package_versions.sql).
+- Thêm [database/migrations/015_create_data_package_resources.sql](../database/migrations/015_create_data_package_resources.sql).
+- Thêm [database/migrations/016_create_data_package_grants.sql](../database/migrations/016_create_data_package_grants.sql).
+- Thêm [database/migrations/017_create_devices.sql](../database/migrations/017_create_devices.sql).
+- Thêm [database/migrations/018_create_user_sessions.sql](../database/migrations/018_create_user_sessions.sql).
+- Thêm [database/migrations/019_create_device_users.sql](../database/migrations/019_create_device_users.sql).
+- Thêm [database/migrations/020_create_device_capabilities.sql](../database/migrations/020_create_device_capabilities.sql).
+- Bổ sung database-level resource account ownership/provider consistency bằng composite FK + trigger.
+- Bổ sung tenant boundary cho resource permissions, user sessions và device users.
+- Thêm [database/tests/acceptance_011_020.sql](../database/tests/acceptance_011_020.sql) với AT-011 → AT-022.
+- Thêm [database/tests/README_011_020.md](../database/tests/README_011_020.md).
+- **Status:** SQL đã tạo trên GitHub; **chưa chạy** trên PostgreSQL sạch. Chưa đánh dấu PASS.
 ## 2026-09-21 10:05:00 +07:00 — Migration 011 → 020 resource permission tenant hardening
 
 - Reviewed resource_permissions as an authorization boundary before SQL generation.
