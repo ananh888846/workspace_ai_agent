@@ -91,3 +91,20 @@ Knowledge retrieval phải áp dụng authorization context trước/trong Qdran
 ## Decision 022 — Webhook Does Not Perform Full Ingestion
 **Status:** Accepted  
 Webhook chỉ xác thực và ghi nhận sync event; worker thực hiện fetch/normalize/version/chunk/embed/index. Không chạy full ingestion trong HTTP webhook request.
+
+
+## Decision 023 — Organization as Tenant Boundary
+**Status:** Accepted  
+Organization là tenant/workspace boundary. User có thể thuộc nhiều Organization; membership xác định tenant eligibility nhưng không thay thế application authorization. Resource/device/activity/task/agent-communication/anomaly entities có tenant scope phải được database và runtime enforce cùng organization.
+
+## Decision 024 — Activity Session and Task Separation
+**Status:** Accepted  
+Task/Work Order là declared/assigned intent. Observation/Event/Activity Session/Activity là recorded/observed state. Activity không tự chứng minh Task hoàn thành nếu thiếu evidence.
+
+## Decision 025 — Agent-to-Agent Same-Organization Delegation
+**Status:** Accepted  
+Agent Message và Agent Task là transport/work state; Agent Permission mới quyết định delegation. V2.1 chỉ cho Agent-to-Agent delegation trong cùng Organization. Agent B vẫn chịu user/resource/capability authorization.
+
+## Decision 026 — Evidence-Based Anomaly
+**Status:** Accepted  
+Anomaly là inference về sai lệch dựa trên evidence, không phải kết luận fraud. Mỗi anomaly phải truy ngược được về source facts/events/activities/tasks/devices/resources trong cùng Organization.
