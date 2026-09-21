@@ -313,3 +313,12 @@
 - Chuẩn hóa newline trong [`app/main.py`](../app/main.py), [`.env.example`](../.env.example) và [`requirements.txt`](../requirements.txt) sau khi thêm OAuth integration.
 - Bổ sung secret cấu hình [`GOOGLE_OAUTH_STATE_SECRET`](../.env.example) và [`GOOGLE_CREDENTIAL_ENCRYPTION_KEY`](../.env.example).
 - Không tạo Migration 052.
+
+
+## 2026-09-21 — Fix Google OAuth PKCE callback
+
+- Xác định lỗi callback thực tế: Google trả `invalid_grant: Missing code verifier` vì OAuth start tạo PKCE `code_verifier` tự động nhưng callback tạo một `Flow` mới nên verifier không còn trong memory.
+- Sửa `app/infrastructure/oauth/google.py` để tạo PKCE `code_verifier` chủ động và giữ verifier trong OAuth state đã được mã hóa, đồng thời vẫn ký HMAC để chống sửa state.
+- Callback giải mã state, lấy lại đúng verifier và gửi verifier khi đổi authorization code lấy credential.
+- Không lưu PKCE verifier hoặc OAuth token vào file; state chỉ tồn tại trong vòng đời OAuth và credential sau callback vẫn được mã hóa trong PostgreSQL.
+- Không tạo Migration 052.
