@@ -185,7 +185,19 @@ Chỉ implement foundation, identity, session, AgentContext, database boundary v
 ## 8. Phase 2 boundary
 Thêm accounts, resources, authorization, credentials, provider base, Google adapter và tools. Google chỉ được gọi sau authorization.
 
-## 9. Phase 3+ domain boundaries
+## 9. Knowledge Ingestion V1 implementation boundary
+
+Knowledge ingestion bắt đầu sau Migration 051 schema lock.
+
+- `app/domain/knowledge/` chứa canonical source contract, không gọi provider.
+- `app/application/knowledge/` điều phối authorization → source/version → chunk → embedding → index.
+- `app/providers/base/` chứa provider-neutral adapter contract.
+- `app/providers/google/drive/` là provider implementation đầu tiên.
+- Provider adapter không được tự authorize hoặc resolve credential.
+- Qdrant/File Storage chỉ được gọi qua application/infrastructure ports.
+- Background worker/webhook sẽ được thêm sau khi core ingestion contract PASS.
+
+## 10. Phase 3+ domain boundaries
 
 Activity Session, Tasks, Agent-to-Agent communication và Anomaly chỉ triển khai sau khi core organization/resource/authorization boundary ổn định.
 
