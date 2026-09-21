@@ -12,7 +12,7 @@ BEGIN
  INSERT INTO users (id,name,email) VALUES (user_a,'AT User A','at011033-a@example.test'),(user_b,'AT User B','at011033-b@example.test');
  INSERT INTO organization_members (organization_id,user_id,member_role) VALUES (org_a,user_a,'owner'),(org_b,user_b,'owner');
  INSERT INTO user_accounts (id,user_id,provider,account_type,external_account_id) VALUES (uuidv7(),user_a,'google','gmail','at011033-google-a') RETURNING id INTO account_a;
- INSERT INTO resources (organization_id,owner_user_id,name,resource_type,user_account_id) VALUES (org_a,user_a,'AT Resource A','document',account_a) RETURNING id INTO resource_a;
+ INSERT INTO resources (organization_id,owner_user_id,name,resource_type,provider,user_account_id) VALUES (org_a,user_a,'AT Resource A','document','google_drive',account_a) RETURNING id INTO resource_a;
  INSERT INTO devices (organization_id,resource_id,device_uuid,device_type,name) VALUES (org_a,resource_a,uuidv7(),'esp32','AT Device A') RETURNING id INTO device_a;
  INSERT INTO user_sessions (organization_id,user_id,session_token_hash,device_id,expires_at) VALUES (org_a,user_a,'at011033-session-hash',device_a,now()+interval '1 hour') RETURNING id INTO session_a;
  INSERT INTO observations (organization_id,device_id,observation_type,raw_data,confidence) VALUES (org_a,device_a,'sensor','{"temperature":25}'::jsonb,0.99) RETURNING id INTO observation_a;
