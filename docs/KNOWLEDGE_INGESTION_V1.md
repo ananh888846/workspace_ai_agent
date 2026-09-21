@@ -1,6 +1,6 @@
 # Workspace AI Agent — KNOWLEDGE INGESTION V1
 
-> Status: Design locked — 2026-09-21
+> Status: Design locked → Migration 051 baseline verified → Runtime integration ready — 2026-09-21
 
 Đây là contract cho pipeline đưa dữ liệu bên ngoài vào Knowledge Systematization Agent. V1 triển khai Google Drive trước; Gmail, Facebook/Meta, Instagram, TikTok, Zalo, file upload và public URL dùng cùng contract khi provider capability/authorization được mở.
 
