@@ -53,7 +53,7 @@
 - Package resolver.
 - Authorization kết hợp capability + account + resource + package.
 
-## Phase 4 — Capability / Tool / First Provider
+## Phase 5 — Capability / Tool / Additional Provider
 - Capability registry.
 - Tool definition/registry/resolver.
 - Google provider adapter.
@@ -67,13 +67,14 @@
 - Audit trace đầy đủ.
 - Credential boundary được kiểm chứng.
 
-## Phase 5 — Knowledge
+## Phase 4 — Knowledge Systematization Agent (first Agent capability)
 - Ingestion pipeline.
-- Knowledge document/chunk metadata.
-- Embedding.
-- Qdrant.
+- Knowledge document/chunk metadata and versioning.
+- Normalize → chunk → embedding → Qdrant.
 - Authorized retrieval/filter.
-- Google Drive sync/ingestion theo SYNC_INGESTION.md.
+- Google first; then Facebook, TikTok, Instagram.
+- Answer and summarize from ingested knowledge.
+- Do not live-query providers for every question when knowledge is already indexed.
 
 ### Knowledge gate
 - Không retrieve dữ liệu ngoài authorization scope.
