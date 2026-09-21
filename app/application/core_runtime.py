@@ -94,6 +94,7 @@ class CredentialResolution:
     credential_type: str | None = None
     expires_at: datetime | None = None
     scopes: Any | None = None
+    credential_context: Any | None = None
 
 
 class CredentialRepository(Protocol):
