@@ -1,3 +1,9 @@
+## 2026-09-21 — Documentation V2.1 current-state synchronization
+
+- Đồng bộ trạng thái Database V2.1: Migration 001 → 050 verified trên PostgreSQL 18.6; DBR-001 → DBR-007 CLOSED; RV-001 → RV-014 PASS.
+- Chốt Knowledge Systematization Agent là capability Agent đầu tiên; Google trước, sau đó Facebook/TikTok/Instagram.
+- Các trạng thái OPEN trong changelog lịch sử giữ nguyên vì phản ánh thời điểm cũ; không đại diện current state.
+
 ## 2026-09-21 — Database V2.1 Post-Implementation Review CLOSED
 
 - Đã chạy acceptance [database/tests/acceptance_046_050.sql](../database/tests/acceptance_046_050.sql) trên PostgreSQL 18.6 với `ON_ERROR_STOP=1`.
