@@ -1,157 +1,144 @@
-# Roadmap V2
+# Workspace AI Agent — ROADMAP V2.1
+
+> Roadmap implementation chính thức. Không triển khai phase sau khi gate của phase trước chưa đạt.
 
 ## Phase 0 — Documentation / Blueprint
+- Chốt Architecture V2.1.
+- Chốt Core Contracts V2.1.
+- Chốt Database V2.1.
+- Chốt Authorization, Accounts và Data Package.
+- Chốt Source Tree.
+- Chưa tạo migration hoặc application business code.
 
-- Chốt Architecture V2.
-- Chốt Database V2.
-- Chốt Authorization.
-- Chốt Account model.
-- Chốt Data Package.
-- Chưa code business logic.
+## Phase 1 — Core Foundation
+- PostgreSQL connection/session boundary.
+- users, organizations, organization_members, user_sessions.
+- Authentication.
+- Organization/Tenant context.
+- AgentContext.
+- Request ID / trace context.
+- Core error/result contract.
+- Contract tests.
+- Chưa triển khai Google, Qdrant, CrewAI hoặc device workflow.
 
-## Phase 1 — Foundation
+### Phase 1 gate
+- Organization isolation test.
+- Session/authentication test.
+- AgentContext không chứa secret.
+- Membership không tự cấp application permission.
+- Migration/FK integrity test.
 
-- organization / tenant
-- organization membership
-- resource hierarchy
-- device ↔ resource binding / Core Contracts
+## Phase 2 — Accounts / Resources / Authorization
+- user_accounts, account_credentials.
+- roles, permissions, role_permissions, user_roles.
+- account_grants.
+- resources + parent/child hierarchy.
+- resource_permissions.
+- resources.user_account_id và provider/account consistency.
+- AccountResolver, CredentialResolver, AuthorizationService.
+- Provider base contract.
 
-Trước implementation, tạo source tree theo `docs/SOURCE_TREE_V2.md` và khóa interface theo `docs/CORE_CONTRACTS_V2.md`.
+### Phase 2 gate
+- Owner ALLOW.
+- Delegated account ALLOW.
+- Unauthorized user DENY.
+- Credential không được resolve khi DENY.
+- Provider/tool không được gọi khi DENY.
+- Parent resource không thể trỏ sang organization khác.
 
-- source tree
-- dependency direction
-- AgentContext
-- AuthenticationService
-- AuthorizationService
-- AccountResolver
-- CredentialResolver
-- ResourceAccessChecker
-- DataPackageResolver
-- CapabilityRegistry
-- ToolResolver
-- ProviderAdapter
-- AuditService
+## Phase 3 — Data Package
+- Package/version.
+- Resource membership.
+- Package grants.
+- Package resolver.
+- Authorization kết hợp capability + account + resource + package.
 
-## Phase 1 — Foundation
+## Phase 4 — Capability / Tool / First Provider
+- Capability registry.
+- Tool definition/registry/resolver.
+- Google provider adapter.
+- Gmail / Drive / Calendar tools.
+- Audit + run trace.
 
-- identity
-- session
-- AgentContext
-- request id
+### Phase 4 gate
+- Multi-account Google.
+- Account selection/default policy.
+- Provider error/rate-limit handling.
+- Audit trace đầy đủ.
+- Credential boundary được kiểm chứng.
 
-## Phase 2 — Accounts
+## Phase 5 — Knowledge
+- Ingestion pipeline.
+- Knowledge document/chunk metadata.
+- Embedding.
+- Qdrant.
+- Authorized retrieval/filter.
+- Google Drive sync/ingestion theo SYNC_INGESTION.md.
 
-- user_accounts
-- credentials
-- AccountResolver
-- Google provider đầu tiên
+### Knowledge gate
+- Không retrieve dữ liệu ngoài authorization scope.
+- Qdrant payload có tenant/resource/account/package context cần thiết.
+- SQL vẫn là source of truth cho ownership/access.
 
-## Phase 3 — Authorization
+## Phase 6 — Devices / Events / Activity
+- Device registry.
+- Device ↔ Organization ↔ Resource binding.
+- Device capabilities.
+- Observation.
+- Event.
+- Activity Session.
+- Activity.
 
-- roles
-- permissions
-- account grants
-- resources
-- resource permissions
+## Phase 7 — Tasks / Agents / Agent-to-Agent
+- Task / Work Order.
+- General / Knowledge / Activity / Device Agent.
+- Agent runs / Tool runs.
+- Agent-to-Agent Message / Task / Permission.
+- Agent execution vẫn qua Application + Authorization boundary.
 
-## Phase 4 — Data Package
+## Phase 8 — Anomaly / Automation
+- Anomaly + evidence.
+- Automation trigger/condition/action.
+- Approval, retry/idempotency khi capability cần.
 
-- package
-- version
-- resource membership
-- grants
-- resolver
+## Phase 9 — Additional Providers
+- Meta/Facebook.
+- Zalo.
+- Telegram.
+- Home Assistant.
 
-## Phase 5 — Capability / Tool
+## Phase 10 — Scale
+- workers/queue.
+- event bus.
+- caching.
+- high-volume device ingestion.
+- distributed processing.
+- partition/archive.
 
-- capability registry
-- ToolDefinition
-- ToolResolver
-- Google Gmail/Drive/Calendar
+## Framework boundary
+LangChain/CrewAI chỉ được đưa vào khi Core Contracts đã chạy ổn định. Framework không sở hữu authorization, credential access hoặc tenant isolation.
 
-## Phase 6 — Runtime verification
+## Migration gate
 
-Kiểm tra runtime thực tế trước khi mở rộng:
-
-1. application startup;
-2. Drive search/read;
-3. Gmail search/read;
-4. Calendar;
-5. nhiều Google Account;
-6. account delegation;
-7. Data Package access;
-8. audit/trace.
-
-## Phase 7 — Knowledge
-
-- ingestion
-- document/chunk metadata
-- embedding
-- Qdrant
-- authorized retrieval
-
-## Phase 8 — Devices / Events
-
-- device registry
-- Organization / Resource binding
-- ESP32-CAM
-- observations
-- events
-- activities
-- activity sessions
-
-- device registry
-- ESP32-CAM
-- observations
-- events
-- activities
-
-## Phase 9 — Agents
-
-- General Agent
-- Knowledge Agent
-- Activity Agent
-- Device Agent
-- Agent-to-Agent Message/Task/Permission
-- Task / Work Order
-- Anomaly Detection
-
-- General Agent
-- Knowledge Agent
-- Activity Agent
-- Device Agent
-
-## Phase 10 — LangChain / CrewAI
-
-- LangChain primitives
-- RAG/tool calling
-- CrewAI multi-agent workflow
-
-## Phase 11 — Automation
-
-- triggers
-- conditions
-- actions
-- scheduler/retry khi cần
-
-## Phase 12 — Additional Providers
-
-- Facebook/Meta
-- Zalo
-- Telegram
-- Home Assistant
-
-## Phase 13 — Scale
-
-Chỉ sau khi runtime ổn định mới cân nhắc queue/event bus, caching, workers, webhook sync, distributed processing và high-volume device ingestion.
+ARCHITECTURE V2.1
+  ↓
+CORE CONTRACTS V2.1
+  ↓
+DATABASE_V2_DETAILED.md
+  ↓
+ERD_V2.md
+  ↓
+FK / UNIQUE / CHECK
+  ↓
+INDEX
+  ↓
+MIGRATION ORDER
+  ↓
+PostgreSQL migration
+  ↓
+Phase 1 implementation
+  ↓
+Runtime verification
 
 ## Nguyên tắc rollout
-
-Không triển khai phase sau khi phase trước chưa có test/verification phù hợp. Không thêm provider chỉ để tăng số lượng trong khi authorization và data package chưa ổn định.
-
-
-## V2.1 Gate
-
-Trước khi tạo migration, phải review và khóa: Organization/Tenant; Resource hierarchy; Device ↔ Resource ↔ Organization; Activity Session; Task/Work Order; Agent-to-Agent communication; Anomaly + evidence.
-
-Chỉ sau gate này mới chuyển Database V2.1 sang migration contract.
+Không thêm domain chỉ để làm cây thư mục đầy đủ. Mỗi capability mới phải đi qua: Decision → Domain design → Database contract → Migration → Runtime verification.
