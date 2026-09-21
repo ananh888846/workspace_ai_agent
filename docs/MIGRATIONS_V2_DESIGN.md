@@ -1,6 +1,7 @@
 # MIGRATIONS_V2_DESIGN.md
 
-> Trạng thái: Thiết kế migration — chưa chạy production.
+> Trạng thái: SQL migration 001 → 010 đã được tạo; chưa chạy trên PostgreSQL sạch.
+> Target PostgreSQL: 18+ (native `uuidv7()`).
 > Ngày: 2026-09-21
 
 ## 1. Mục tiêu
