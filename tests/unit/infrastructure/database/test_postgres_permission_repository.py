@@ -63,3 +63,27 @@ def test_account_access_does_not_touch_credentials():
 
     query, _ = connection.cursor_instance.executed
     assert "account_credentials" not in query
+
+
+def test_account_access_allows_pending_oauth_metadata():
+    connection = FakeConnection((True,))
+    repo = PostgresPermissionRepository(connection)
+    account = ExternalAccount(
+        id="acc-pending",
+        user_id="user-1",
+        provider="google",
+        account_type="google_calendar",
+        external_account_id="local-calendar-oauth-pending",
+        status="pending_oauth",
+    )
+
+    assert repo.has_account_access(
+        organization_id="org-1",
+        user_id="user-1",
+        account=account,
+        capability="calendar.read",
+    ) is True
+
+    query, _ = connection.cursor_instance.executed
+    assert "ua.status IN ('active', 'pending_oauth')" in query
+    assert "account_credentials" not in query
