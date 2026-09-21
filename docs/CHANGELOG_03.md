@@ -98,3 +98,15 @@
 - Cung cấp `utc_now()`, `to_utc()` và `to_vietnam_time()`.
 - `to_utc()` và `to_vietnam_time()` từ chối datetime không có timezone để tránh lặp lại lỗi naive/aware.
 - Calendar và các domain mới về sau phải dùng utility này thay vì tự xử lý timezone riêng.
+
+
+## 2026-09-21 — Calendar Read V1 CLOSED
+
+- Đã runtime verification thực tế qua `POST /api/v1/agent/chat` với yêu cầu đọc lịch.
+- Classification `calendar.read` đúng; AccountResolver, Authorization, CredentialResolver và ToolResolver đều đi đúng thứ tự.
+- Google Calendar API v3 được gọi thực tế và trả về 2 event.
+- HTTP UTF-8 hiển thị đúng tiếng Việt.
+- Khung thời gian đọc dùng `Asia/Ho_Chi_Minh` và tuân thủ chuẩn UTC của database.
+- Đánh dấu **Calendar Read V1 — CLOSED / E2E PASS**.
+- Các tài liệu đã cập nhật: [docs/GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md), [docs/DECISIONS.md](./DECISIONS.md), [app/api/chat.py](../app/api/chat.py), [app/core/datetime.py](../app/core/datetime.py).
+- Phase tiếp theo tách riêng: Calendar Write V1 và Calendar webhook/push sync.
