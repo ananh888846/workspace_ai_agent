@@ -265,3 +265,22 @@ Google OAuth được triển khai như integration boundary, không bypass Core
 - Application/presentation chuyển UTC sang `Asia/Ho_Chi_Minh` (GMT+7) khi hiển thị cho người dùng.
 - Provider timezone chỉ là boundary concern và không thay đổi chuẩn timestamp của database.
 - Dùng utility thời gian chung thay vì tự xử lý timezone rải rác trong từng domain.
+
+
+## Decision 047 — Google Calendar Read V1 CLOSED
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Google Calendar Read V1 đã hoàn tất runtime verification thực tế qua `POST /api/v1/agent/chat`.
+
+- Classification: `calendar.read`.
+- AccountResolver: resolve đúng Google account.
+- Authorization: `allow`.
+- CredentialResolver: `ready`.
+- ToolResolver/Calendar provider: được gọi thực tế.
+- Google Calendar API v3: trả về 2 event thực tế trong ngày kiểm thử.
+- HTTP UTF-8: tiếng Việt hiển thị đúng.
+- Timezone hiển thị: `Asia/Ho_Chi_Minh`.
+- Không tạo Migration 052.
+
+Calendar Read V1 được **CLOSED**. Calendar Write V1 và webhook/sync vẫn là các phase riêng.
