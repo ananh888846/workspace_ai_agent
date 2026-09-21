@@ -25,3 +25,12 @@
 - Đề xuất 6 lớp schema: knowledge_sources, knowledge_documents, knowledge_document_versions, knowledge_document_version_sources, knowledge_assets và knowledge_chunks gắn document version.
 - Chốt PostgreSQL là source of truth, File Storage là binary store, Qdrant là retrieval/index layer.
 - Chưa viết production SQL Migration 051 cho đến khi các policy còn mở được chốt.
+
+## 2026-09-21 — Migration 051 Schema Design Lock
+- Chốt Migration 051 theo kiến trúc provider-neutral và multi-source; Google Drive chỉ là provider đầu tiên.
+- Xác nhận schema phải hỗ trợ Facebook/Meta, Instagram, TikTok, Gmail, Zalo, upload, public URL và provider tương lai.
+- Chốt canonical text/chunk trong PostgreSQL; binary qua File Storage.
+- Chốt source có thể tạm thời chưa có resource; không được bypass authorization.
+- Chốt derived knowledge hỗ trợ nhiều source qua `knowledge_document_version_sources`.
+- Chốt retention giữ lịch sử version và không cascade hard-delete.
+- Design Lock = APPROVED. Bước tiếp theo: production SQL Migration 051 + acceptance tests + PostgreSQL verification.
