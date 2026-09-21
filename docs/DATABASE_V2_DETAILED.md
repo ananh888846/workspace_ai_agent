@@ -135,6 +135,11 @@ Các domain có ownership/lifecycle trực tiếp theo tenant phải mang `organ
 
 - `resources`
 - `devices`
+- `account_grants`
+- `data_packages`
+- `data_package_versions`
+- `data_package_resources`
+- `data_package_grants`
 - `events`
 - `activity_sessions`
 - `activities`
@@ -365,8 +370,10 @@ Cho phép một User sử dụng external account của User khác.
 
 Business constraints:
 
+- `(organization_id, owner_user_id)` và `(organization_id, grantee_user_id)` phải thuộc `organization_members` của cùng organization.
 - `(user_account_id, owner_user_id)` phải được enforce bằng composite FK tới `user_accounts(id, user_id)`; không chỉ kiểm tra ở application.
 - owner_user_id phải là owner thực tế của user_account_id.
+- Account grant là tenant-scoped; một grant chỉ có hiệu lực trong `organization_id` ghi trên grant.
 - grantee_user_id là User được cấp quyền.
 - Với account-backed resource, resources.user_account_id phải trỏ đúng external account cung cấp resource.
 - Resource local không có external account có thể để user_account_id = NULL nếu provider contract cho phép.
@@ -390,7 +397,7 @@ Ví dụ Google Drive file, Google Calendar, Home Assistant entity hoặc Facebo
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| organization_id | UUID | YES | NULL | FK, INDEX |\n| parent_resource_id | UUID | YES | NULL | FK, INDEX |\n| resource_type | VARCHAR(100) | NO | — | INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |\n| parent_resource_id | UUID | YES | NULL | FK, INDEX |\n| resource_type | VARCHAR(100) | NO | — | INDEX |
 | provider | VARCHAR(64) | NO | — | INDEX |
 | external_id | VARCHAR(255) | NO | — | INDEX |
 | user_account_id | UUID | YES | NULL | FK, INDEX |
@@ -446,12 +453,12 @@ Resource permission không tự tạo capability permission.
 
 ## 8.2 data_package_versions
 
-Package phải versioned.
+Package phải versioned. Version thuộc cùng organization với package.
 
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| data_package_id | UUID | NO | — | FK, INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |\n| data_package_id | UUID | NO | — | FK, INDEX |
 | version | INTEGER | NO | — | |
 | status | VARCHAR(32) | NO | draft | INDEX |
 | created_by | UUID | NO | — | FK |
@@ -1106,6 +1113,7 @@ Authorization:
 
 - user_roles(user_id)
 - user_roles(role_id)
+- account_grants(organization_id)
 - account_grants(owner_user_id)
 - account_grants(grantee_user_id)
 - account_grants(user_account_id)
@@ -1117,6 +1125,7 @@ Authorization:
 
 Resource:
 
+- resources(organization_id)
 - resources(owner_user_id)
 - resources(user_account_id)
 - resources(provider)
@@ -1126,10 +1135,14 @@ Resource:
 
 Package:
 
+- data_packages(organization_id)
 - data_packages(owner_user_id)
+- data_package_versions(organization_id)
 - data_package_versions(data_package_id)
+- data_package_resources(organization_id, package_version_id)
 - data_package_resources(package_version_id)
 - data_package_resources(resource_id)
+- data_package_grants(organization_id, package_version_id)
 - data_package_grants(package_version_id)
 - data_package_grants(user_id)
 - data_package_grants(expires_at)
@@ -1194,6 +1207,14 @@ resources.owner_user_id phải là User sở hữu resource theo provider synchr
 
 Các resource/device/task/agent references có organization scope phải dùng composite FK `(referenced_id, organization_id)` ở những quan hệ cần database-enforced tenant isolation.
 
+## Data Package tenant integrity
+
+- `data_packages.organization_id` là bắt buộc.
+- `data_package_versions.organization_id` phải trùng package.
+- `data_package_resources.organization_id` phải trùng package version và resource.
+- `data_package_grants.organization_id` phải trùng package version và user phải thuộc organization.
+- Package không được chứa resource khác organization.
+
 ## Package version
 
 Không cho phép duplicate:
@@ -1222,8 +1243,13 @@ Resource có provider/external account phải tham chiếu user_account tương 
 
 ## Organization integrity
 
+- `account_grants.organization_id` phải có owner và grantee là member của cùng organization.
+- `resources.organization_id` và `devices.organization_id` là NOT NULL.
 - `resources.parent_resource_id` phải tham chiếu resource cùng `organization_id`.
 - `devices.resource_id` phải tham chiếu resource cùng `organization_id`.
+- `data_package_versions` phải tham chiếu package cùng `organization_id`.
+- `data_package_resources` phải tham chiếu package version và resource cùng `organization_id`.
+- `data_package_grants` phải tham chiếu package version và member cùng `organization_id`.
 - Các bảng V2.1 có `organization_id` phải reject foreign reference khác organization.
 - `agent_permissions` không cho phép grantor/grantee khác organization.
 - `anomaly_evidence` không được tham chiếu source khác organization.
@@ -1574,8 +1600,10 @@ Schema chỉ ready for implementation khi:
 - [ ] Role-to-permission mapping được khóa.
 - [ ] Organization tenant boundary và scope rules được khóa.
 - [ ] Account grant model được khóa.
+- [ ] Account grant organization scope được khóa.
 - [ ] Resource authorization được khóa.
 - [ ] Data Package versioning được khóa.
+- [ ] Data Package organization scope được khóa.
 - [ ] Device identity tách khỏi User.
 - [ ] Observation/Event/Activity Session/Activity tách biệt.
 - [ ] Task/Work Order và Activity reconciliation được xác định.
@@ -1674,7 +1702,7 @@ DATABASE_V2_DETAILED.md là schema design blueprint V2.1, chưa phải implement
 
 Schema V2 đã được review nội bộ theo các dependency và authorization invariants; các điểm bắt buộc gồm role-to-permission mapping, resource-to-account binding và migration FK order.
 
-Schema V2.1 chốt thêm: `role_permissions`, composite ownership FK cho `account_grants`, resource/provider-account consistency, organization scope và migration numbering không trùng. Migration order được kiểm tra theo dependency FK, đặc biệt `users` phải được tạo trước `organization_members`.
+Schema V2.1 chốt thêm: `role_permissions`, composite ownership FK cho `account_grants`, account-grant organization scope, data-package organization scope, resource/provider-account consistency, `resources.organization_id`/`devices.organization_id` bắt buộc và migration numbering không trùng. Migration order được kiểm tra theo dependency FK, đặc biệt `users` phải được tạo trước `organization_members`.
 
 Trình tự tiếp theo:
 
