@@ -131,6 +131,8 @@ Các composite FK dưới đây là database-level requirement, không phải ap
 - `user_sessions(device_id, organization_id) → devices(id, organization_id)` khi device không NULL.
 - `device_users(device_id, organization_id) → devices(id, organization_id)`.
 - `device_users(organization_id, user_id) → organization_members(organization_id, user_id)`.
+- `resource_permissions(resource_id, organization_id) → resources(id, organization_id)`.
+- `resource_permissions(organization_id, user_id) → organization_members(organization_id, user_id)`.
 - Tenant-scoped Activity/Task/A2A relations phải dùng cùng pattern `(id, organization_id)` hoặc equivalent database constraint để ngăn cross-organization reference.
 
 Các bảng được target bởi composite FK phải có UNIQUE key tương ứng, ví dụ `UNIQUE(id, organization_id)`.
@@ -1803,3 +1805,8 @@ Không tạo migration trước khi Database V2 được chốt.
 # V2.1 Migration 011 → 020 Review Correction — 2026-09-21 10:00:00 +07:00
 
 Before production SQL, the schema source of truth was hardened so session/device/user relationships cannot cross organization boundaries. Resource account ownership is also enforced with a composite ownership FK; provider/account compatibility remains a database-level invariant.
+
+
+## Migration 011 → 020 Additional Tenant Lock — 2026-09-21 10:05:00 +07:00
+
+resource_permissions is tenant-scoped and cannot grant a resource to a user from another organization.
