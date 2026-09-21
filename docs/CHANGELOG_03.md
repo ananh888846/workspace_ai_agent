@@ -32,3 +32,10 @@
 - Tất cả ghi chú/comment/docstring trong file `.py` phải viết bằng tiếng Việt.
 - Khi sửa code Python, không thêm comment/docstring tiếng Anh trừ nội dung bắt buộc của tên thư viện, API hoặc protocol.
 - Quy tắc này phải được duy trì trong các lần sửa code tiếp theo và được ghi nhận trong tài liệu/changelog liên quan.
+## 2026-09-21 — Google OAuth không mở rộng scope đã cấp trước đó
+
+- Sửa `app/infrastructure/oauth/google.py` để OAuth Calendar không gửi `include_granted_scopes=true`.
+- Mục tiêu là tránh Google gộp các scope đã từng cấp cho cùng OAuth client như `drive.readonly` hoặc `gmail.readonly` vào token response của phiên Calendar hiện tại.
+- Authorization request vẫn lưu đúng bộ scope của phiên trong state và callback vẫn dùng chính bộ scope đó.
+- Không thay đổi `credentials.json`; file này tiếp tục chỉ chứa cấu hình OAuth client.
+- Commit: `b57d7ec3a2b23337a12d0269a493be744eb89771`.
