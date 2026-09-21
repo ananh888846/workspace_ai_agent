@@ -24,6 +24,7 @@
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
 | device_id | UUID | NO | — | FK, INDEX |
 | observation_type | VARCHAR(100) | NO | — | INDEX |
 | raw_data | JSONB | NO | {} | |
@@ -31,7 +32,9 @@
 | created_at | TIMESTAMPTZ | NO | now() | INDEX |
 
 Required:
+- organization_id → organizations.id
 - device_id → devices.id
+- (device_id, organization_id) → devices(id, organization_id)
 - CHECK confidence BETWEEN 0 AND 1 when present
 - INDEX(device_id, created_at)
 
@@ -63,6 +66,8 @@ Required integrity:
 - user_id → users.id when present
 - device_id → devices.id when present
 - resource_id → resources.id when present
+- (device_id, organization_id) → devices(id, organization_id) when present
+- (resource_id, organization_id) → resources(id, organization_id) when present
 - CHECK confidence BETWEEN 0 AND 1 when present
 - event_uuid UNIQUE for idempotent ingestion
 
@@ -102,6 +107,8 @@ Required:
 - user_id → users.id
 - resource_id → resources.id
 - source_event_id → events.id
+- (resource_id, organization_id) → resources(id, organization_id) when present
+- (source_event_id, organization_id) → events(id, organization_id) when present
 - CHECK ended_at >= started_at when ended_at is present
 - CHECK duration_seconds >= 0
 - CHECK confidence BETWEEN 0 AND 1
@@ -140,6 +147,9 @@ Required:
 - resource_id → resources.id when present
 - source_event_id → events.id when present
 - activity_session_id → activity_sessions.id when present
+- (resource_id, organization_id) → resources(id, organization_id) when present
+- (source_event_id, organization_id) → events(id, organization_id) when present
+- (activity_session_id, organization_id) → activity_sessions(id, organization_id) when present
 - all tenant-scoped references must match organization_id
 - CHECK ended_at >= started_at
 - CHECK confidence BETWEEN 0 AND 1
@@ -155,19 +165,36 @@ Delete policy: RESTRICT.
 
 ## 6. Migration 025 — tasks
 
-The exact Task/Work Order columns are taken from the V2.1 contract. Task must remain separate from Activity.
+Task/Work Order schema is locked to the V2.1 source of truth. Task must remain separate from Activity.
 
-Required logical fields:
-- id UUID PK
-- organization_id UUID NOT NULL
-- created_by/user or actor reference according to final Task contract
-- title/type/action fields
-- status
-- priority
-- requested/started/completed timestamps
-- activity_session/activity reconciliation references where applicable
-- result/error metadata
-- created_at/updated_at
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
+| parent_task_id | UUID | YES | NULL | FK, INDEX |
+| created_by_user_id | UUID | NO | — | FK, INDEX |
+| assigned_user_id | UUID | YES | NULL | FK, INDEX |
+| title | VARCHAR(500) | NO | — | |
+| description | TEXT | YES | NULL | |
+| task_type | VARCHAR(100) | NO | — | INDEX |
+| priority | INTEGER | NO | 0 | INDEX |
+| status | VARCHAR(32) | NO | pending | INDEX |
+| resource_id | UUID | YES | NULL | FK, INDEX |
+| source_event_id | UUID | YES | NULL | FK, INDEX |
+| due_at | TIMESTAMPTZ | YES | NULL | INDEX |
+| started_at | TIMESTAMPTZ | YES | NULL | |
+| completed_at | TIMESTAMPTZ | YES | NULL | |
+| metadata | JSONB | NO | {} | |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
+| updated_at | TIMESTAMPTZ | NO | now() | |
+
+Required:
+- organization_id → organizations.id
+- created_by_user_id must be a member of organization
+- assigned_user_id, when present, must be a member of organization
+- parent_task_id, resource_id and source_event_id must resolve within organization
+- CHECK completed_at >= started_at when both exist
+- parent_task_id must not equal id
 
 Mandatory constraints:
 - organization_id → organizations.id
@@ -381,10 +408,10 @@ Runtime authorization tests:
 - [x] Cross-tenant Event/Activity references require DB-level enforcement.
 - [x] Temporal and confidence/importance/token/chunk checks are defined where source schema specifies them.
 - [x] Secrets are prohibited from conversation/tool/knowledge content.
-- [ ] Exact Task column list must be confirmed from the finalized Task source-of-truth before production SQL is generated.
+- [x] Exact Task column list is confirmed from the finalized V2.1 source-of-truth.
 - [x] No production SQL, database, provider call or runtime code is introduced.
 
-Kết luận: Migration 021 → 030 đã được thiết kế ở mức DDL contract. Trước SQL implementation, Task schema phải được chốt đúng theo source-of-truth hiện hành; không tự mở rộng schema trong bước SQL.
+Kết luận: Migration 021 → 030 đã được review ở mức DDL contract. Tenant composite FK và Task schema đã được chốt; chưa tạo production SQL.
 
 
 ---
@@ -392,3 +419,13 @@ Kết luận: Migration 021 → 030 đã được thiết kế ở mức DDL con
 # Migration Review Lock — 2026-09-21 09:35 +07:00
 
 Migration 021 thêm organization_id cho observations. Migration 025 khóa explicit Task/Work Order columns: id, organization_id, parent_task_id, created_by_user_id, assigned_user_id, title, description, task_type, priority, status, resource_id, source_event_id, due_at, started_at, completed_at, metadata, created_at, updated_at. Parent/resource/source-event phải cùng tenant; completed_at không được sớm hơn started_at. Task schema gate đã đóng.
+
+
+# Migration 021 → 030 Review Lock — 2026-09-21
+
+- Observation đã được chốt tenant-scoped bằng `organization_id` và composite FK tới `devices`.
+- Event, Activity Session và Activity phải dùng composite tenant FK cho mọi reference có organization scope.
+- Task/Work Order dùng exact column list đã khóa trong V2.1 contract; không tự thêm column ngoài source of truth.
+- Conversation/Memory vẫn là user-owned history; không tự thêm organization_id chỉ để đồng bộ hình thức.
+- Knowledge authorization lấy Resource/Package SQL authorization làm source of truth; Qdrant không cấp quyền.
+- Chưa tạo production SQL; acceptance gate AT-021 → AT-030 vẫn mở.
