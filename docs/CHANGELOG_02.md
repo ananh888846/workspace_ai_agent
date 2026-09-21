@@ -203,3 +203,13 @@
 - Thêm docs/API_PHASE2.md.
 - Bổ sung runtime dependencies trong requirements.txt.
 - Phase 2A = DONE. Phase 2B bắt đầu bằng AccountResolver runtime wiring.
+
+
+## 2026-09-21 — Phase 2B — AccountResolver runtime wiring
+- Thêm database connection boundary bằng psycopg.
+- Nối POST /api/v1/agent/chat với PostgresAccountRepository + AccountResolver khi request có account_hint.
+- Bổ sung X-User-ID và X-Organization-ID làm AgentContext test/runtime context; không tự cấp quyền.
+- Xử lý account_not_found và account_selection_required.
+- Không đọc account_credentials, không authorize và không gọi provider.
+- Bổ sung API tests và đồng bộ docs/API_PHASE2.md.
+- Phase 2B = DONE. Phase 2C = PostgreSQL Authorization runtime.
