@@ -1,6 +1,9 @@
-# Workspace AI Agent — DATABASE V2.1
+# Workspace AI Agent — DATABASE V2.1 Overview
 
-> Blueprint database chính thức. Chưa tạo migration hoặc bảng thật.
+> Database overview và domain map.
+>
+> **Schema source of truth:** `docs/DATABASE_V2_DETAILED.md`.
+> File này không định nghĩa lại column/type/FK/index/migration chi tiết; khi có khác biệt, DATABASE_V2_DETAILED.md là tài liệu phải được cập nhật trước.
 
 ## 1. Principles
 
@@ -219,9 +222,6 @@ id, organization_id, user_id, resource_id, session_type, started_at, ended_at, d
 ### activities
 id, organization_id, user_id, activity_type, resource_id, started_at, ended_at, status, confidence, source_event_id, activity_session_id, metadata, created_at
 
-### activities
-id, user_id, activity_type, started_at, ended_at, status, confidence, source_event_id, metadata, created_at
-
 ~~~text
 Observation → Event → Activity Session → Activity
 ~~~
@@ -336,3 +336,11 @@ id, request_id, user_id, device_id, action, resource_type, resource_id, account_
 Trước migration phải chốt Architecture V2.1 → Database V2.1 → ERD → FK/UNIQUE/CHECK → INDEX → Migration Order → implementation → Runtime Verification.
 
 Domain-specific tables như medication, prescription, social posts và advanced home automation chỉ thêm khi capability được duyệt.
+
+
+## Schema governance
+
+- `DATABASE_V2_DETAILED.md` là source of truth cho schema.
+- `DATABASE.md` chỉ mô tả domain, quan hệ cấp cao, nguyên tắc và rollout.
+- `ERD_V2.md` mô tả relationship trực quan; không thay thế schema chi tiết.
+- Mọi thay đổi schema phải cập nhật DATABASE_V2_DETAILED.md, ERD_V2.md nếu quan hệ thay đổi, DECISIONS.md nếu là architectural decision và CHANGELOG.md.
