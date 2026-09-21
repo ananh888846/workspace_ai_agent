@@ -113,3 +113,8 @@ Anomaly là inference về sai lệch dựa trên evidence, không phải kết 
 ## Decision 027 — Account Grant and Data Package Tenant Scope
 **Status:** Accepted  
 `account_grants` và Data Package là tenant-scoped trong V2.1. Account grant phải có `organization_id` và owner/grantee cùng là member của organization. `data_packages`, versions, package resources và package grants mang cùng `organization_id`; package không được chứa resource hoặc cấp grant ra ngoài organization. `resources.organization_id` và `devices.organization_id` là bắt buộc.
+
+
+## Decision 028 — CHANGELOG Must Link Changed/Added Files
+**Status:** Accepted  
+Mỗi entry trong `docs/CHANGELOG.md` khi ghi nhận file được thêm hoặc thay đổi phải gắn Markdown link trực tiếp tới file trong repository. Quy tắc này áp dụng cho mọi thay đổi documentation/code được ghi vào CHANGELOG, để từ changelog có thể mở thẳng file liên quan. Không ghi tên file dạng plain text nếu file có thể được link nội bộ.
