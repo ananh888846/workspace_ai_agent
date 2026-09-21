@@ -1,3 +1,13 @@
+## 2026-09-21 08:52:00 +07:00
+
+### Migration 011–020 DDL design
+
+- Thêm `docs/MIGRATION_011_020_DDL.md`.
+- Thiết kế chi tiết Resources, Resource Permissions, Data Package, Package Versions/Resources/Grants, Devices, User Sessions, Device Users và Device Capabilities.
+- Khóa composite tenant integrity cho Resource hierarchy, Data Package, Package Resource/Grant và Device → Resource.
+- Bổ sung acceptance tests cho cross-organization insertion, resource/account consistency, session integrity và device capability mapping.
+- Chưa tạo SQL migration production, chưa tạo database thật và chưa thay đổi application/runtime code.
+
 ## 2026-09-21 08:45:00 +07:00
 
 ### Migration 001–010 DDL design
