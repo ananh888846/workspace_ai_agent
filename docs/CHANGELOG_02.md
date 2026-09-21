@@ -79,3 +79,8 @@
 - Đóng Migration 051 DB Gate.
 - Cập nhật các Knowledge contract/status docs để phản ánh runtime state thực tế.
 - Bước tiếp theo: Knowledge Ingestion V1 runtime integration, bắt đầu với Google Drive happy path.
+## 2026-09-21 — Docs synchronization check after Migration 051 PASS
+- Kiểm tra lại các tài liệu Knowledge V1 trên GitHub sau khi Migration 051 và acceptance AT-051-01..11 đã PASS.
+- Phát hiện `docs/KNOWLEDGE_INGESTION_V1.md` còn ghi trạng thái đầu tài liệu là `Design locked`, chưa phản ánh rõ DB gate đã đóng và runtime integration đã sẵn sàng.
+- Đồng bộ trạng thái thành: Design locked → Migration 051 baseline verified → Runtime integration ready.
+- Không thay đổi schema/migration 001–051.
