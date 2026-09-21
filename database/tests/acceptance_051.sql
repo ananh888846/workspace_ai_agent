@@ -128,10 +128,18 @@ BEGIN
   );
 
   -- AT-051-10: cross-tenant provenance is rejected.
+  -- Use an org_b source so the composite PK does not mask the FK check.
   BEGIN
+    INSERT INTO knowledge_sources(
+      id,organization_id,user_account_id,provider,resource_type,external_id,status
+    ) VALUES(
+      source_b,org_b,NULL,'public_url','url','cross-tenant-source','active'
+    );
+
     INSERT INTO knowledge_document_version_sources(
       organization_id,document_version_id,source_id,relation_type
-    ) VALUES(org_b,version_b,source_a,'supporting');
+    ) VALUES(org_a,version_b,source_b,'supporting');
+
     RAISE EXCEPTION 'AT-051-10 FAIL: cross-tenant provenance accepted';
   EXCEPTION WHEN foreign_key_violation THEN NULL;
   END;
