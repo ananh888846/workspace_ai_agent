@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE roles (
-  id UUID PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuidv7(),
   name VARCHAR(100) NOT NULL UNIQUE,
   description TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
