@@ -22,7 +22,7 @@
 | Qdrant | `QDRANT_URL`, `QDRANT_COLLECTION` | Knowledge retrieval |
 | Ollama | `OLLAMA_BASE_URL` + model names | LLM/vision/embedding |
 | File Storage | `FILE_STORAGE_DRIVER`, `FILE_STORAGE_PATH` | Binary/asset storage |
-| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | OAuth application |
+| Google OAuth | `GOOGLE_CREDENTIALS_FILE`, `GOOGLE_TOKEN_DIR`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | OAuth application + local credential files |
 | Calendar | `GOOGLE_CALENDAR_*_SCOPE` | Calendar OAuth scopes |
 
 ## 3. Khi chưa có Google OAuth
@@ -49,8 +49,40 @@ Nếu Agent chạy ngoài Docker, thay hostname bằng endpoint phù hợp.
 
 ## 6. Google OAuth
 
-Sau này tạo `.env` từ `.env.example` và điền Client ID/Secret/Redirect URI.
-OAuth token của từng Google account **không** đi vào `.env`; token thuộc credential layer.
+### 6.1 Cấu trúc file local
+
+Không commit các file OAuth thật. Local runtime dùng:
+
+```text
+data/
+└── google/
+    ├── credentials.json
+    └── token.json
+```
+
+- `credentials.json`: OAuth client configuration tải từ Google Cloud.
+- `token.json`: token local phát sinh sau OAuth flow, nếu flow dùng file token.
+- Cả hai đều thuộc local secret/runtime data và không được commit.
+
+Trong Docker, thư mục được ánh xạ thành:
+
+```text
+/app/data/google/credentials.json
+/app/data/google/token.json
+```
+
+Cấu hình:
+
+- `GOOGLE_CREDENTIALS_FILE=/app/data/google/credentials.json`
+- `GOOGLE_TOKEN_DIR=/app/data/google`
+
+### 6.2 Boundary
+
+Sau này tạo `.env` từ `.env.example` và điền Client ID/Secret/Redirect URI khi OAuth application cần dùng.
+
+OAuth access/refresh token của từng Google account **không** đi vào `.env`; credential thuộc credential layer và được truy cập qua `CredentialResolver`.
+
+Nếu dùng local OAuth bootstrap, `credentials.json` chỉ là input cho OAuth flow; không được coi nó là credential của một user cụ thể.
 
 ## 7. Thứ tự triển khai
 
