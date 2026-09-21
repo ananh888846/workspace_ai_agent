@@ -1,3 +1,15 @@
+## 2026-09-21 08:35:52 +07:00
+
+### V2.1 tenant isolation hardening
+
+- Chốt `account_grants` là tenant-scoped: thêm `organization_id` và yêu cầu owner/grantee cùng thuộc organization.
+- Chốt Data Package là tenant-scoped: `data_packages`, versions, package resources và package grants mang `organization_id`.
+- Siết `resources.organization_id` và `devices.organization_id` thành bắt buộc.
+- Bổ sung composite tenant integrity rules cho Account Grant và Data Package.
+- Đồng bộ `DATABASE_V2_DETAILED.md`, `DATABASE.md`, `ERD_V2.md`, `MIGRATION_CONTRACT_V2.md`, `ARCHITECTURE.md` và `DECISIONS.md`.
+- Sửa numbering trong `ARCHITECTURE.md`.
+- Chưa tạo migration/database/runtime code.
+
 ## 2026-09-21 — Migration Contract V2.1 locked
 
 - Thêm `docs/MIGRATION_CONTRACT_V2.md` làm contract chính thức trước migration implementation.
