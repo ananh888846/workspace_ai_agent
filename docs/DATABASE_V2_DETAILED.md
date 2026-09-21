@@ -781,6 +781,7 @@ Trace một lần Agent xử lý request.
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
 | request_id | UUID | NO | — | INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |
 | user_id | UUID | NO | — | FK, INDEX |
 | agent_id | UUID | NO | — | FK, INDEX |
 | conversation_id | UUID | YES | NULL | FK, INDEX |
@@ -965,6 +966,7 @@ Trace security-sensitive operation.
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
 | request_id | UUID | NO | — | INDEX |
+| organization_id | UUID | YES | NULL | FK, INDEX |
 | user_id | UUID | YES | NULL | FK, INDEX |
 | device_id | UUID | YES | NULL | FK, INDEX |
 | capability | VARCHAR(100) | YES | NULL | INDEX |
@@ -1186,6 +1188,12 @@ Không tạo quá nhiều index trước khi có query thực tế.
 
 resources.owner_user_id phải là User sở hữu resource theo provider synchronization policy.
 
+`resources` phải có UNIQUE(id, organization_id) để hỗ trợ composite FK cho parent/resource references.
+
+`devices` phải có UNIQUE(id, organization_id) để hỗ trợ composite FK khi bind device → resource.
+
+Các resource/device/task/agent references có organization scope phải dùng composite FK `(referenced_id, organization_id)` ở những quan hệ cần database-enforced tenant isolation.
+
 ## Package version
 
 Không cho phép duplicate:
@@ -1265,30 +1273,30 @@ Resource có provider/external account phải tham chiếu user_account tương 
 025 tasks
 
 026 conversations
-025 messages
-026 memories
+027 messages
+028 memories
 
-028 knowledge_documents
+029 knowledge_documents
 029 knowledge_chunks
 
-030 agents
-031 agent_capabilities
-032 tools
-033 tool_capabilities
-034 agent_runs
-035 tool_runs
-036 agent_messages
-037 agent_tasks
-038 agent_permissions
+031 agents
+032 agent_capabilities
+033 tools
+034 tool_capabilities
+035 agent_runs
+036 tool_runs
+037 agent_messages
+038 agent_tasks
+039 agent_permissions
 
-039 automations
-040 automation_triggers
-041 automation_actions
+040 automations
+041 automation_triggers
+042 automation_actions
 
-042 anomalies
-043 anomaly_evidence
+043 anomalies
+044 anomaly_evidence
 
-044 audit_logs
+045 audit_logs
 
 Đây là logical rollout order. Tên migration thực tế sẽ theo framework được chọn sau khi source architecture được chốt.
 
