@@ -80,6 +80,10 @@ Permanent: invalid source, unsupported content type, authorization denied, accou
 ## 17. Observability
 Trace request_id, job_id, organization_id, user_id, account_id, resource_id, provider, stage, status, timestamps và error_code. Không log credential.
 
-## 18. First implementation gate
+## 18. Migration 051 runtime gate
+
+Migration 051 PostgreSQL verification và acceptance AT-051-01..11 đã PASS. DB schema gate đã đóng. Bước kế tiếp là runtime integration cho Google Drive happy path.
+
+## 19. First implementation gate
 Google Drive file → Fetch → Normalize → Source/Asset resolution → Knowledge document/version → File Storage → Chunk → Embedding → Qdrant → Authorized search → Knowledge Agent answer.
 Chưa mở Facebook/TikTok/Instagram runtime cho đến khi Google happy path và contract tests PASS.
