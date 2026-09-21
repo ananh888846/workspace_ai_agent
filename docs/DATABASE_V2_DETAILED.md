@@ -131,7 +131,21 @@ Tenant/workspace boundary cho Family, Homestay, Smart Home và domain tương la
 
 ## 4.3 Organization scope rule
 
-`organization_id` chỉ được thêm vào domain table khi domain đó thực sự thuộc tenant boundary. V2 hiện khóa tenant scope cho `resources` và `devices`; không tự động thêm organization_id vào mọi bảng để tránh biến organization thành permission bypass. Organization membership không thay thế capability/account/resource authorization.
+Các domain có ownership/lifecycle trực tiếp theo tenant phải mang `organization_id` để database và runtime cùng enforce tenant isolation. V2.1 khóa tenant scope rõ cho:
+
+- `resources`
+- `devices`
+- `events`
+- `activity_sessions`
+- `activities`
+- `tasks`
+- `agent_messages`
+- `agent_tasks`
+- `agent_permissions`
+- `anomalies`
+- `anomaly_evidence`
+
+Organization membership không thay thế capability/account/resource/package authorization. Với quan hệ parent/child hoặc entity tham chiếu entity tenant-scoped, phải enforce cùng organization bằng composite FK hoặc constraint tương đương; không chỉ kiểm tra ở application.
 
 ## 4.2 organization_members
 
@@ -549,34 +563,60 @@ UNIQUE(device_id, capability)
 | id | UUID | NO | UUIDv7 | PK |
 | event_uuid | UUID | NO | — | UNIQUE |
 | event_type | VARCHAR(100) | NO | — | INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |
 | user_id | UUID | YES | NULL | FK, INDEX |
 | device_id | UUID | YES | NULL | FK, INDEX |
 | source_type | VARCHAR(64) | NO | — | |
 | source_id | UUID | YES | NULL | |
+| resource_id | UUID | YES | NULL | FK, INDEX |
 | occurred_at | TIMESTAMPTZ | NO | — | INDEX |
 | confidence | NUMERIC(5,4) | YES | NULL | |
 | status | VARCHAR(32) | NO | detected | INDEX |
 | metadata | JSONB | NO | {} | |
 | created_at | TIMESTAMPTZ | NO | now() | |
 
-## 10.3 activities
+## 10.3 activity_sessions
+
+Activity Session là lifecycle của một phiên hoạt động, gom các Event/Activity liên quan theo tenant/resource/user.
 
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| user_id | UUID | NO | — | FK, INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |
+| user_id | UUID | YES | NULL | FK, INDEX |
+| resource_id | UUID | YES | NULL | FK, INDEX |
+| session_type | VARCHAR(100) | NO | — | INDEX |
+| started_at | TIMESTAMPTZ | NO | — | INDEX |
+| ended_at | TIMESTAMPTZ | YES | NULL | |
+| duration_seconds | INTEGER | YES | NULL | |
+| status | VARCHAR(32) | NO | active | INDEX |
+| confidence | NUMERIC(5,4) | YES | NULL | |
+| source_event_id | UUID | YES | NULL | FK, INDEX |
+| metadata | JSONB | NO | {} | |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
+| updated_at | TIMESTAMPTZ | NO | now() | |
+
+## 10.4 activities
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
+| user_id | UUID | YES | NULL | FK, INDEX |
 | activity_type | VARCHAR(100) | NO | — | INDEX |
+| resource_id | UUID | YES | NULL | FK, INDEX |
 | started_at | TIMESTAMPTZ | NO | — | INDEX |
 | ended_at | TIMESTAMPTZ | YES | NULL | |
 | status | VARCHAR(32) | NO | active | INDEX |
 | confidence | NUMERIC(5,4) | YES | NULL | |
 | source_event_id | UUID | YES | NULL | FK, INDEX |
+| activity_session_id | UUID | YES | NULL | FK, INDEX |
 | metadata | JSONB | NO | {} | |
-| created_at | TIMESTAMPTZ | NO | now() | |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
 
 Flow:
 
-Observation → Verification/Detection → Event → Activity
+Observation → Event → Activity Session → Activity
 
 AI inference không mặc định là fact.
 
@@ -764,6 +804,70 @@ Trace một lần Agent xử lý request.
 
 Không lưu credential trong tool_runs.
 
+## 14.7 agent_messages
+
+Message là transport/trace giữa các Agent; message không tự cấp permission.
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
+| sender_agent_id | UUID | NO | — | FK, INDEX |
+| receiver_agent_id | UUID | NO | — | FK, INDEX |
+| agent_task_id | UUID | YES | NULL | FK, INDEX |
+| message_type | VARCHAR(64) | NO | — | INDEX |
+| payload | JSONB | NO | {} | |
+| status | VARCHAR(32) | NO | pending | INDEX |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
+| processed_at | TIMESTAMPTZ | YES | NULL | |
+
+## 14.8 agent_tasks
+
+Agent Task là đơn vị công việc có lifecycle; không tự cấp permission.
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
+| parent_agent_task_id | UUID | YES | NULL | FK, INDEX |
+| request_id | UUID | NO | — | INDEX |
+| created_by_agent_id | UUID | NO | — | FK, INDEX |
+| assigned_agent_id | UUID | NO | — | FK, INDEX |
+| capability | VARCHAR(100) | NO | — | INDEX |
+| action | VARCHAR(100) | NO | — | INDEX |
+| target_resource_id | UUID | YES | NULL | FK, INDEX |
+| status | VARCHAR(32) | NO | pending | INDEX |
+| started_at | TIMESTAMPTZ | YES | NULL | |
+| finished_at | TIMESTAMPTZ | YES | NULL | |
+| result_metadata | JSONB | NO | {} | |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
+| updated_at | TIMESTAMPTZ | NO | now() | |
+
+## 14.9 agent_permissions
+
+Permission này biểu diễn Agent nào được phép gọi/ủy quyền cho Agent nào trong một organization và scope cụ thể.
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
+| grantor_agent_id | UUID | NO | — | FK, INDEX |
+| grantee_agent_id | UUID | NO | — | FK, INDEX |
+| capability | VARCHAR(100) | NO | — | INDEX |
+| action | VARCHAR(100) | NO | — | INDEX |
+| resource_id | UUID | YES | NULL | FK, INDEX |
+| effect | VARCHAR(16) | NO | allow | |
+| starts_at | TIMESTAMPTZ | YES | NULL | |
+| expires_at | TIMESTAMPTZ | YES | NULL | INDEX |
+| revoked_at | TIMESTAMPTZ | YES | NULL | |
+| created_at | TIMESTAMPTZ | NO | now() | |
+
+Unique:
+
+UNIQUE(grantor_agent_id, grantee_agent_id, capability, action, resource_id)
+
+Agent Permission không thay thế User/Organization/Resource/Capability Authorization.
+
 ---
 
  # 16. DOMAIN 12 — Automation
@@ -788,7 +892,57 @@ Không lưu credential trong tool_runs.
 | event_type | VARCHAR(100) | NO | — | INDEX |
 | conditions | JSONB | NO | {} | |
 
-## 15.3 automation_actions
+## 14.10 agent communication integrity
+
+- sender/receiver agent phải tồn tại và thuộc cùng organization scope của permission/task/message.
+- `agent_messages.agent_task_id` nếu có phải trỏ tới task cùng organization.
+- `agent_tasks.target_resource_id` nếu có phải thuộc cùng organization.
+- `agent_permissions.resource_id` nếu có phải thuộc cùng organization.
+- Cross-organization agent delegation hiện không được phép trong V2.1.
+
+## 14.11 anomalies
+
+Anomaly là kết quả phát hiện sai lệch từ facts/events/activities/tasks; không phải kết luận fraud.
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
+| anomaly_type | VARCHAR(100) | NO | — | INDEX |
+| severity | VARCHAR(32) | NO | medium | INDEX |
+| status | VARCHAR(32) | NO | open | INDEX |
+| detection_method | VARCHAR(100) | NO | — | |
+| confidence | NUMERIC(5,4) | YES | NULL | |
+| user_id | UUID | YES | NULL | FK, INDEX |
+| device_id | UUID | YES | NULL | FK, INDEX |
+| resource_id | UUID | YES | NULL | FK, INDEX |
+| event_id | UUID | YES | NULL | FK, INDEX |
+| activity_id | UUID | YES | NULL | FK, INDEX |
+| task_id | UUID | YES | NULL | FK, INDEX |
+| detected_at | TIMESTAMPTZ | NO | now() | INDEX |
+| resolved_at | TIMESTAMPTZ | YES | NULL | |
+| metadata | JSONB | NO | {} | |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
+| updated_at | TIMESTAMPTZ | NO | now() | |
+
+## 14.12 anomaly_evidence
+
+Evidence phải truy ngược được về nguồn facts hợp lệ.
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| anomaly_id | UUID | NO | — | FK, INDEX |
+| source_type | VARCHAR(64) | NO | — | INDEX |
+| source_id | UUID | NO | — | INDEX |
+| evidence_role | VARCHAR(64) | NO | supporting | |
+| weight | NUMERIC(5,4) | YES | NULL | |
+| metadata | JSONB | NO | {} | |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
+
+Source type V2.1: `observation`, `event`, `activity_session`, `activity`, `task`, `device`, `resource`. Source phải cùng organization với anomaly.
+
+## 15. DOMAIN 12 — Automation
 
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
@@ -892,7 +1046,27 @@ devices
       ↓
     events
       ↓
+ activity_sessions
+      ↓
    activities
+
+Task reconciliation:
+tasks ─────► activity_sessions
+tasks ─────► activities
+
+Agent-to-Agent:
+agents
+ ├── agent_messages
+ ├── agent_tasks
+ └── agent_permissions
+
+Anomaly:
+anomalies ─────► anomaly_evidence
+     ├──── events
+     ├──── activities
+     ├──── tasks
+     ├──── devices
+     └──── resources
 
 Knowledge:
 
@@ -970,6 +1144,31 @@ Runtime:
 - audit_logs(user_id)
 - audit_logs(resource_id)
 - audit_logs(account_id)
+- activity_sessions(organization_id)
+- activity_sessions(resource_id)
+- activity_sessions(started_at)
+- activities(organization_id)
+- activities(activity_session_id)
+- activities(resource_id)
+- tasks(organization_id)
+- tasks(assigned_user_id)
+- tasks(resource_id)
+- tasks(status)
+- agent_messages(organization_id)
+- agent_messages(receiver_agent_id, status)
+- agent_tasks(organization_id)
+- agent_tasks(assigned_agent_id, status)
+- agent_tasks(request_id)
+- agent_permissions(organization_id)
+- agent_permissions(grantee_agent_id, capability, action)
+- anomalies(organization_id)
+- anomalies(status)
+- anomalies(detected_at)
+- anomaly_evidence(anomaly_id)
+- audit_logs(request_id)
+- audit_logs(user_id)
+- audit_logs(resource_id)
+- audit_logs(account_id)
 - audit_logs(package_version_id)
 - audit_logs(created_at)
 
@@ -1013,6 +1212,22 @@ Mọi credential phải thuộc một user_account.
 
 Resource có provider/external account phải tham chiếu user_account tương ứng; resource không gắn external account chỉ được phép khi provider/domain contract định nghĩa rõ.
 
+## Organization integrity
+
+- `resources.parent_resource_id` phải tham chiếu resource cùng `organization_id`.
+- `devices.resource_id` phải tham chiếu resource cùng `organization_id`.
+- Các bảng V2.1 có `organization_id` phải reject foreign reference khác organization.
+- `agent_permissions` không cho phép grantor/grantee khác organization.
+- `anomaly_evidence` không được tham chiếu source khác organization.
+- Cross-organization Agent-to-Agent delegation bị DENY trong V2.1.
+
+## Activity / Task reconciliation
+
+- Activity Session và Task phải cùng organization.
+- Activity thuộc Activity Session phải cùng organization.
+- Task resource/user phải hợp lệ trong organization.
+- Activity không tự chứng minh Task hoàn thành nếu không có evidence.
+
 ---
 
  # 22. Migration order
@@ -1045,27 +1260,35 @@ Resource có provider/external account phải tham chiếu user_account tương 
 
 021 observations
 022 events
-023 activities
+023 activity_sessions
+024 activities
+025 tasks
 
-024 conversations
+026 conversations
 025 messages
 026 memories
 
-027 knowledge_documents
-028 knowledge_chunks
+028 knowledge_documents
+029 knowledge_chunks
 
-029 agents
-030 agent_capabilities
-031 tools
-032 tool_capabilities
-033 agent_runs
-034 tool_runs
+030 agents
+031 agent_capabilities
+032 tools
+033 tool_capabilities
+034 agent_runs
+035 tool_runs
+036 agent_messages
+037 agent_tasks
+038 agent_permissions
 
-035 automations
-036 automation_triggers
-037 automation_actions
+039 automations
+040 automation_triggers
+041 automation_actions
 
-038 audit_logs
+042 anomalies
+043 anomaly_evidence
+
+044 audit_logs
 
 Đây là logical rollout order. Tên migration thực tế sẽ theo framework được chọn sau khi source architecture được chốt.
 
@@ -1331,8 +1554,11 @@ Schema chỉ ready for implementation khi:
 - [ ] Resource authorization được khóa.
 - [ ] Data Package versioning được khóa.
 - [ ] Device identity tách khỏi User.
-- [ ] Observation/Event/Activity tách biệt.
+- [ ] Observation/Event/Activity Session/Activity tách biệt.
+- [ ] Task/Work Order và Activity reconciliation được xác định.
 - [ ] Conversation/Memory/Knowledge tách biệt.
+- [ ] Agent-to-Agent message/task/permission được xác định.
+- [ ] Anomaly/Evidence model và organization isolation được xác định.
 - [ ] Qdrant mapping được xác định.
 - [ ] Agent/Tool/Run trace được xác định.
 - [ ] Audit model được xác định.
@@ -1342,6 +1568,9 @@ Schema chỉ ready for implementation khi:
 - [ ] Delete behavior được review.
 - [ ] Migration order được review.
 - [ ] Runtime authorization test cases được chuẩn bị.
+- [ ] Composite tenant/resource integrity constraints được review.
+- [ ] Agent-to-Agent cross-organization denial được review.
+- [ ] Anomaly evidence source integrity được review.
 
 ---
 
