@@ -609,6 +609,7 @@ UNIQUE(device_id, capability)
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
 | device_id | UUID | NO | — | FK, INDEX |
 | observation_type | VARCHAR(100) | NO | — | INDEX |
 | raw_data | JSONB | NO | {} | |
@@ -1823,3 +1824,13 @@ Migration 011 → 020 đã được chạy và kiểm thử thực tế trên Po
 - Device capability uniqueness: **PASS**
 - Acceptance transaction kết thúc bằng ROLLBACK.
 - Database gate 011 → 020: **CLOSED**.
+
+
+# Migration 021 → 030 Schema Lock — 2026-09-21
+
+- `observations.organization_id` là bắt buộc; observation/device phải cùng organization bằng composite FK.
+- Event, Activity Session và Activity có tenant composite FK cho device/resource/event/session references.
+- Task/Work Order schema chính thức: `id`, `organization_id`, `parent_task_id`, `created_by_user_id`, `assigned_user_id`, `title`, `description`, `task_type`, `priority`, `status`, `resource_id`, `source_event_id`, `due_at`, `started_at`, `completed_at`, `metadata`, `created_at`, `updated_at`.
+- Conversation và Memory vẫn user-owned theo contract hiện hành.
+- Knowledge Document/Chunk dùng SQL metadata/authorization làm source of truth; Qdrant chỉ là retrieval store.
+- Chưa tạo production SQL cho 021 → 030.
