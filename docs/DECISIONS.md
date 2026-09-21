@@ -149,3 +149,10 @@ Migration 011→020 phải enforce tenant integrity ở database. Resource permi
 **Date:** 2026-09-21 17:00 +07:00
 
 Migration 011 → 020 đã được chạy thực tế trên PostgreSQL 18.6 và acceptance AT-011 → AT-022 đạt **12/12 PASS**. Acceptance transaction kết thúc bằng ROLLBACK. Gate tenant/resource/session/device của Migration 011 → 020 được coi là đã verify và đóng. Migration 021 → 030 được phép tiếp tục theo migration contract.
+
+
+## Decision 033 — Migration 021→030 Schema and Tenant Review Lock
+**Status:** Accepted  
+**Date:** 2026-09-21 17:00 +07:00
+
+Migration 021→030 được khóa theo source of truth hiện hành: Observation tenant-scoped; Event/Activity Session/Activity dùng composite tenant integrity; Task/Work Order dùng exact V2.1 column contract; Conversation/Memory giữ user ownership; Knowledge authorization dựa trên SQL metadata/access policy và Qdrant không phải authorization source. Production SQL chỉ được tạo sau review lock này.
