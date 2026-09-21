@@ -48,3 +48,67 @@ CREATE TRIGGER trg_audit_logs_append_only
 BEFORE UPDATE OR DELETE ON audit_logs
 FOR EACH ROW
 EXECUTE FUNCTION reject_audit_log_mutation();
+
+
+CREATE OR REPLACE FUNCTION audit_metadata_contains_secret(payload JSONB)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+  item JSONB;
+  key_name TEXT;
+BEGIN
+  IF payload IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF jsonb_typeof(payload) = 'object' THEN
+    FOR key_name, item IN SELECT key, value FROM jsonb_each(payload) LOOP
+      IF lower(key_name) IN (
+        'access_token',
+        'refresh_token',
+        'api_key',
+        'apikey',
+        'password',
+        'private_key',
+        'device_secret',
+        'client_secret',
+        'secret'
+      ) THEN
+        RETURN true;
+      END IF;
+
+      IF jsonb_typeof(item) IN ('object', 'array')
+         AND audit_metadata_contains_secret(item) THEN
+        RETURN true;
+      END IF;
+    END LOOP;
+  ELSIF jsonb_typeof(payload) = 'array' THEN
+    FOR item IN SELECT value FROM jsonb_array_elements(payload) LOOP
+      IF audit_metadata_contains_secret(item) THEN
+        RETURN true;
+      END IF;
+    END LOOP;
+  END IF;
+
+  RETURN false;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION validate_audit_log_metadata()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF audit_metadata_contains_secret(NEW.metadata) THEN
+    RAISE EXCEPTION 'audit metadata contains prohibited secret material';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_audit_logs_safe_metadata
+BEFORE INSERT OR UPDATE ON audit_logs
+FOR EACH ROW
+EXECUTE FUNCTION validate_audit_log_metadata();
