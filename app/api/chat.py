@@ -18,15 +18,33 @@ from app.infrastructure.database.repositories.permissions import PostgresPermiss
 from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
 
 
+def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | None]:
+    """Phân loại intent Calendar V1 ở lớp HTTP runtime trước khi resolve account."""
+    if request.capability:
+        action = request.action or ("read" if request.capability == "calendar.read" else "write")
+        return "calendar", request.capability, action
+
+    text = request.message.casefold()
+    read_words = ("lịch", "calendar", "cuộc hẹn", "sự kiện", "agenda", "schedule")
+    write_words = ("tạo lịch", "tạo cuộc hẹn", "đặt lịch", "thêm lịch", "thêm cuộc hẹn", "sửa lịch", "sửa cuộc hẹn", "cập nhật lịch", "xóa lịch", "xóa cuộc hẹn", "huỷ lịch", "hủy lịch")
+
+    if not any(word in text for word in read_words):
+        return "not_classified", None, None
+    if any(word in text for word in write_words):
+        return "calendar", "calendar.write", "write"
+    return "calendar", "calendar.read", "read"
+
+
 def build_chat_response(request: ChatRequest) -> ChatResponse:
     conversation_id = request.conversation_id or str(uuid4())
     return ChatResponse(
         status="ok",
         conversation_id=conversation_id,
-        message="Backend HTTP contract đã nhận yêu cầu.",
+        message="Backend đã phân loại yêu cầu.",
         execution={
-            "intent": "not_classified",
-            "capability": request.capability,
+            "intent": classify_chat_request(request)[0],
+            "capability": classify_chat_request(request)[1],
+            "action": classify_chat_request(request)[2],
             "account": {"status": "not_evaluated", "hint": request.account_hint},
             "authorization": {"status": "not_evaluated"},
             "provider_called": False,
