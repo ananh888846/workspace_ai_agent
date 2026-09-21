@@ -15,6 +15,21 @@ SET organization_id = ar.organization_id,
 FROM agent_runs ar
 WHERE ar.id = tr.agent_run_id;
 
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM tool_runs tr
+        LEFT JOIN user_accounts ua
+          ON ua.id = tr.account_id
+         AND ua.user_id = tr.user_id
+        WHERE tr.account_id IS NOT NULL
+          AND ua.id IS NULL
+    ) THEN
+        RAISE EXCEPTION 'migration 048 blocked: existing tool_runs contain accounts not owned by execution user; delegated history requires explicit account_grant_id backfill';
+    END IF;
+END $$;
+
 ALTER TABLE tool_runs
     ALTER COLUMN organization_id SET NOT NULL,
     ALTER COLUMN user_id SET NOT NULL;
@@ -25,7 +40,6 @@ ALTER TABLE tool_runs
     REFERENCES agent_runs(id, organization_id, user_id)
     ON DELETE RESTRICT;
 
-
 ALTER TABLE tool_runs
     ADD CONSTRAINT fk_tool_runs_account_grant
     FOREIGN KEY (account_grant_id, organization_id)
@@ -34,10 +48,7 @@ ALTER TABLE tool_runs
 
 ALTER TABLE tool_runs
     ADD CONSTRAINT ck_tool_runs_account_context
-    CHECK (
-        account_id IS NULL
-        OR user_id IS NOT NULL
-    );
+    CHECK (account_id IS NULL OR user_id IS NOT NULL);
 
 CREATE OR REPLACE FUNCTION validate_tool_run_account_context()
 RETURNS trigger
@@ -65,10 +76,8 @@ BEGIN
     END IF;
 
     IF NEW.account_grant_id IS NULL THEN
-        PERFORM 1
-          FROM user_accounts
-         WHERE id = NEW.account_id
-           AND user_id = NEW.user_id;
+        PERFORM 1 FROM user_accounts
+         WHERE id = NEW.account_id AND user_id = NEW.user_id;
 
         IF NOT FOUND THEN
             RAISE EXCEPTION 'tool run account is not owned by execution user';
