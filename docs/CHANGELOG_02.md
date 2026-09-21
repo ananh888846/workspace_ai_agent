@@ -248,3 +248,10 @@
 - Chuyển các docstring tiếng Anh hiện có trong `app/config/settings.py` sang tiếng Việt.
 - Không thay đổi logic cấu hình hoặc hành vi runtime.
 - Đây là bước kiểm tra thực thi đầu tiên sau khi khóa quy tắc ngôn ngữ ghi chú Python.
+
+## 2026-09-21 — Fix PostgreSQL AccountResolver query
+
+- Sửa truy vấn `PostgresAccountRepository.find_candidates()` để tương thích PostgreSQL khi kết hợp `SELECT DISTINCT` với `ORDER BY`.
+- Đưa phần loại trùng vào subquery rồi sắp xếp ở truy vấn ngoài, giữ nguyên kết quả và thứ tự hiển thị mong muốn.
+- Chuẩn hóa các docstring/comment trong file Python vừa chỉnh sửa sang tiếng Việt theo quy tắc đã chốt.
+- Không thay đổi schema, migration hoặc authorization contract.
