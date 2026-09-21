@@ -94,7 +94,7 @@ class GoogleOAuthService:
             raise RuntimeError("google_oauth_state_invalid") from exc
 
     def authorization_url(
-        self, *, account_id: str, user_id: str, organization_id: str
+        self, *, account_id: str, user_id: str, organization_id: str, scopes: list[str]
     ) -> str:
         payload = {
             "account_id": str(UUID(account_id)),
@@ -106,10 +106,7 @@ class GoogleOAuthService:
         state = self._sign_state(payload)
         flow = Flow.from_client_config(
             self._client_config(),
-            scopes=[
-                self._settings.google_calendar_read_scope,
-                self._settings.google_calendar_write_scope,
-            ],
+            scopes=scopes,
             redirect_uri=self._settings.google_redirect_uri,
         )
         url, _ = flow.authorization_url(
