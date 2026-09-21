@@ -10,7 +10,7 @@ DECLARE
   org_a UUID := uuidv7(); org_b UUID := uuidv7();
   user_a UUID := uuidv7(); user_b UUID := uuidv7();
   account_a UUID := uuidv7(); resource_a UUID := uuidv7(); resource_b UUID := uuidv7();
-  package_a UUID := uuidv7(); version_a UUID := uuidv7(); device_a UUID := uuidv7();
+  package_a UUID := uuidv7(); version_a UUID := uuidv7(); device_a UUID := uuidv7(); device_b UUID := uuidv7();
   passed BOOLEAN;
 BEGIN
   INSERT INTO organizations(id,name,organization_type) VALUES
@@ -29,7 +29,8 @@ BEGIN
   INSERT INTO data_package_versions(id,organization_id,data_package_id,version,created_by)
   VALUES (version_a,org_a,package_a,1,user_a);
   INSERT INTO devices(id,organization_id,device_uuid,device_type,name)
-  VALUES (device_a,org_a,uuidv7(),'esp32','Device A');
+  VALUES (device_a,org_a,uuidv7(),'esp32','Device A'),
+         (device_b,org_b,uuidv7(),'esp32','Device B');
 
   passed := false;
   BEGIN
@@ -115,7 +116,7 @@ BEGIN
   passed := false;
   BEGIN
     INSERT INTO user_sessions(organization_id,user_id,session_token_hash,device_id,expires_at)
-    VALUES (org_a,user_a,'at-cross-org-session',device_a,now()+interval '1 hour');
+    VALUES (org_a,user_a,'at-cross-org-session',device_b,now()+interval '1 hour');
   EXCEPTION WHEN foreign_key_violation THEN passed := true;
   END;
   IF NOT passed THEN RAISE EXCEPTION 'AT-020 failed'; END IF;
