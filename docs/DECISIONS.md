@@ -74,3 +74,20 @@ Không tạo trước các bảng domain đặc thù; chỉ thêm khi capability
 ## Decision 018 — Database Authorization Integrity
 **Status:** Accepted  
 Database V2 phải biểu diễn đầy đủ ba liên kết authorization quan trọng: role → permission qua `role_permissions`, account-backed resource → `user_accounts`, và account grant owner → account bằng constraint/transaction phù hợp. Migration order phải tôn trọng mọi FK dependency.
+
+
+## Decision 019 — Organization Membership ≠ Application Authorization Role
+**Status:** Accepted  
+`organization_members.member_role` chỉ mô tả vai trò membership trong tenant. Application authorization dùng `roles`, `permissions`, `role_permissions`, cùng account/resource/package checks. Membership không tự bypass authorization.
+
+## Decision 020 — Database Schema Source of Truth
+**Status:** Accepted  
+`docs/DATABASE_V2_DETAILED.md` là source of truth cho column, type, nullability, default, FK, UNIQUE, CHECK, INDEX, delete policy và migration order. `DATABASE.md` chỉ là overview; `ERD_V2.md` là relationship view.
+
+## Decision 021 — Authorized Vector Retrieval
+**Status:** Accepted  
+Knowledge retrieval phải áp dụng authorization context trước/trong Qdrant retrieval. Không retrieve toàn bộ vector store rồi mới lọc quyền.
+
+## Decision 022 — Webhook Does Not Perform Full Ingestion
+**Status:** Accepted  
+Webhook chỉ xác thực và ghi nhận sync event; worker thực hiện fetch/normalize/version/chunk/embed/index. Không chạy full ingestion trong HTTP webhook request.
