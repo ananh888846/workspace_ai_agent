@@ -180,31 +180,3 @@ def agent_chat(
         )
 
     return body
-        account = ExternalAccount(
-            id=execution_account["account_id"],
-            user_id=x_user_id,
-            provider=execution_account["provider"],
-            account_type="oauth",
-            external_account_id=execution_account["external_account_id"],
-            display_name=execution_account["display_name"],
-            email=execution_account["email"],
-            status=execution_account.get("account_state", "active"),
-        )
-
-    if payload.capability:
-        authorization = authorize_request(
-            user_id=x_user_id,  # type: ignore[arg-type]
-            organization_id=x_organization_id,  # type: ignore[arg-type]
-            capability=payload.capability,
-            action=payload.action,
-            account=account,
-            target_resource=payload.target_resource,
-        )
-        body["execution"]["authorization"] = authorization
-        if authorization.get("status") == "allow" and account is not None:
-            body["execution"]["credential"] = resolve_google_credential(
-                account=account,
-                authorization=authorization,
-            )
-
-    return body
