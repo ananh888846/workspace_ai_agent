@@ -168,3 +168,15 @@ Trước khi code:
 - Sửa migration order để không trùng số và tôn trọng FK dependencies.
 - Cập nhật acceptance checklist và trạng thái schema.
 - Chưa tạo migration hoặc application code.
+
+
+## 2026-09-21 — V2.1 documentation synchronization — Database/ERD/Source Tree/Runtime
+
+### Updated
+
+- Đồng bộ `DATABASE_V2_DETAILED.md` với V2.1: Activity Session, Task/Work Order, Agent-to-Agent Message/Task/Permission và Anomaly/Evidence.
+- Bổ sung organization scope và integrity rules cho Event/Activity/Task/Agent/Anomaly domains.
+- Đồng bộ `ERD_V2.md` với các quan hệ V2.1 còn thiếu.
+- Đồng bộ `SOURCE_TREE_V2.md` để mọi V2.1 domain có vị trí rõ trong application/domain/test boundary.
+- Đồng bộ `RUNTIME.md` với database integrity gate và tenant isolation.
+- Không tạo migration, không tạo bảng thật và không thay đổi application runtime code.
