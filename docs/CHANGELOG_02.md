@@ -84,3 +84,9 @@
 - Phát hiện `docs/KNOWLEDGE_INGESTION_V1.md` còn ghi trạng thái đầu tài liệu là `Design locked`, chưa phản ánh rõ DB gate đã đóng và runtime integration đã sẵn sàng.
 - Đồng bộ trạng thái thành: Design locked → Migration 051 baseline verified → Runtime integration ready.
 - Không thay đổi schema/migration 001–051.
+## 2026-09-21 — Migration 051 final MD review + PASS closure
+- Review/chốt các MD liên quan: `MIGRATION_051_SCHEMA_REVIEW.md`, `MIGRATION_051_ACCEPTANCE.md`, `KNOWLEDGE.md`, `KNOWLEDGE_INGESTION_V1.md`, `KNOWLEDGE_STORAGE_PROVENANCE_V1.md`, `KNOWLEDGE_SOURCE_CONTRACT.md`, `KNOWLEDGE_PIPELINE.md`.
+- Kết quả: các tài liệu cùng phản ánh một trạng thái: Migration 051 đã **RUNTIME VERIFIED / PASS / GATE CLOSED**; Knowledge V1 schema là baseline cho ingestion runtime.
+- Acceptance `AT-051-01..11`: **PASS** với transaction `ROLLBACK`.
+- Đồng bộ trạng thái đầu tài liệu cho storage/provenance, source contract và pipeline để không còn mâu thuẫn với runtime gate đã đóng.
+- Quyết định chốt: **không sửa migrations 001–050**; bước tiếp theo là Knowledge Ingestion V1 runtime integration, bắt đầu Google Drive happy path.
