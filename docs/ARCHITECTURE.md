@@ -15,7 +15,42 @@
 9. Provider-specific logic nằm trong Provider/Tool layer.
 10. Muốn đổi kiến trúc phải cập nhật Decision Log.
 
-## 2. Request lifecycle
+## 2. V2.1 — Tenant, Resource, Session, Task và Multi-Agent
+
+V2.1 bổ sung các domain nền tảng mà không thay đổi nguyên tắc Authorization V2.
+
+### 2.1 Organization / Tenant
+Organization là boundary của workspace/domain. Một User có thể là member của nhiều Organization.
+
+### 2.2 Resource hierarchy
+Resource có thể có quan hệ cha/con. Hierarchy chỉ mô tả cấu trúc, không tự cấp quyền.
+
+### 2.3 Device ↔ Resource ↔ Organization
+Device thuộc một Organization và có thể gắn với một Resource cụ thể. Device identity vẫn độc lập với User.
+
+### 2.4 Activity Session
+Activity Session gom các Event/Activity liên quan thành một phiên có start/end/duration/status/confidence.
+
+### 2.5 Task / Work Order
+Task biểu diễn công việc được giao hoặc yêu cầu nghiệp vụ, có assignee, resource, trạng thái và thời gian. Activity được đối soát với Task để phát hiện mismatch.
+
+### 2.6 Agent-to-Agent Communication
+Agent có thể giao task/message cho Agent khác nhưng không bypass AgentContext, Authorization, ToolResolver hoặc Audit.
+
+### 2.7 Anomaly Detection
+Anomaly là kết quả phát hiện sai lệch từ facts/events/activities/tasks; không mặc định là kết luận "fraud".
+
+### 2.8 Nguyên tắc V2.1
+- Organization là tenant boundary; không dùng User làm tenant thay thế.
+- Resource hierarchy không bypass authorization.
+- Device không đại diện cho User.
+- Activity Session lưu lifecycle của một phiên; Activity vẫn là domain summary.
+- Task là declared/assigned intent; Activity là observed/recorded result.
+- Anomaly phải có evidence và detection method.
+- Agent-to-Agent message/task phải trace được.
+- LLM không tự quyết định authorization hoặc kết luận anomaly cuối cùng.
+
+## 3. Request lifecycle
 
 ~~~text
 Request
@@ -176,6 +211,8 @@ Khi phát sinh yêu cầu mới:
 4. ghi Changelog;
 5. rồi mới triển khai code.
 
-## 13. Trạng thái
+## 14. Trạng thái
 
-Blueprint V2 đã chốt để làm nguồn tham chiếu implementation. Chưa có nghĩa module đã được triển khai.
+Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, device-resource binding, activity session, task/work order, agent-to-agent communication và anomaly detection.
+
+Đây vẫn là blueprint; chưa có nghĩa các module đã được triển khai.
