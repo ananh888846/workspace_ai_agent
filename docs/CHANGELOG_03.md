@@ -4,6 +4,17 @@
 >
 > Quy tắc: changelog chỉ ghi trạng thái đã được triển khai/kiểm tra; không ghi `PASS` nếu chưa có runtime verification.
 
+## 2026-09-21 — Google OAuth scope consistency
+
+- Sửa `app/infrastructure/oauth/google.py` để lưu bộ scope thực tế của từng phiên OAuth vào OAuth state đã mã hóa.
+- Callback không còn tự dựng một bộ scope Calendar cố định khác với authorization request.
+- Callback dựng lại `Flow` bằng chính bộ scope đã lưu trong state trước khi gọi `fetch_token(code=code)`.
+- Tiếp tục giữ `code_verifier` PKCE trong state mã hóa và ký HMAC.
+- Scope thực tế Google trả về sau token exchange tiếp tục được lưu trong `account_credentials.scopes`.
+- Xác định warning `Scope has changed` không phải dấu hiệu cần thay `credentials.json`; nguyên nhân chính là authorization request và callback trước đây có thể dùng bộ scope khác nhau.
+- Không thay đổi thiết kế credential encryption và không lưu token plaintext vào repository.
+- Đồng bộ `docs/CONFIGURATION.md` và `docs/GOOGLE_CALENDAR.md` với implementation.
+
 ## 2026-09-21 — Google OAuth PKCE callback fix
 
 - Sửa `app/infrastructure/oauth/google.py` để tạo `code_verifier` PKCE chủ động cho từng phiên OAuth.
