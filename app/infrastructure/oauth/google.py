@@ -29,6 +29,7 @@ class GoogleOAuthState:
     nonce: str
     issued_at: int
     code_verifier: str
+    scopes: tuple[str, ...]
 
 
 class GoogleOAuthService:
@@ -102,6 +103,9 @@ class GoogleOAuthService:
             issued_at = int(payload["issued_at"])
             if abs(int(time.time()) - issued_at) > 600:
                 raise ValueError
+            scopes = tuple(dict.fromkeys(str(scope) for scope in payload["scopes"]))
+            if not scopes:
+                raise ValueError
             return GoogleOAuthState(
                 account_id=str(UUID(payload["account_id"])),
                 user_id=str(UUID(payload["user_id"])),
@@ -109,6 +113,7 @@ class GoogleOAuthService:
                 nonce=str(payload["nonce"]),
                 issued_at=issued_at,
                 code_verifier=str(payload["code_verifier"]),
+                scopes=scopes,
             )
         except Exception as exc:
             raise RuntimeError("google_oauth_state_invalid") from exc
@@ -122,7 +127,11 @@ class GoogleOAuthService:
     def authorization_url(
         self, *, account_id: str, user_id: str, organization_id: str, scopes: list[str]
     ) -> str:
-        """Tạo URL OAuth và giữ code verifier trong state được mã hóa."""
+        """Tạo URL OAuth và giữ đúng bộ scope cùng code verifier trong state được mã hóa."""
+        normalized_scopes = tuple(dict.fromkeys(str(scope) for scope in scopes if scope))
+        if not normalized_scopes:
+            raise RuntimeError("google_oauth_scopes_missing")
+
         code_verifier = secrets.token_urlsafe(64)
         payload = {
             "account_id": str(UUID(account_id)),
@@ -131,11 +140,12 @@ class GoogleOAuthService:
             "nonce": secrets.token_urlsafe(24),
             "issued_at": int(time.time()),
             "code_verifier": code_verifier,
+            "scopes": list(normalized_scopes),
         }
         state = self._sign_state(payload)
         flow = Flow.from_client_config(
             self._client_config(),
-            scopes=scopes,
+            scopes=list(normalized_scopes),
             redirect_uri=self._settings.google_redirect_uri,
             autogenerate_code_verifier=False,
         )
@@ -151,14 +161,11 @@ class GoogleOAuthService:
         return url
 
     def handle_callback(self, *, code: str, state: str) -> GoogleOAuthState:
-        """Đổi authorization code bằng đúng PKCE verifier của phiên OAuth."""
+        """Đổi authorization code bằng đúng PKCE verifier và bộ scope của phiên OAuth."""
         oauth_state = self._verify_state(state)
         flow = Flow.from_client_config(
             self._client_config(),
-            scopes=[
-                self._settings.google_calendar_read_scope,
-                self._settings.google_calendar_write_scope,
-            ],
+            scopes=list(oauth_state.scopes),
             redirect_uri=self._settings.google_redirect_uri,
             autogenerate_code_verifier=False,
         )
@@ -248,6 +255,7 @@ class GoogleOAuthService:
         """Lấy ID lịch chính để cập nhật external_account_id sau OAuth."""
         try:
             from googleapiclient.discovery import build
+
             service = build(
                 "calendar", "v3", credentials=credentials, cache_discovery=False
             )
