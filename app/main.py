@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from app.api.chat import (
     authorize_request,
     build_chat_response,
+    classify_chat_request,
     resolve_google_account,
     resolve_google_credential,
 )
@@ -129,17 +130,56 @@ def agent_chat(
         target_resource=payload.target_resource,
     )
     body = asdict(build_chat_response(request))
+    intent, capability, action = classify_chat_request(request)
+    body["execution"]["intent"] = intent
+    body["execution"]["capability"] = capability
+    body["execution"]["action"] = action
 
-    account = None
-    if payload.account_hint:
-        execution_account = resolve_google_account(
-            user_id=x_user_id,  # Bỏ qua kiểm tra kiểu vì header đã được kiểm tra ở trên.
-            organization_id=x_organization_id,  # Bỏ qua kiểm tra kiểu vì header đã được kiểm tra ở trên.
-            account_hint=payload.account_hint,
+    if intent != "calendar" or capability is None:
+        return body
+
+    if not x_user_id or not x_organization_id:
+        raise HTTPException(
+            status_code=400,
+            detail="x_user_id and x_organization_id are required for Calendar runtime",
         )
-        body["execution"]["account"] = execution_account
-        if execution_account["status"] != "resolved":
-            return body
+
+    execution_account = resolve_google_account(
+        user_id=x_user_id,
+        organization_id=x_organization_id,
+        account_hint=payload.account_hint,
+    )
+    body["execution"]["account"] = execution_account
+    if execution_account["status"] != "resolved":
+        return body
+
+    account = ExternalAccount(
+        id=execution_account["account_id"],
+        user_id=x_user_id,
+        provider=execution_account["provider"],
+        account_type="oauth",
+        external_account_id=execution_account["external_account_id"],
+        display_name=execution_account["display_name"],
+        email=execution_account["email"],
+        status=execution_account.get("account_state", "active"),
+    )
+
+    authorization = authorize_request(
+        user_id=x_user_id,
+        organization_id=x_organization_id,
+        capability=capability,
+        action=action,
+        account=account,
+        target_resource=payload.target_resource,
+    )
+    body["execution"]["authorization"] = authorization
+    if authorization.get("status") == "allow":
+        body["execution"]["credential"] = resolve_google_credential(
+            account=account,
+            authorization=authorization,
+        )
+
+    return body
         account = ExternalAccount(
             id=execution_account["account_id"],
             user_id=x_user_id,
