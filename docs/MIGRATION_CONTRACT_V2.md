@@ -103,6 +103,8 @@ data_package_resources(resource_id, organization_id) → resources(id, organizat
 data_package_grants(package_version_id, organization_id) → data_package_versions(id, organization_id)
 data_package_grants(organization_id, user_id) → organization_members(organization_id, user_id)
 devices(resource_id, organization_id) → resources(id, organization_id)
+resource_permissions(resource_id, organization_id) → resources(id, organization_id)
+resource_permissions(organization_id, user_id) → organization_members(organization_id, user_id)
 user_sessions(organization_id, user_id) → organization_members(organization_id, user_id)
 user_sessions(device_id, organization_id) → devices(id, organization_id)
 device_users(device_id, organization_id) → devices(id, organization_id)
@@ -775,3 +777,8 @@ Migration 001 → 010 đã được verify thực tế trên PostgreSQL 18.6. Ac
 - user_sessions is tenant-scoped with organization_id and composite FKs to organization membership and device.
 - device_users is tenant-scoped and cannot bind a device/user across organizations.
 - resources account ownership is enforced by composite FK; provider/account compatibility must be enforced at database level, not application-only.
+
+
+## Migration 011 → 020 Additional Tenant Lock — 2026-09-21 10:05:00 +07:00
+
+resource_permissions is tenant-scoped. The resource and permission grantee must belong to the same organization at database level.
