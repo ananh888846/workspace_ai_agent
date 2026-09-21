@@ -366,3 +366,12 @@ Trước khi code:
 - Thêm [database/migrations/010_create_account_grants.sql](../database/migrations/010_create_account_grants.sql).
 - Đã triển khai PK/FK/composite tenant FK/UNIQUE/CHECK/index theo thiết kế 001→010.
 - Chưa chạy trên PostgreSQL thật trong bước này; bước kế tiếp là clean PostgreSQL acceptance test AT-001→AT-008.
+
+## 2026-09-21 17:00:00 +07:00 — Migration 011 → 020 verified on PostgreSQL 18.6
+
+- Đã chạy thực tế [database/migrations/011_create_resources.sql](../database/migrations/011_create_resources.sql) → [database/migrations/020_create_device_capabilities.sql](../database/migrations/020_create_device_capabilities.sql) trên PostgreSQL 18.6.
+- Đã chạy [database/tests/acceptance_011_020.sql](../database/tests/acceptance_011_020.sql) với `ON_ERROR_STOP=1`.
+- Kết quả: **AT-011 → AT-022 đều PASS (12/12)**.
+- Acceptance transaction kết thúc bằng `ROLLBACK`, nên dữ liệu test không được giữ lại.
+- Lỗi fixture AT-020 trước đó đã được sửa bằng cách dùng `device_b` thuộc Org B để kiểm tra session Org A + device Org B.
+- **Gate:** Migration 011 → 020 đã PASS; đủ điều kiện chuyển sang review/implementation Migration 021 → 030.
