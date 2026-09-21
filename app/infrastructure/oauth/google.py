@@ -21,7 +21,7 @@ from app.infrastructure.database.connection import database_connection
 
 @dataclass(frozen=True)
 class GoogleOAuthState:
-    """Trạng thái OAuth đã được ký để ràng buộc callback với account và user."""
+    """Trạng thái OAuth được mã hóa và ký để ràng buộc callback với account và user."""
 
     account_id: str
     user_id: str
