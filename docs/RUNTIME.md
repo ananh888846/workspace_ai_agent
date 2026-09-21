@@ -14,8 +14,6 @@ Kiểm tra authenticated user, session, device metadata, organization membership
 
 Test: User A thuộc Organization A → resource A ALLOW; user không thuộc Organization A → resource A DENY.
 
-Kiểm tra authenticated user, session, device metadata và chống tự đổi user_id.
-
 ## 4. Account
 
 Kiểm tra multi-account, AccountResolver, account hint, credential timing và không log token.
@@ -119,3 +117,15 @@ Anomaly → Evidence trace
 Authorization DENY → no credential / no tool / no provider side effect
 Audit trace đầy đủ
 ~~~
+
+
+## 20. V2.1 database/runtime integrity gate
+
+Trước migration phải verify đồng thời:
+
+- Database schema có đầy đủ `activity_sessions`, `tasks`, `agent_messages`, `agent_tasks`, `agent_permissions`, `anomalies`, `anomaly_evidence`.
+- ERD phản ánh đầy đủ các bảng và quan hệ V2.1.
+- Source tree có module tương ứng ở đúng layer; không tạo duplicate trong cùng layer.
+- Tenant-scoped FK/constraint không cho phép parent/resource/device/task/agent/evidence tham chiếu chéo organization.
+- Cross-organization Agent-to-Agent delegation phải DENY.
+- Authorization DENY phải không resolve credential, không execute tool và không tạo provider side effect.
