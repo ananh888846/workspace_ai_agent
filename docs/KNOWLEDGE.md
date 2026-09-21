@@ -1,51 +1,52 @@
 # Workspace AI Agent — KNOWLEDGE V1 / V2.1
 
-## Pipeline
+## 1. Mục tiêu
+Knowledge Systematization Agent là capability đầu tiên. V1 bắt đầu với Google, sau đó mở rộng Facebook/Meta, TikTok và Instagram khi provider contracts/capabilities được phê duyệt.
+Knowledge không chỉ là text. Hệ thống quản lý source, document/version, binary asset và vector index.
 
-Knowledge Systematization Agent is the first Agent capability. V1 starts with Google, then expands to Facebook, TikTok and Instagram.
+## 2. Pipeline
+Source URL / Provider Event → Resolve Source + Resource → Fetch → Normalize → Store Asset → Document Version + Checksum → Chunk → Embedding → PostgreSQL + Qdrant → Authorized Retrieval.
 
-## Pipeline
+## 3. SQL vs File Storage vs Qdrant
+PostgreSQL giữ source/provenance, resource/account/ownership, document/version, checksum/revision, asset metadata, storage backend/key, package/access mapping và Qdrant point mapping.
+File Storage giữ videos, images, documents, audio, thumbnails/derived files. V1 có thể dùng local storage; kiến trúc phải cho phép chuyển sang NAS.
+Qdrant giữ embeddings và retrieval metadata tối thiểu. Qdrant không phải source of truth và không phải permission store.
 
-```text
-Source
- ↓
-Document
- ↓
-Normalize
- ↓
-Chunk
- ↓
-Embedding
- ↓
-Qdrant
-```
+## 4. Sources dự kiến
+Google Drive; Gmail attachments; Facebook/Meta data; TikTok; Instagram; uploaded documents; device-generated documents/images.
 
-## SQL vs Qdrant
+## 5. Source URL và provenance
+Giữ URL nguồn ban đầu và canonical URL nếu resolve được.
+~~~text
+source_url:
+https://www.facebook.com/share/r/18EZRZymHJ/
 
-SQL giữ:
+canonical_url:
+https://www.facebook.com/reel/<resolved-id>
+~~~
+URL chỉ là provenance metadata. Identity vẫn dựa trên tenant/account/provider/resource/external ID.
+Một knowledge item có thể có nhiều provenance records nếu được tổng hợp từ nhiều nguồn.
 
-- document metadata;
-- source/resource;
-- ownership;
-- package/access mapping;
-- version/checksum;
-- Qdrant point id.
+## 6. Versioning
+Revision/checksum không đổi → SKIPPED_UNCHANGED.
+Thay đổi → new document version → new/reconciled chunks → new embeddings → Qdrant reconciliation.
+Không ghi đè mù version cũ.
 
-Qdrant giữ vector và dữ liệu phục vụ similarity retrieval.
+## 7. Binary processing
+Image: lưu asset riêng, sau đó có thể chạy Vision/OCR để tạo canonical text/metadata.
+Video: lưu asset riêng; nếu capability cho phép, tạo thumbnail, frame metadata và transcript.
+Document: lưu asset riêng và parse/OCR thành canonical text trước chunk/embed.
 
-## Sources dự kiến
+## 8. Ingestion
+Provider ingestion phải chuẩn hóa dữ liệu trước khi index. Ingestion không được tự mở quyền truy cập. Mọi fetch phải qua authorization context.
 
-- Google Drive
-- Gmail attachments
-- Facebook data
-- Facebook/Meta, TikTok, Instagram when their provider contracts are approved
-- uploaded documents
-- device-generated documents/images
+## 9. Search
+Knowledge search phải chạy trong authorization context. Khi cần, Agent truy ngược SQL để trả provenance: provider, account, resource, URL, version và asset reference.
 
-## Ingestion
+## 10. Contract documents
+- KNOWLEDGE_SOURCE_CONTRACT.md
+- KNOWLEDGE_INGESTION_V1.md
+- KNOWLEDGE_PIPELINE.md
+- KNOWLEDGE_STORAGE_PROVENANCE_V1.md
 
-Provider ingestion phải chuẩn hóa dữ liệu trước khi index. Ingestion không được tự mở quyền truy cập cho user.
-
-## Search
-
-Knowledge search phải chạy trong authorization context để tránh retrieval chéo dữ liệu không được phép.
+Migration 051 phải được review dựa trên toàn bộ các contract này trước khi implementation.
