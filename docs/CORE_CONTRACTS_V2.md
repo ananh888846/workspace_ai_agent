@@ -35,9 +35,16 @@ Không quyết định resource authorization.
 ## 4. AuthorizationService
 Input: AgentContext, capability/action, candidate account, target resource, target package.
 
-Điều kiện bắt buộc: Organization Membership AND Capability Permission AND Account Access (nếu áp dụng) AND Resource Access AND Package Access (nếu áp dụng).
+Điều kiện bắt buộc:
+- Organization Membership hợp lệ cho tenant-scoped operation.
+- Capability Permission.
+- Account Access nếu capability cần account.
+- Resource Access nếu operation target resource.
+- Package Access nếu request đi qua Data Package.
+
 Output: ALLOW hoặc DENY cùng reason/code.
-Điều kiện bắt buộc: Capability Permission AND Account Access AND Resource Access AND Package Access nếu áp dụng.
+
+`organization_members.member_role` không tự động map thành application `roles`/permissions. Membership xác định tenant eligibility; application authorization vẫn được đánh giá độc lập.
 
 ## 5. AccountResolver
 - Tìm candidate external account.
