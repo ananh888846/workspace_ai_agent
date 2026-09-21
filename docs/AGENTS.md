@@ -24,3 +24,20 @@ CrewAI có thể quản lý collaboration giữa specialist agents. LangChain c�
 ## Agent Run
 
 Mỗi execution quan trọng nên có request_id/agent_run_id và tool_run để trace.
+
+
+## Multi-agent communication V2.1
+
+Agent-to-Agent collaboration dùng ba lớp:
+
+- Agent Message: envelope giao tiếp.
+- Agent Task: công việc Agent A giao Agent B, có parent task/request trace.
+- Agent Permission: policy cho phép Agent nào được giao capability/action nào cho Agent nào.
+
+Luồng chuẩn:
+
+`Agent A → Agent Task/Message → Agent Router → Authorization → Agent B → Result/Trace`
+
+Agent-to-Agent permission không thay thế user authorization. Agent B vẫn phải kiểm tra AgentContext và policy trước khi gọi tool/provider.
+
+Mỗi message/task phải gắn request_id; execution có side effect phải liên kết agent_run/tool_run khi phù hợp.
