@@ -183,3 +183,13 @@
 - Cập nhật `docs/CONFIGURATION.md` về boundary giữa infrastructure container và application runtime.
 - Chưa thêm Agent application service vào Compose vì source tree hiện chưa có `app/main.py` và Dockerfile runtime hoàn chỉnh trên GitHub.
 - Chốt không copy `credentials.json` vào Docker image; application runtime sau này sẽ mount `data/google/` vào `/app/data/google/` theo policy secret.
+
+
+## 2026-09-21 — PostgreSQL AccountResolver repository V1
+- Thêm `app/infrastructure/database/repositories/accounts.py` triển khai `AccountRepository.find_candidates()` trên PostgreSQL.
+- AccountResolver chỉ đọc metadata từ `user_accounts`; không đọc `account_credentials` và không resolve secret.
+- Hỗ trợ account ownership và delegated account qua `account_grants`, có tenant/membership và thời hạn grant.
+- Account hint chỉ exact-match theo account ID, external account ID hoặc email; không fuzzy-match.
+- Thêm unit tests cho mapping metadata và exact hint parameterization.
+- Cập nhật `docs/GOOGLE_CALENDAR.md` với runtime status và gate tiếp theo.
+- Chưa tạo Migration 052; chưa gọi OAuth hoặc Google Calendar API.
