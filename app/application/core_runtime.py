@@ -6,11 +6,11 @@ from typing import Any, Protocol, Sequence
 
 
 class CoreAuthorizationError(PermissionError):
-    """Raised when a protected capability is not authorized."""
+    """Được phát sinh khi capability được bảo vệ chưa được cấp quyền."""
 
 
 class AccountSelectionRequiredError(RuntimeError):
-    """Raised when multiple accounts match and no account is selected."""
+    """Được phát sinh khi có nhiều account phù hợp nhưng chưa chọn account."""
 
 
 @dataclass(frozen=True)
@@ -92,7 +92,7 @@ class CredentialRepository(Protocol):
 
 
 class AccountResolver:
-    """Resolve account metadata without touching credentials."""
+    """Phân giải metadata tài khoản mà không truy cập credential."""
 
     def __init__(self, repository: AccountRepository) -> None:
         self._repository = repository
@@ -121,7 +121,7 @@ class AccountResolver:
 
 
 class AuthorizationService:
-    """Core authorization gate. Credential resolution must happen afterwards."""
+    """Cổng authorization lõi; chỉ được phân giải credential sau bước này."""
 
     def __init__(self, permissions: PermissionRepository) -> None:
         self._permissions = permissions
@@ -161,7 +161,7 @@ class AuthorizationService:
 
 
 class CredentialResolver:
-    """Credential boundary. Call only after AuthorizationService returns ALLOW."""
+    """Biên credential; chỉ được gọi sau khi AuthorizationService trả về ALLOW."""
 
     def __init__(self, repository: CredentialRepository) -> None:
         self._repository = repository
