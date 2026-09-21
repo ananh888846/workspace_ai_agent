@@ -242,3 +242,9 @@
 - Các tên kỹ thuật bắt buộc như tên biến/hàm, package, class, API, exception, protocol và framework được giữ nguyên.
 - Cập nhật `docs/ARCHITECTURE.md` để khóa nguyên tắc này trong kiến trúc chính thức.
 - Quy tắc áp dụng cho code Python mới và các phần được chỉnh sửa về sau.
+
+## 2026-09-21 — Chuẩn hóa ghi chú Python theo quy tắc tiếng Việt
+
+- Chuyển các docstring tiếng Anh hiện có trong `app/config/settings.py` sang tiếng Việt.
+- Không thay đổi logic cấu hình hoặc hành vi runtime.
+- Đây là bước kiểm tra thực thi đầu tiên sau khi khóa quy tắc ngôn ngữ ghi chú Python.
