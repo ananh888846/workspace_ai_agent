@@ -1768,3 +1768,15 @@ Implement Phase 1
 Runtime Verification
 
 Không tạo migration trước khi Database V2 được chốt.
+
+
+---
+
+# V2.1 Migration Review Lock — 2026-09-21 09:35 +07:00
+
+- Agent là tenant-scoped: thêm organization_id bắt buộc; UNIQUE(organization_id, name); các quan hệ Agent Task/Permission/Message dùng composite tenant FK.
+- Task/Work Order đã khóa schema: id, organization_id, parent_task_id, created_by_user_id, assigned_user_id, title, description, task_type, priority, status, resource_id, source_event_id, due_at, started_at, completed_at, metadata, created_at, updated_at.
+- Observations thêm organization_id bắt buộc để hỗ trợ tenant FK cho Evidence.
+- Anomaly Evidence bỏ polymorphic source_type/source_id; dùng bảy nullable source FK: observation_id, event_id, activity_session_id, activity_id, task_id, device_id, resource_id; CHECK đúng một source; mọi source FK phải cùng organization.
+- Automations, automation_triggers và automation_actions đều tenant-scoped bằng organization_id và composite FK.
+- Các quy tắc trên là quyết định chốt và thay thế các implementation gate cũ.
