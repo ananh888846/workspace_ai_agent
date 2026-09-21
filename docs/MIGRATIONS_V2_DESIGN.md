@@ -126,3 +126,11 @@ Thiết kế 001→045 đủ điều kiện chuyển sang production SQL sau khi
 - Acceptance transaction kết thúc bằng ROLLBACK.
 - Gate 011 → 020 được đóng.
 - Migration 021 → 030 là gate tiếp theo.
+
+
+## Verification Gate — Migration 021 → 030
+
+- Production SQL 021→030: **CREATED**.
+- Acceptance AT-021→AT-030: **CREATED**.
+- Chưa chạy database thực tế ở bước này.
+- Gate 021→030: **OPEN / awaiting PostgreSQL verification**.
