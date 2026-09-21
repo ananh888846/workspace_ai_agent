@@ -75,15 +75,12 @@ updated_at
 
 ### organization_members
 ~~~text
-id
 organization_id
 user_id
-role_id
+member_role
 status
-starts_at
-expires_at
+joined_at
 created_at
-updated_at
 ~~~
 
 User có thể thuộc nhiều organization. Membership không tự động cấp quyền lên mọi account/resource.
