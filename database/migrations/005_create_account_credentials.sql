@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE account_credentials (
-  id UUID PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuidv7(),
   user_account_id UUID NOT NULL,
   credential_type VARCHAR(64) NOT NULL,
   encrypted_value BYTEA NOT NULL,
