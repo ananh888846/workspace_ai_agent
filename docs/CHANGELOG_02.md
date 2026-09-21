@@ -227,3 +227,11 @@
 - Bổ sung unit/API tests cho PostgreSQL authorization repository và Phase 2C HTTP wiring.
 - Đồng bộ docs/API_PHASE2.md và docs/GOOGLE_CALENDAR.md.
 - Phase 2C = DONE. Phase 2D = nối Web Chat vào real Agent API.
+
+## 2026-09-21 — Fix local runtime loading of .env
+
+- Xác định Agent chạy trực tiếp bằng Uvicorn trên Windows không tự có biến `DATABASE_URL` từ file `.env`, khiến AccountResolver trả HTTP 500 với `DATABASE_URL is not configured`.
+- Cập nhật `app/config/settings.py` để tự đọc `.env` tại root project khi process chưa có biến tương ứng.
+- Environment variables được inject sẵn luôn được ưu tiên và không bị `.env` ghi đè.
+- Cập nhật `docs/CONFIGURATION.md` để phân biệt PostgreSQL endpoint khi Agent chạy ngoài Docker (`127.0.0.1:5433`) và hostname trong Docker network.
+- Không thêm dependency mới và không thay đổi schema/migration.
