@@ -69,3 +69,8 @@ Nếu implementation cần phá kiến trúc, phải cập nhật Decision/Archi
 ## Decision 017 — Core Database vs Domain Extensions
 **Status:** Accepted  
 Không tạo trước các bảng domain đặc thù; chỉ thêm khi capability tương ứng được duyệt.
+
+
+## Decision 018 — Database Authorization Integrity
+**Status:** Accepted  
+Database V2 phải biểu diễn đầy đủ ba liên kết authorization quan trọng: role → permission qua `role_permissions`, account-backed resource → `user_accounts`, và account grant owner → account bằng constraint/transaction phù hợp. Migration order phải tôn trọng mọi FK dependency.
