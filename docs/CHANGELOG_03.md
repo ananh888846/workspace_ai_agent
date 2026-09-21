@@ -104,3 +104,14 @@
 - Cập nhật `POST /api/v1/agent/chat` để nhận `event_id`, `summary`, `start`, `end`, `description`, `location`, `confirmed`.
 - Cập nhật `docs/GOOGLE_CALENDAR.md` với contract Calendar Write V1 và nguyên tắc UTC/GMT+7.
 - **Chưa đánh dấu E2E PASS**; cần chạy Create/Update/Delete trên Google Calendar thật.
+
+
+## 2026-09-21 — Chốt runbook Google OAuth
+
+- Thêm `docs/GOOGLE_OAUTH.md` làm tài liệu thao tác chuẩn cho toàn bộ quy trình Google OAuth.
+- Runbook ghi rõ cách lấy `user_id`, `organization_id`, xác định `account_id`, chọn capability, tạo OAuth URL, hoàn tất callback và kiểm tra scope.
+- Ghi rõ `x-user-id` và `x-organization-id` là HTTP headers, không phải biến môi trường.
+- Ghi rõ cách dùng `curl.exe` trên PowerShell để lấy redirect URL khi `Invoke-WebRequest` bị chặn HTML parsing.
+- Ghi nhận xác nhận thực tế ngày 2026-09-21: Google OAuth với `calendar.write` đã trả callback thành công.
+- Liên kết `docs/GOOGLE_CALENDAR.md` với runbook OAuth chuẩn.
+- Từ nay khi cần OAuth lại, mở `docs/GOOGLE_OAUTH.md` và thực hiện theo từng bước trong tài liệu.
