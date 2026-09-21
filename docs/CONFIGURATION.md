@@ -39,7 +39,21 @@ Docker local dùng:
 
 Đây là credential phát triển local, không dùng production.
 
-## 5. Qdrant / Ollama
+## 5. Docker Compose infrastructure
+
+`docker-compose.yml` hiện quản lý PostgreSQL 18 và Qdrant. Agent application container chưa được thêm vào Compose ở bước này vì source tree hiện chưa có `app/main.py`/Dockerfile runtime hoàn chỉnh.
+
+Các volume dữ liệu dùng named volume. Không bind-mount secret vào image.
+
+Khi application container được triển khai, Google OAuth local directory sẽ được bind-mount theo policy runtime:
+
+```text
+./data/google:/app/data/google
+```
+
+Không copy `credentials.json` vào Docker image.
+
+## 6. Qdrant / Ollama
 
 Docker container có thể dùng:
 - Qdrant: `http://workspace-ai-agent-qdrant:6333`
@@ -47,7 +61,7 @@ Docker container có thể dùng:
 
 Nếu Agent chạy ngoài Docker, thay hostname bằng endpoint phù hợp.
 
-## 6. Google OAuth
+## 7. Google OAuth
 
 ### 6.1 Cấu trúc file local
 
@@ -84,7 +98,7 @@ OAuth access/refresh token của từng Google account **không** đi vào `.env
 
 Nếu dùng local OAuth bootstrap, `credentials.json` chỉ là input cho OAuth flow; không được coi nó là credential của một user cụ thể.
 
-## 7. Thứ tự triển khai
+## 8. Thứ tự triển khai
 
 ```
 .env.example
