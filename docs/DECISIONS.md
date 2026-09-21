@@ -70,11 +70,9 @@ Nếu implementation cần phá kiến trúc, phải cập nhật Decision/Archi
 **Status:** Accepted  
 Không tạo trước các bảng domain đặc thù; chỉ thêm khi capability tương ứng được duyệt.
 
-
 ## Decision 018 — Database Authorization Integrity
 **Status:** Accepted  
 Database V2 phải biểu diễn đầy đủ ba liên kết authorization quan trọng: role → permission qua `role_permissions`, account-backed resource → `user_accounts`, và account grant owner → account bằng constraint/transaction phù hợp. Migration order phải tôn trọng mọi FK dependency.
-
 
 ## Decision 019 — Organization Membership ≠ Application Authorization Role
 **Status:** Accepted  
@@ -92,7 +90,6 @@ Knowledge retrieval phải áp dụng authorization context trước/trong Qdran
 **Status:** Accepted  
 Webhook chỉ xác thực và ghi nhận sync event; worker thực hiện fetch/normalize/version/chunk/embed/index. Không chạy full ingestion trong HTTP webhook request.
 
-
 ## Decision 023 — Organization as Tenant Boundary
 **Status:** Accepted  
 Organization là tenant/workspace boundary. User có thể thuộc nhiều Organization; membership xác định tenant eligibility nhưng không thay thế application authorization. Resource/device/activity/task/agent-communication/anomaly entities có tenant scope phải được database và runtime enforce cùng organization.
@@ -109,178 +106,18 @@ Agent Message và Agent Task là transport/work state; Agent Permission mới qu
 **Status:** Accepted  
 Anomaly là inference về sai lệch dựa trên evidence, không phải kết luận fraud. Mỗi anomaly phải truy ngược được về source facts/events/activities/tasks/devices/resources trong cùng Organization.
 
-
 ## Decision 027 — Account Grant and Data Package Tenant Scope
 **Status:** Accepted  
 `account_grants` và Data Package là tenant-scoped trong V2.1. Account grant phải có `organization_id` và owner/grantee cùng là member của organization. `data_packages`, versions, package resources và package grants mang cùng `organization_id`; package không được chứa resource hoặc cấp grant ra ngoài organization. `resources.organization_id` và `devices.organization_id` là bắt buộc.
-
 
 ## Decision 028 — CHANGELOG Must Link Changed/Added Files
 **Status:** Accepted  
 Mỗi entry trong `docs/CHANGELOG.md` khi ghi nhận file được thêm hoặc thay đổi phải gắn Markdown link trực tiếp tới file trong repository. Quy tắc này áp dụng cho mọi thay đổi documentation/code được ghi vào CHANGELOG, để từ changelog có thể mở thẳng file liên quan. Không ghi tên file dạng plain text nếu file có thể được link nội bộ.
 
-
-## Decision 029 — V2.1 Migration Review Gates Locked
+## Decision 029 — Database Timestamp UTC
 **Status:** Accepted  
-**Date:** 2026-09-21 09:35 +07:00
+Mọi timestamp do Workspace AI Agent lưu trong database phải dùng UTC và timezone-aware tại application boundary. Không lưu GMT+7/giờ địa phương vào database. Khi hiển thị cho người dùng Việt Nam, presentation/application layer chuyển sang `Asia/Ho_Chi_Minh` (GMT+7). Provider có thể có timezone contract riêng nhưng không thay đổi chuẩn lưu trữ UTC của database.
 
-- Agent là tenant-scoped; organization_id bắt buộc và A2A dùng composite tenant FK.
-- Task/Work Order schema được khóa explicit.
-- Anomaly Evidence dùng bảy nullable source FK + exactly-one CHECK, không dùng polymorphic source.
-- Automation root/trigger/action đều tenant-scoped.
-
-Các implementation gate tương ứng đã được đóng. Chưa tạo SQL production/database/runtime.
-
-
-## Decision 030 — Migration 001→010 Verification Gate
+## Decision 030 — Calendar Write Requires Explicit Confirmation for Delete
 **Status:** Accepted  
-**Date:** 2026-09-21 08:30:00 +07:00
-
-Migration 001 → 010 được chạy trên PostgreSQL 18.6 với database sạch. Acceptance test AT-001 → AT-008 đều PASS và transaction test kết thúc bằng ROLLBACK. Gate 001 → 010 được coi là đã verify; Migration 011 → 020 chỉ được triển khai theo contract và acceptance gate tương ứng.
-
-## Decision 031 — Migration 011→020 Tenant Boundary Hardening
-**Status:** Accepted  
-**Date:** 2026-09-21 10:10 +07:00
-
-Migration 011→020 phải enforce tenant integrity ở database. Resource permissions, user sessions và device-user mappings mang organization scope; resource account ownership dùng composite FK; provider/account compatibility dùng database-level trigger. Acceptance gate AT-011→AT-022 phải PASS trước khi mở Migration 021→030.
-
-## Decision 032 — Migration 011→020 Verification Gate
-**Status:** Accepted  
-**Date:** 2026-09-21 17:00 +07:00
-
-Migration 011 → 020 đã được chạy thực tế trên PostgreSQL 18.6 và acceptance AT-011 → AT-022 đạt **12/12 PASS**. Acceptance transaction kết thúc bằng ROLLBACK. Gate tenant/resource/session/device của Migration 011 → 020 được coi là đã verify và đóng. Migration 021 → 030 được phép tiếp tục theo migration contract.
-
-
-## Decision 033 — Migration 021→030 Schema and Tenant Review Lock
-**Status:** Accepted  
-**Date:** 2026-09-21 17:00 +07:00
-
-Migration 021→030 được khóa theo source of truth hiện hành: Observation tenant-scoped; Event/Activity Session/Activity dùng composite tenant integrity; Task/Work Order dùng exact V2.1 column contract; Conversation/Memory giữ user ownership; Knowledge authorization dựa trên SQL metadata/access policy và Qdrant không phải authorization source. Production SQL chỉ được tạo sau review lock này.
-
-## Decision 034 — Migration 021→030 Production SQL Created
-**Status:** Accepted
-**Date:** 2026-09-21 17:20 +07:00
-
-Production SQL 021→030 và acceptance AT-021→AT-030 đã được tạo theo schema lock. Chưa coi gate 021→030 là CLOSED cho đến khi chạy thực tế trên PostgreSQL 18.6 và toàn bộ acceptance PASS.
-
-
-## Decision 035 — Migration 011→033 Integration Verification Gate
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Migration 011 → 033 integration acceptance đã được chạy trên PostgreSQL 18.6 với ON_ERROR_STOP=1. AT-035 → AT-040 đều PASS (6/6). Test transaction kết thúc bằng ROLLBACK. Gate integration 011 → 033 được coi là đã verify và đóng. Production verification của từng migration block vẫn được duy trì theo gate tương ứng khi cần clean-database acceptance.
-
-
-## Decision 036 — Migration 034→045 Production SQL Created
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Production SQL 034 → 045 đã được tạo theo schema/tenant review lock. Migration 034→040 enforce Agent/Automation tenant integrity bằng composite FK; Migration 041→042 kế thừa Automation tenant scope; Migration 043→044 enforce Anomaly/Evidence tenant integrity bằng explicit source FKs; Migration 045 enforce append-only Audit Log và audit metadata secret boundary. Acceptance verification trên PostgreSQL 18.6 chưa chạy, nên gate 034 → 045 vẫn OPEN.
-
-## Decision 037 — Migration 034→045 Verification Gate
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Migration 034 → 045 đã được verify trên PostgreSQL 18.6 bằng acceptance test với `ON_ERROR_STOP=1`. AT-041 → AT-052 đều PASS (12/12), transaction kết thúc bằng ROLLBACK. Gate Migration 034 → 045 được coi là đã verify và đóng. Bộ migration 001 → 045 đã hoàn tất production SQL và các acceptance gate tương ứng hiện có.
-
-
-## Decision 038 — Database V2.1 Post-Implementation Review Gate
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Post-Implementation Review của Migration 001 → 045 đã được thực hiện trên source SQL và contract trên GitHub. Các acceptance gate hiện có vẫn PASS, nhưng static review phát hiện DBR-001 → DBR-007 liên quan tenant/user ownership, execution-account context và resource identity semantics.
-
-Chưa coi Database V2.1 là hoàn toàn CLOSED về tenant-integrity cho đến khi các finding được chốt, migration hậu V2.1 được tạo nếu cần, acceptance bổ sung PASS và runtime catalog verification hoàn tất.
-
-Chi tiết nằm trong [docs/DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md](./DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md).
-
-
-## Decision 039 — Post-V2.1 Execution Account Context
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-`tool_runs` phải ghi nhận execution context của `agent_run` bằng `organization_id` và `user_id`.
-
-`tool_runs.account_id` có hai semantics hợp lệ: owned account của execution user; hoặc delegated account qua `account_grant_id` hợp lệ cùng organization, đúng grantee/account và còn hiệu lực tại `agent_runs.started_at`. Database trigger enforce semantics này.
-
-## Decision 040 — Audit Account Authorization Context
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Khi `audit_logs.account_id` khác NULL, `user_id` và `organization_id` bắt buộc khác NULL. Account phải thuộc trực tiếp user hoặc được delegated qua `account_grant_id` hợp lệ cùng organization, đúng grantee/account và còn hiệu lực tại `audit_logs.created_at`. Audit không lưu credential/secret.
-
-## Decision 041 — Resource Identity by Account-backed vs Local Resource
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Resource identity được chia thành account-backed và local/tenant. Account-backed dùng `(provider, user_account_id, resource_type, external_id)`. Local dùng `(organization_id, provider, resource_type, external_id)` khi `user_account_id IS NULL`. Database enforce bằng hai partial unique indexes.
-
-## Decision 042 — Post-V2.1 DBR Closure Migration Set
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-DBR-001 → DBR-007 được chuyển thành migration hậu V2.1: 046 Event/Activity user tenant integrity; 047 Conversation owner integrity; 048 Tool Run execution account context; 049 Audit Log account authorization context; 050 Resource identity semantics. Không sửa ngược 001 → 045. Acceptance PostgreSQL 18.6 và runtime catalog verification là gate trước CLOSED.
-
-
-## Decision 043 — Database V2.1 Post-Implementation Review CLOSED
-**Status:** Accepted  
-**Date:** 2026-09-21  
-
-DBR-001 → DBR-007 đã được giải quyết bằng migration hậu V2.1 046 → 050 và được verify thực tế trên PostgreSQL 18.6.
-
-- Acceptance **AT-053 → AT-065: 13/13 PASS**; transaction kết thúc bằng `ROLLBACK`.
-- Runtime catalog verification **RV-001 → RV-014: 14/14 PASS**; transaction kết thúc bằng `ROLLBACK`.
-- Không sửa ngược Migration 001 → 045.
-- Database V2.1 Post-Implementation Review Gate được **CLOSED**.
-- Migration 046 → 050 là phần closure của DBR-001 → DBR-007 và không được chạy lại trên database đã áp dụng.
-
-
-## Decision 044 — Google Calendar Event CRUD Boundary
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Google Calendar Event CRUD được triển khai như capability/tool của Google provider, không tạo provider-specific Core table chỉ để lưu event. V1 dùng `calendar.read` cho read và `calendar.write` cho create/update/delete. Mọi mutation phải qua AccountResolver → Authorization → CredentialResolver → ToolResolver → Google Calendar Adapter và có audit/tool-run trace. Delete/update phải có target event rõ ràng; nhiều candidate thì yêu cầu user chọn/xác nhận. Không cần Migration 052 cho Event CRUD với schema V2.1 hiện tại.
-
-
-## Decision 045 — Google OAuth Credential Boundary
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Google OAuth được triển khai như integration boundary, không bypass Core Authorization.
-
-- OAuth state phải ràng buộc account/user/organization, có chữ ký HMAC và thời hạn.
-- Authorization code chỉ được đổi trong callback hợp lệ.
-- Credential phải được mã hóa trước khi lưu vào `account_credentials`.
-- OAuth không được ghi token plaintext vào log, AgentContext, prompt, audit hoặc HTTP response.
-- Sau OAuth, account có credential hợp lệ mới được chuyển từ `pending_oauth` sang `active`.
-- Agent runtime vẫn phải đi qua CredentialResolver → ToolResolver → Provider.
-
-
-## Decision 046 — UTC as Database Time Standard
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-- Mọi timestamp lưu trong PostgreSQL dùng UTC làm chuẩn duy nhất.
-- Thời gian từ người dùng phải có timezone hoặc được xác định rõ trước khi chuẩn hóa về UTC.
-- Application/presentation chuyển UTC sang `Asia/Ho_Chi_Minh` (GMT+7) khi hiển thị cho người dùng.
-- Provider timezone chỉ là boundary concern và không thay đổi chuẩn timestamp của database.
-- Dùng utility thời gian chung thay vì tự xử lý timezone rải rác trong từng domain.
-
-
-## Decision 047 — Google Calendar Read V1 CLOSED
-**Status:** Accepted  
-**Date:** 2026-09-21
-
-Google Calendar Read V1 đã hoàn tất runtime verification thực tế qua `POST /api/v1/agent/chat`.
-
-- Classification: `calendar.read`.
-- AccountResolver: resolve đúng Google account.
-- Authorization: `allow`.
-- CredentialResolver: `ready`.
-- ToolResolver/Calendar provider: được gọi thực tế.
-- Google Calendar API v3: trả về 2 event thực tế trong ngày kiểm thử.
-- HTTP UTF-8: tiếng Việt hiển thị đúng.
-- Timezone hiển thị: `Asia/Ho_Chi_Minh`.
-- Không tạo Migration 052.
-
-Calendar Read V1 được **CLOSED**. Calendar Write V1 và webhook/sync vẫn là các phase riêng.
+Calendar Write dùng capability `calendar.write` và luôn đi qua AccountResolver → AuthorizationService → CredentialResolver → ToolResolver trước provider. Create/update có resource contract rõ ràng; delete bắt buộc `event_id` và `confirmed=true`. Nếu chưa confirmation thì không được gọi Google Calendar API.
