@@ -126,6 +126,11 @@ Các composite FK dưới đây là database-level requirement, không phải ap
 - `data_package_grants(package_version_id, organization_id) → data_package_versions(id, organization_id)`.
 - `data_package_grants(organization_id, user_id) → organization_members(organization_id, user_id)`.
 - `devices(resource_id, organization_id) → resources(id, organization_id)` khi resource không NULL.
+- `resources(user_account_id, owner_user_id) → user_accounts(id, user_id)` khi account-backed.
+- `user_sessions(organization_id, user_id) → organization_members(organization_id, user_id)`.
+- `user_sessions(device_id, organization_id) → devices(id, organization_id)` khi device không NULL.
+- `device_users(device_id, organization_id) → devices(id, organization_id)`.
+- `device_users(organization_id, user_id) → organization_members(organization_id, user_id)`.
 - Tenant-scoped Activity/Task/A2A relations phải dùng cùng pattern `(id, organization_id)` hoặc equivalent database constraint để ngăn cross-organization reference.
 
 Các bảng được target bởi composite FK phải có UNIQUE key tương ứng, ví dụ `UNIQUE(id, organization_id)`.
@@ -1792,3 +1797,9 @@ Không tạo migration trước khi Database V2 được chốt.
 - Acceptance AT-001 → AT-008: **PASS**.
 - Acceptance transaction kết thúc bằng **ROLLBACK**.
 - Schema contract 001 → 010 đã được verify thực tế; các domain 011 → 045 vẫn theo migration gate riêng.
+
+---
+
+# V2.1 Migration 011 → 020 Review Correction — 2026-09-21 10:00:00 +07:00
+
+Before production SQL, the schema source of truth was hardened so session/device/user relationships cannot cross organization boundaries. Resource account ownership is also enforced with a composite ownership FK; provider/account compatibility remains a database-level invariant.
