@@ -1,3 +1,15 @@
+## 2026-09-21 09:02:00 +07:00
+
+### Migration 021–030 DDL design
+
+- Thêm `docs/MIGRATION_021_030_DDL.md`.
+- Thiết kế Observation, Event, Activity Session, Activity, Task, Conversation, Message, Memory, Knowledge Document và Knowledge Chunk.
+- Khóa tenant integrity cho Event/Activity và authorization boundary của Knowledge.
+- Xác định SQL là source of truth cho Knowledge metadata/authorization, Qdrant chỉ là retrieval store.
+- Bổ sung acceptance tests cho lifecycle, temporal checks, cross-tenant references và Qdrant authorization.
+- Giữ Task schema ở mức contract, không tự phát sinh column ngoài source-of-truth trước khi viết SQL.
+- Chưa tạo SQL migration production, chưa tạo database thật và chưa thay đổi application/runtime code.
+
 ## 2026-09-21 08:52:00 +07:00
 
 ### Migration 011–020 DDL design
