@@ -1,57 +1,80 @@
 # Authorization V2
 
-## Mục tiêu
+## 1. Mục tiêu
 
-Authorization quyết định user có được thực hiện action trên resource hay không. Agent, LLM, LangChain và CrewAI không được bypass lớp này.
+Authorization quyết định user có được thực hiện action trên resource hay không. Agent, LLM, LangChain và CrewAI không được bypass.
 
-## Mô hình
+## 2. Quy trình
 
-```text
+~~~text
 User
  ↓
-Role / Permission
+Capability Permission
  ↓
 Account Grant nếu cần
  ↓
-Resource Permission
+Resource Permission nếu cần
  ↓
-Data Package Grant nếu dữ liệu đi qua package
+Data Package Grant nếu request qua package
  ↓
-Allow / Deny
-```
+ALLOW / DENY
+~~~
 
-## Quy tắc
+Tất cả điều kiện bắt buộc phải đạt.
 
-1. Authentication xác định user.
-2. Authorization xác định quyền.
-3. AccountResolver chỉ tìm account sau khi biết capability cần account.
-4. Account ownership không tự động cấp quyền cho user khác.
-5. Grant có thể có thời hạn và trạng thái.
-6. Deny hoặc thiếu grant không được suy diễn thành allow.
-7. Mọi access nhạy cảm phải có audit.
+## 3. Account Grant
 
-## Account delegation
+User A sở hữu Google Account A và cấp User B quyền đọc Calendar A:
 
-User A sở hữu Google Account A. User B được grant chỉ đọc Calendar A.
-
-```text
+~~~text
 User B
  ↓
 calendar.read
  ↓
-Google Account A
+Account Grant → Google Account A
  ↓
-Calendar resource
+Resource Permission → Calendar A
  ↓
 ALLOW
-```
+ ↓
+Credential
+ ↓
+Google Calendar Tool
+~~~
 
-Không có nghĩa User B có toàn bộ quyền của User A.
+User B không nhận credential của User A.
 
-## Data Package access
+## 4. DENY
 
-Package là lớp quyền cấp theo dữ liệu. Một package có thể gồm nhiều resource và có version. User nhận package thông qua grant.
+Thiếu grant hoặc DENY không được suy diễn thành ALLOW.
 
-## Future extension
+Khi DENY:
+- không lấy secret/refresh token;
+- không gọi provider API;
+- không chạy protected tool;
+- ghi audit theo policy.
 
-Có thể bổ sung ABAC/policy engine, consent, approval workflow và field-level access mà không thay đổi nguyên tắc core.
+## 5. Data Package
+
+Package grant không thay thế resource authorization.
+
+~~~text
+Capability
+AND Account
+AND Resource
+AND Package nếu áp dụng
+=
+ALLOW
+~~~
+
+## 6. Ownership
+
+Ownership không tự động cấp quyền cho user khác.
+
+## 7. Multi-account
+
+Nếu user có nhiều account cùng provider, policy phải chọn default account hoặc yêu cầu user chọn. Không để LLM tự đoán.
+
+## 8. Future
+
+Có thể thêm ABAC, consent, approval workflow, field-level access, masking và policy engine.
