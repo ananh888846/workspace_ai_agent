@@ -16,6 +16,7 @@ erDiagram
     ROLES ||--o{ ROLE_PERMISSIONS : maps
     PERMISSIONS ||--o{ ROLE_PERMISSIONS : defines
     USER_ACCOUNTS ||--o{ ACCOUNT_GRANTS : delegated
+    ORGANIZATIONS ||--o{ ACCOUNT_GRANTS : scopes
     USERS ||--o{ ACCOUNT_GRANTS : owner
     USERS ||--o{ ACCOUNT_GRANTS : grantee
 ```
@@ -32,6 +33,10 @@ erDiagram
     USER_ACCOUNTS ||--o{ RESOURCES : backs
     RESOURCES ||--o{ RESOURCE_PERMISSIONS : protects
     USERS ||--o{ RESOURCE_PERMISSIONS : receives
+    ORGANIZATIONS ||--o{ DATA_PACKAGES : scopes
+    ORGANIZATIONS ||--o{ DATA_PACKAGE_VERSIONS : scopes
+    ORGANIZATIONS ||--o{ DATA_PACKAGE_RESOURCES : scopes
+    ORGANIZATIONS ||--o{ DATA_PACKAGE_GRANTS : scopes
     USERS ||--o{ DATA_PACKAGES : owns
     DATA_PACKAGES ||--o{ DATA_PACKAGE_VERSIONS : versions
     DATA_PACKAGE_VERSIONS ||--o{ DATA_PACKAGE_RESOURCES : contains
@@ -40,7 +45,12 @@ erDiagram
     USERS ||--o{ DATA_PACKAGE_GRANTS : receives
 ```
 
-Invariant: `parent_resource_id` phải cùng `organization_id`.
+Tenant invariants:
+- `account_grants` thuộc một `organization_id`; owner và grantee phải là member của organization.
+- Data Package, version, package-resource và package-grant đều mang `organization_id`.
+- Package chỉ được chứa resource cùng organization.
+- `parent_resource_id` phải cùng `organization_id`.
+- `resources.organization_id` và `devices.organization_id` là bắt buộc.
 
 ## 3. Device / Event / Activity
 
@@ -157,6 +167,8 @@ Provider API = NOT CALLED
 ## 7. V2.1 integrity rules
 
 - Organization-scoped entities cannot reference resources/devices/tasks/agents from another organization.
+- Account grants cannot cross organization membership boundaries.
+- Data Packages cannot contain or grant access to resources/users outside their organization.
 - `parent_resource_id` must remain inside the same organization as `resources.organization_id`.
 - Device/resource binding must remain inside the same organization.
 - Agent-to-Agent delegation is same-organization only in V2.1.
