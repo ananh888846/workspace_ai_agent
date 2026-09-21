@@ -1,3 +1,20 @@
+## 2026-09-21 — Database V2.1 Post-Implementation Review
+
+- Thêm [docs/DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md](./DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md).
+- Đối chiếu static toàn bộ migration 001 → 045 với Database V2.1 contract và acceptance evidence.
+- Xác nhận các tenant boundary chính đã được enforce bằng composite FK/constraint.
+- Ghi nhận 7 findings cần chốt trước khi tuyên bố Database V2.1 tenant-integrity hoàn toàn CLOSED:
+  - DBR-001 Event user ↔ organization.
+  - DBR-002 Activity Session user ↔ organization.
+  - DBR-003 Activity user ↔ organization.
+  - DBR-004 Agent Run ↔ Conversation ownership.
+  - DBR-005 Tool Run ↔ external account execution context.
+  - DBR-006 Audit Log ↔ external account tenant/user context.
+  - DBR-007 Resource uniqueness semantics theo tenant/provider/account.
+- Không sửa ngược Migration 001 → 045; mọi schema correction sẽ đi bằng migration hậu V2.1.
+- Runtime pg_catalog/information_schema verification chưa được thực hiện trong review này.
+- **Status:** Post-Implementation Review = **ACTIONS OPEN**.
+
 ## 2026-09-21 08:00:00 +07:00 — Migration 034 → 045 PostgreSQL acceptance verified
 
 - Đã chạy acceptance [database/tests/acceptance_034_045.sql](../database/tests/acceptance_034_045.sql) trên PostgreSQL 18.6 với `ON_ERROR_STOP=1`.
