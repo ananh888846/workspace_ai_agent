@@ -3,9 +3,16 @@ from __future__ import annotations
 from uuid import uuid4
 
 from app.api.schemas import ChatRequest, ChatResponse
-from app.application.core_runtime import AccountResolver, AccountSelectionRequiredError
+from app.application.core_runtime import (
+    AccountResolver,
+    AccountSelectionRequiredError,
+    AgentContext,
+    AuthorizationService,
+    ExternalAccount,
+)
 from app.infrastructure.database.connection import database_connection
 from app.infrastructure.database.repositories.accounts import PostgresAccountRepository
+from app.infrastructure.database.repositories.permissions import PostgresPermissionRepository
 
 
 def build_chat_response(request: ChatRequest) -> ChatResponse:
@@ -16,7 +23,7 @@ def build_chat_response(request: ChatRequest) -> ChatResponse:
         message="Backend HTTP contract đã nhận yêu cầu.",
         execution={
             "intent": "not_classified",
-            "capability": None,
+            "capability": request.capability,
             "account": {"status": "not_evaluated", "hint": request.account_hint},
             "authorization": {"status": "not_evaluated"},
             "provider_called": False,
@@ -24,7 +31,9 @@ def build_chat_response(request: ChatRequest) -> ChatResponse:
     )
 
 
-def resolve_google_account(*, user_id: str, organization_id: str, account_hint: str | None = None) -> dict:
+def resolve_google_account(
+    *, user_id: str, organization_id: str, account_hint: str | None = None
+) -> dict:
     with database_connection() as connection:
         resolver = AccountResolver(PostgresAccountRepository(connection))
         try:
@@ -35,10 +44,22 @@ def resolve_google_account(*, user_id: str, organization_id: str, account_hint: 
                 account_hint=account_hint,
             )
         except AccountSelectionRequiredError:
-            return {"status": "account_selection_required", "provider": "google", "provider_called": False}
+            return {
+                "status": "account_selection_required",
+                "provider": "google",
+                "provider_called": False,
+            }
         except LookupError as exc:
-            return {"status": str(exc), "provider": "google", "provider_called": False}
+            return {
+                "status": str(exc),
+                "provider": "google",
+                "provider_called": False,
+            }
 
+    return _account_result(account)
+
+
+def _account_result(account: ExternalAccount) -> dict:
     return {
         "status": "resolved",
         "provider": account.provider,
@@ -46,5 +67,35 @@ def resolve_google_account(*, user_id: str, organization_id: str, account_hint: 
         "external_account_id": account.external_account_id,
         "display_name": account.display_name,
         "email": account.email,
+        "provider_called": False,
+    }
+
+
+def authorize_request(
+    *,
+    user_id: str,
+    organization_id: str,
+    capability: str,
+    action: str | None = None,
+    account: ExternalAccount | None = None,
+    target_resource: str | None = None,
+) -> dict:
+    context = AgentContext(
+        request_id=str(uuid4()),
+        organization_id=organization_id,
+        user_id=user_id,
+        capability=capability,
+        action=action or capability.partition(".")[2],
+        target_account=account.id if account else None,
+        target_resource=target_resource,
+    )
+    with database_connection() as connection:
+        service = AuthorizationService(PostgresPermissionRepository(connection))
+        decision = service.authorize(context=context, account=account)
+
+    return {
+        "status": "allow" if decision.allowed else "deny",
+        "code": decision.code,
+        "reason": decision.reason,
         "provider_called": False,
     }
