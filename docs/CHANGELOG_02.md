@@ -69,3 +69,13 @@
 - Migration 051 **không tạo lại** `idx_knowledge_chunks_content_hash`, loại bỏ nguyên nhân duplicate-index đã gặp trước đó.
 - Cập nhật acceptance 051 để kiểm tra thực tế multi-source provenance.
 - Runtime verification của Migration 051 vẫn **PENDING** cho đến khi chạy trên PostgreSQL thực tế.
+
+
+## 2026-09-21 — Migration 051 PostgreSQL runtime verification PASS
+- Reset PostgreSQL database và chạy lại migrations 001–050 thành công: **45 bảng baseline**.
+- Áp dụng Migration 051 thành công.
+- Chạy `database/tests/acceptance_051.sql`: **AT-051-01..11 PASS**.
+- Acceptance kết thúc bằng `ROLLBACK`; test fixture không được giữ lại.
+- Đóng Migration 051 DB Gate.
+- Cập nhật các Knowledge contract/status docs để phản ánh runtime state thực tế.
+- Bước tiếp theo: Knowledge Ingestion V1 runtime integration, bắt đầu với Google Drive happy path.
