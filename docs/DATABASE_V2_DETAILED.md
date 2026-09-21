@@ -1834,3 +1834,10 @@ Migration 011 → 020 đã được chạy và kiểm thử thực tế trên Po
 - Conversation và Memory vẫn user-owned theo contract hiện hành.
 - Knowledge Document/Chunk dùng SQL metadata/authorization làm source of truth; Qdrant chỉ là retrieval store.
 - Chưa tạo production SQL cho 021 → 030.
+# V2.1 Migration 031 → 033 Schema Lock — 2026-09-21 17:35 +07:00
+
+- `agents` là tenant-scoped: thêm `organization_id UUID NOT NULL`, FK tới `organizations(id)`, và UNIQUE(`organization_id`, `name`).
+- `agent_capabilities` kế thừa tenant scope từ `agents`; PK vẫn là (`agent_id`, `capability`) và agent_id phải tham chiếu agent hợp lệ.
+- `tools` là shared/global catalog trong V2.1, không mang `organization_id`; identity `name` là UNIQUE toàn hệ thống.
+- `tools` không cấp authorization; `tool_capabilities` mới mô tả capability contract và `requires_account` chỉ mô tả dependency.
+- Migration 031 → 033 chỉ tạo Agent identity, Agent capability mapping và Tool catalog; chưa tạo Agent Run/Tool Run/A2A.
