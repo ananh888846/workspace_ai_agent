@@ -316,3 +316,31 @@ Schema direction đã đủ rõ để chuyển sang **Schema Design Lock**, vớ
 6. `knowledge_chunks` gắn version
 
 Sau khi chốt 4 policy còn mở ở mục 15, có thể viết Migration 051 và acceptance tests.
+
+## 17. Multi-source Design Lock — 2026-09-21
+
+### Nguyên tắc bắt buộc
+
+Knowledge V1 phải **provider-neutral và multi-source**. Google Drive chỉ là provider đầu tiên triển khai, không phải kiến trúc trung tâm. Schema phải dùng được cho Facebook/Meta, Instagram, TikTok, Gmail, Zalo, file upload, public URL và provider tương lai mà không cần tạo bảng knowledge riêng cho từng provider.
+
+Luồng chuẩn:
+
+`Provider Adapter → Normalize → knowledge_sources → knowledge_documents → knowledge_document_versions → assets/chunks → Qdrant`
+
+### Bốn policy đã chốt
+
+**A. Content:** canonical normalized text và chunk content lưu PostgreSQL `TEXT` trong V1. Binary video/image/document/audio không lưu PostgreSQL; chỉ lưu metadata + `storage_backend/storage_key`.
+
+**B. Source chưa có resource:** cho phép `resource_id = NULL` với status `unresolved`. Không được dùng trạng thái này để bypass authorization. Khi resolve được resource thì cập nhật resource reference nhưng giữ nguyên provenance.
+
+**C. Derived knowledge:** hỗ trợ first-class. Một document version có thể có nhiều source thông qua `knowledge_document_version_sources`, với `relation_type = primary | derived | supporting`. Ví dụ Google + Facebook + TikTok có thể cùng đóng góp cho một derived knowledge version.
+
+**D. Retention:** giữ version lịch sử và asset metadata; version cũ chuyển `superseded`; Migration 051 không hard-delete bằng cascade. Physical cleanup để retention worker/policy xử lý về sau.
+
+### Multi-source acceptance cases
+
+Migration 051 phải biểu diễn được tối thiểu: Google Drive, Facebook/Meta, Instagram, TikTok, Gmail, Zalo/provider tương lai; nhiều account trên cùng provider; source URL và canonical URL; một document version có nhiều source; source không đổi → `SKIPPED_UNCHANGED`; source thay đổi → version/chunk/Qdrant reconciliation; source delete/revoke → tombstone/status mà không phá lịch sử.
+
+**Design Lock:** APPROVED.
+
+Bước tiếp theo: production SQL Migration 051 + acceptance tests + PostgreSQL verification.
