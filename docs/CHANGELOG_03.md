@@ -72,3 +72,12 @@
 - Sửa lỗi runtime `can't compare offset-naive and offset-aware datetimes` khi Google Auth kiểm tra thời hạn credential.
 - Không thay đổi token, scope hoặc thiết kế mã hóa credential.
 - Chưa đánh dấu Calendar E2E PASS; cần chạy lại request đọc lịch sau khi pull code.
+
+
+## 2026-09-21 — Chuẩn hóa expiry theo yêu cầu Google Auth
+
+- Điều chỉnh `expires_at` sau khi đọc PostgreSQL về UTC dạng datetime không gắn timezone trước khi tạo `google.oauth2.credentials.Credentials`.
+- Nguyên nhân của lỗi còn lại là Google Auth thực hiện phép so sánh thời gian bằng UTC dạng naive, trong khi credential trước đó nhận datetime aware.
+- Bản sửa trước đã chuẩn hóa theo hướng ngược lại nên chưa xử lý đúng lớp Google Auth; lần này chuẩn hóa đúng tại biên provider credential.
+- Không thay đổi token, scope hoặc thiết kế mã hóa credential.
+- Chưa đánh dấu Calendar E2E PASS; cần chạy lại request đọc lịch sau khi pull code.
