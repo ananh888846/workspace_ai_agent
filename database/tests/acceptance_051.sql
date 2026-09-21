@@ -8,7 +8,7 @@ DECLARE
   org_a UUID := uuidv7(); org_b UUID := uuidv7();
   user_a UUID := uuidv7(); user_b UUID := uuidv7();
   account_a UUID := uuidv7();
-  source_a UUID := uuidv7(); source_b UUID := uuidv7();
+  source_a UUID := uuidv7(); source_b UUID := uuidv7(); source_cross UUID := uuidv7();
   doc_a UUID := uuidv7(); version_b UUID := uuidv7();
   asset_a UUID := uuidv7(); chunk_a UUID := uuidv7();
 BEGIN
@@ -128,17 +128,18 @@ BEGIN
   );
 
   -- AT-051-10: cross-tenant provenance is rejected.
-  -- Use an org_b source so the composite PK does not mask the FK check.
-  BEGIN
-    INSERT INTO knowledge_sources(
-      id,organization_id,user_account_id,provider,resource_type,external_id,status
-    ) VALUES(
-      source_b,org_b,NULL,'public_url','url','cross-tenant-source','active'
-    );
+  -- Use a dedicated org_b source so neither the source PK nor the
+  -- existing (version_b, source_b) provenance PK can mask the FK check.
+  INSERT INTO knowledge_sources(
+    id,organization_id,user_account_id,provider,resource_type,external_id,status
+  ) VALUES(
+    source_cross,org_b,NULL,'public_url','url','cross-tenant-source','active'
+  );
 
+  BEGIN
     INSERT INTO knowledge_document_version_sources(
       organization_id,document_version_id,source_id,relation_type
-    ) VALUES(org_a,version_b,source_b,'supporting');
+    ) VALUES(org_a,version_b,source_cross,'supporting');
 
     RAISE EXCEPTION 'AT-051-10 FAIL: cross-tenant provenance accepted';
   EXCEPTION WHEN foreign_key_violation THEN NULL;
