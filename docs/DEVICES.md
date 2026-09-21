@@ -46,3 +46,12 @@ Event
 ## Security
 
 Device credential và user identity phải tách nhau. Device không được tự quyết định quyền đọc data package.
+
+
+## Organization / Resource binding V2.1
+
+Device có thể thuộc một Organization và gắn với Resource cụ thể:
+
+`Organization → Resource → Device → Observation → Event`
+
+Binding này giúp xác định camera/cảm biến thuộc phòng nào, khu vực nào hoặc workspace nào. Device vẫn là identity độc lập và không kế thừa quyền User tự động.
