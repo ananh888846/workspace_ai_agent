@@ -1,3 +1,11 @@
+## 2026-09-21 10:05:00 +07:00 — Migration 011 → 020 resource permission tenant hardening
+
+- Reviewed resource_permissions as an authorization boundary before SQL generation.
+- Added organization_id and composite tenant FKs so permission grants cannot cross organization boundaries.
+- Added AT-012 for cross-organization resource permission rejection.
+- Updated [docs/MIGRATION_011_020_DDL.md](./MIGRATION_011_020_DDL.md), [docs/MIGRATION_CONTRACT_V2.md](./MIGRATION_CONTRACT_V2.md) and [docs/DATABASE_V2_DETAILED.md](./DATABASE_V2_DETAILED.md).
+- Gate remains pre-SQL review; production SQL is generated only from the corrected contract.
+
 ## 2026-09-21 10:00:00 +07:00 — Migration 011 → 020 pre-SQL integrity correction
 
 - Reviewed [docs/MIGRATION_011_020_DDL.md](./MIGRATION_011_020_DDL.md) before production SQL generation.
