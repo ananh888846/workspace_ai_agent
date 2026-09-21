@@ -38,6 +38,10 @@ Nếu Authorization = DENY thì CredentialResolver và Google Calendar API khôn
 - Read: `https://www.googleapis.com/auth/calendar.readonly`
 - Write: `https://www.googleapis.com/auth/calendar`
 
+Bộ scope của từng phiên OAuth phải được giữ nguyên từ lúc tạo authorization URL đến lúc callback đổi authorization code. OAuth state chứa bộ scope đã yêu cầu cùng `code_verifier`, và callback dựng lại `Flow` bằng chính bộ scope đó.
+
+Google có thể trả về thêm scope đã được cấp trước đó khi dùng `include_granted_scopes=true`. Đây không phải lý do để thay đổi `credentials.json` hoặc sửa token thủ công. Scope thực tế do Google trả về được lưu trong `account_credentials.scopes`.
+
 Nếu Google account trước đây chỉ được cấp Drive scope, khi bật Calendar capability có thể cần re-authorization để cấp thêm Calendar scope. Không sửa token trực tiếp.
 
 ## 4. Multiple accounts
@@ -130,7 +134,7 @@ Có thể kiểm tra lại:
 
 ```powershell
 docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent -c "SELECT email,status FROM users WHERE email='calendar-test@local.invalid';"
-docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent -c "SELECT provider,account_type,external_account_id,status FROM user_accounts WHERE external_account_id='local-calendar-oauth-pending';"
+docker exec workspace-ai-agent-postgres psql -U workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent -c "SELECT provider,account_type,external_account_id,status FROM user_accounts WHERE external_account_id='local-calendar-oauth-pending';"
 ```
 
 Nếu fixture đã tồn tại, chạy lại vẫn không tạo duplicate tenant/user/account/role mapping.
@@ -163,6 +167,7 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - Contract tests xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
 - Google OAuth start/callback với state có thời hạn, mã hóa và HMAC.
 - PKCE được tạo chủ động: `code_verifier` được giữ trong OAuth state đã mã hóa; callback khôi phục đúng verifier khi đổi authorization code.
+- OAuth scope consistency: callback sử dụng chính bộ scope đã lưu trong state của phiên OAuth, thay vì tự dựng một bộ scope khác.
 - Credential sau OAuth được mã hóa bằng Fernet trước khi lưu `account_credentials`.
 
 ### Chưa triển khai
@@ -202,18 +207,22 @@ HMAC verify
   ↓
 Fernet decrypt
   ↓
-khôi phục code_verifier
+khôi phục scope + code_verifier
+  ↓
+Flow(scopes=scope của state)
   ↓
 Flow.code_verifier = code_verifier
   ↓
 fetch_token(code=code)
 ```
 
-Điều này xử lý lỗi thực tế đã gặp:
+Điều này xử lý hai vấn đề thực tế:
 
 ```text
 InvalidGrantError: (invalid_grant) Missing code verifier
 ```
+
+và việc callback dựng một bộ scope khác với authorization request.
 
 State có thời hạn tối đa 10 phút. Không sử dụng lại OAuth URL/callback cũ sau khi đã hoàn tất hoặc hết hạn.
 
