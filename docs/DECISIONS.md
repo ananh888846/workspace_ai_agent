@@ -143,3 +143,9 @@ Migration 001 → 010 được chạy trên PostgreSQL 18.6 với database sạc
 **Date:** 2026-09-21 10:10 +07:00
 
 Migration 011→020 phải enforce tenant integrity ở database. Resource permissions, user sessions và device-user mappings mang organization scope; resource account ownership dùng composite FK; provider/account compatibility dùng database-level trigger. Acceptance gate AT-011→AT-022 phải PASS trước khi mở Migration 021→030.
+
+## Decision 032 — Migration 011→020 Verification Gate
+**Status:** Accepted  
+**Date:** 2026-09-21 17:00 +07:00
+
+Migration 011 → 020 đã được chạy thực tế trên PostgreSQL 18.6 và acceptance AT-011 → AT-022 đạt **12/12 PASS**. Acceptance transaction kết thúc bằng ROLLBACK. Gate tenant/resource/session/device của Migration 011 → 020 được coi là đã verify và đóng. Migration 021 → 030 được phép tiếp tục theo migration contract.
