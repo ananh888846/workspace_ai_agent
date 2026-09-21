@@ -81,3 +81,12 @@
 - Bản sửa trước đã chuẩn hóa theo hướng ngược lại nên chưa xử lý đúng lớp Google Auth; lần này chuẩn hóa đúng tại biên provider credential.
 - Không thay đổi token, scope hoặc thiết kế mã hóa credential.
 - Chưa đánh dấu Calendar E2E PASS; cần chạy lại request đọc lịch sau khi pull code.
+
+
+## 2026-09-21 — Chốt chuẩn UTC cho toàn bộ thời gian Database và sửa UTF-8 API
+
+- Chốt nguyên tắc: mọi timestamp lưu trong PostgreSQL dùng UTC; không lưu giờ GMT+7 trong database.
+- Khi đọc/hiển thị cho người dùng hoặc API, application/presentation layer chuyển UTC sang `Asia/Ho_Chi_Minh` (GMT+7).
+- Thời gian nhận từ người dùng phải được chuẩn hóa về UTC trước khi ghi database.
+- Provider có thể dùng timezone riêng theo API contract nhưng không làm thay đổi chuẩn UTC của database.
+- Sửa `POST /api/v1/agent/chat` trả JSON với khai báo `application/json; charset=utf-8` để client Windows/PowerShell đọc đúng tiếng Việt.
