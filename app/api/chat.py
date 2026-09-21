@@ -111,6 +111,12 @@ def execute_google_calendar_write(*, account: ExternalAccount, credential_resolu
         return {"status": "validation_error", "error": "event_id_required", "provider_called": False}
     if action == "create" and (not summary or not start or not end):
         return {"status": "validation_error", "error": "summary_start_end_required", "provider_called": False}
+    for datetime_value in (start, end):
+        if datetime_value is not None:
+            try:
+                _parse_client_datetime(datetime_value)
+            except (TypeError, ValueError):
+                return {"status": "validation_error", "error": "datetime_must_be_iso8601_with_timezone", "provider_called": False}
     provider_action = {"create": "create_event", "update": "update_event", "delete": "delete_event"}.get(action)
     if provider_action is None:
         raise ValueError("unsupported_calendar_write_action")
