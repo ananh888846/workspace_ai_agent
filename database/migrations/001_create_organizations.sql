@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE organizations (
-  id UUID PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuidv7(),
   name VARCHAR(255) NOT NULL,
   organization_type VARCHAR(64) NOT NULL,
   status VARCHAR(32) NOT NULL DEFAULT 'active',
