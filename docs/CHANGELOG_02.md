@@ -121,3 +121,14 @@
 - Thêm unit contract test cho scope constants.
 - Đồng bộ `docs/GOOGLE_CALENDAR.md` với credential boundary và runtime dependency.
 - Chưa tạo Migration 052.
+
+
+## 2026-09-21 — Google Calendar application/tool boundary
+
+- Thêm `app/application/calendar.py` làm application orchestration boundary.
+- Execution order được chốt: AccountResolver → AuthorizationService → CredentialResolver → ToolResolver → Tool.
+- Nếu Authorization = DENY: CredentialResolver và ToolResolver không được gọi.
+- Thêm `app/tools/calendar.py` cho `calendar.read` và `calendar.write` actions.
+- Thêm unit test `tests/unit/application/test_calendar_application.py` cho DENY/ALLOW boundary.
+- Cập nhật `docs/GOOGLE_CALENDAR.md`.
+- Chưa tạo Migration 052; chưa tạo runtime AccountResolver/CredentialResolver giả.
