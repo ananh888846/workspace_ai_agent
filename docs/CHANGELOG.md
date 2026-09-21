@@ -1,3 +1,10 @@
+## 2026-09-21 17:20:00 +07:00 — Migration 021 → 030 production SQL created
+
+- Tạo production SQL `database/migrations/021_...sql` → `030_...sql` theo schema lock.
+- Tạo `database/tests/acceptance_021_030.sql` với AT-021 → AT-030.
+- Tạo `database/tests/README_021_030.md` hướng dẫn chạy.
+- Chưa chạy verification thực tế; gate 021 → 030 vẫn OPEN.
+
 ## 2026-09-21 17:00:00 +07:00 — Migration 021 → 030 pre-SQL review lock
 
 - Review lại [docs/MIGRATION_021_030_DDL.md](./MIGRATION_021_030_DDL.md) trước khi tạo production SQL.
