@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE account_grants (
-  id UUID PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuidv7(),
   organization_id UUID NOT NULL,
   owner_user_id UUID NOT NULL,
   grantee_user_id UUID NOT NULL,
