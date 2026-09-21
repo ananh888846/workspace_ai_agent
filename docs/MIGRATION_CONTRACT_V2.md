@@ -802,3 +802,14 @@ Migration 011 → 020 đã được verify trên PostgreSQL 18.6.
 - Conversation/Memory không tự thêm organization scope ngoài source-of-truth contract.
 - Knowledge retrieval authorization phải được quyết định bằng SQL ownership/access metadata trước/trong Qdrant retrieval.
 - Acceptance AT-021 → AT-030 phải PASS trước Migration 031 → 040.
+
+# Verification Gate — Migration 011 → 033 Integration — 2026-09-21
+
+Migration 011 → 033 integration acceptance đã được verify trên PostgreSQL 18.6.
+
+- Acceptance: [database/tests/acceptance_011_033.sql](../database/tests/acceptance_011_033.sql)
+- AT-035 → AT-040: **6/6 PASS**
+- Cross-tenant device/resource: **REJECT**
+- Cross-tenant task/event: **REJECT**
+- Transaction: **ROLLBACK**
+- **Integration gate 011 → 033: CLOSED**
