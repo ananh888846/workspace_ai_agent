@@ -1,6 +1,6 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **AccountResolver PostgreSQL repository V1 đã triển khai; Authorization/Credential PostgreSQL repositories và OAuth vẫn PENDING**
+> Trạng thái: **AccountResolver PostgreSQL repository V1 + Phase 2B runtime wiring đã triển khai; Authorization/Credential PostgreSQL repositories và OAuth vẫn PENDING**
 >
 > Calendar chưa được đánh dấu runtime E2E PASS cho đến khi PostgreSQL-backed authorization, OAuth và Google Calendar API verification hoàn tất.
 
@@ -145,6 +145,7 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - Google Calendar tool boundary: `app/tools/calendar.py`.
 - Core authorization runtime boundary: `app/application/core_runtime.py`.
 - PostgreSQL AccountResolver repository: `app/infrastructure/database/repositories/accounts.py`.
+- Phase 2B HTTP runtime wiring: `POST /api/v1/agent/chat` → AgentContext → PostgresAccountRepository → AccountResolver.
 - Unit tests cho AccountResolver repository mapping và exact account hint.
 - Local PostgreSQL Calendar fixture: `scripts/calendar/bootstrap_test_data.sql`.
 - Contract tests xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
@@ -168,6 +169,8 @@ Thứ tự triển khai được giữ cố định:
 Local DB fixture
   ↓
 PostgreSQL AccountResolver repository  ← DONE
+  ↓
+Phase 2B AccountResolver HTTP runtime  ← DONE
   ↓
 PostgreSQL Authorization repository   ← NEXT
   ↓
