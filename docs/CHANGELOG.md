@@ -212,3 +212,14 @@ Trước khi code:
 - Decision Log bổ sung các quyết định V2.1 về tenant, Task/Activity, Agent-to-Agent và evidence-based anomaly.
 - Database migration numbering và logical relationship summary được kiểm tra lại.
 - Không tạo migration hoặc thay đổi application/runtime implementation.
+
+## 2026-09-21 08:37:00 +07:00
+
+### V2.1 migration-ready integrity audit
+
+- Hoàn thiện tenant columns bắt buộc trong `DATABASE_V2_DETAILED.md`: `account_grants`, `data_packages`, `data_package_resources`, `data_package_grants`, `devices`.
+- Bổ sung các `UNIQUE(id, organization_id)` cần thiết cho composite tenant FK.
+- Khóa explicit composite FK contract cho Account Grant, Data Package, Resource hierarchy và Device → Resource.
+- Đồng bộ `MIGRATION_CONTRACT_V2.md` với bộ composite FK V2.1.
+- Kiểm tra migration order 001 → 045: không phát hiện dependency cycle trong contract hiện tại.
+- Chưa tạo migration SQL/runtime code.
