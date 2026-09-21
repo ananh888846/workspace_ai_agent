@@ -462,3 +462,16 @@ Trước khi code:
 ### Gate
 
 Migration 046 → 050 đã được tạo nhưng **chưa được verify runtime trên PostgreSQL 18.6**. Database V2.1 overall gate vẫn **OPEN** cho đến khi acceptance và catalog verification PASS.
+
+
+## 2026-09-21 08:30:00 +07:00 — Harden migration preflight and runtime catalog gate
+
+### Updated
+
+- Migrations 046 → 050 now perform preflight validation before replacing/adding constraints or indexes, so existing invalid production data blocks the migration instead of being silently left outside the new integrity contract.
+- `database/tests/runtime_catalog_verification_046_050.sql` added to verify required constraints, columns, triggers and resource identity indexes directly from PostgreSQL catalog metadata.
+- `database/tests/README_046_050.md` updated with the runtime verification command.
+
+### Gate
+
+Database V2.1 remains **OPEN**. Runtime execution has not been performed in this environment because Docker/PostgreSQL is not available to the current tool runtime.
