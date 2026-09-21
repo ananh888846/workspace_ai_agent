@@ -108,3 +108,8 @@ Agent Message và Agent Task là transport/work state; Agent Permission mới qu
 ## Decision 026 — Evidence-Based Anomaly
 **Status:** Accepted  
 Anomaly là inference về sai lệch dựa trên evidence, không phải kết luận fraud. Mỗi anomaly phải truy ngược được về source facts/events/activities/tasks/devices/resources trong cùng Organization.
+
+
+## Decision 027 — Account Grant and Data Package Tenant Scope
+**Status:** Accepted  
+`account_grants` và Data Package là tenant-scoped trong V2.1. Account grant phải có `organization_id` và owner/grantee cùng là member của organization. `data_packages`, versions, package resources và package grants mang cùng `organization_id`; package không được chứa resource hoặc cấp grant ra ngoài organization. `resources.organization_id` và `devices.organization_id` là bắt buộc.
