@@ -17,9 +17,9 @@ DECLARE
     document_a UUID := uuidv7();
     caught BOOLEAN;
 BEGIN
-    INSERT INTO organizations (id, name) VALUES
-        (org_a, 'AT-021-030 Org A'),
-        (org_b, 'AT-021-030 Org B');
+    INSERT INTO organizations (id, name, organization_type) VALUES
+        (org_a, 'AT-021-030 Org A', 'test'),
+        (org_b, 'AT-021-030 Org B', 'test');
 
     INSERT INTO users (id, name, email) VALUES
         (user_a, 'AT User A', 'at-021-030-a@example.invalid'),
