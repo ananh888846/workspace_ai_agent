@@ -266,10 +266,12 @@ id, name, provider, version, status, config, created_at, updated_at
 tool_id, capability, resource, action, requires_account
 
 ### agent_runs
-id, request_id, user_id, agent_id, conversation_id, started_at, finished_at, status, model
+id, request_id, organization_id, user_id, agent_id, conversation_id, started_at, finished_at, status, model
 
 ### tool_runs
 id, agent_run_id, tool_id, account_id, started_at, finished_at, status, error
+
+`organization_id` được trace từ agent_run; không cần lặp lại nếu implementation giữ FK chain bắt buộc.
 
 ### agent_messages
 id, organization_id, sender_agent_id, receiver_agent_id, agent_task_id, message_type, payload, status, created_at, processed_at
