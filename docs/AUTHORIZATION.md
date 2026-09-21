@@ -9,6 +9,10 @@ Authorization quyết định user có được thực hiện action trên resou
 ~~~text
 User
  ↓
+Authentication
+ ↓
+Organization / Tenant Eligibility
+ ↓
 Capability Permission
  ↓
 Account Grant nếu cần
@@ -46,7 +50,9 @@ User B không nhận credential của User A.
 
 ## 4. DENY
 
-Thiếu grant hoặc DENY không được suy diễn thành ALLOW.
+Thiếu tenant eligibility, grant hoặc permission hoặc có DENY thì không được suy diễn thành ALLOW.
+
+Tenant isolation là boundary bắt buộc trước protected resource/account operation. Organization membership không thay thế capability/resource/package authorization.
 
 Khi DENY:
 - không lấy secret/refresh token;
@@ -78,3 +84,30 @@ Nếu user có nhiều account cùng provider, policy phải chọn default acco
 ## 8. Future
 
 Có thể thêm ABAC, consent, approval workflow, field-level access, masking và policy engine.
+
+
+## 9. Agent-to-Agent Authorization
+
+Agent-to-Agent message/task không tự cấp quyền.
+
+~~~text
+Agent A
+ ↓
+Agent Task / Message
+ ↓
+Agent Permission
+ ↓
+Organization Scope
+ ↓
+Authorization
+ ↓
+Agent B
+~~~
+
+Trong V2.1, Agent-to-Agent delegation chỉ được phép trong cùng Organization. Agent B vẫn phải kiểm tra AgentContext và user/resource authorization trước khi gọi protected capability/tool/provider.
+
+## 10. Anomaly
+
+Anomaly là kết quả phát hiện sai lệch dựa trên evidence. Nó không tự trở thành authorization decision hoặc kết luận fraud.
+
+Anomaly evidence phải truy ngược được về source hợp lệ và cùng organization scope.
