@@ -70,7 +70,7 @@ class PostgresAccountRepository:
              AND (ag.expires_at IS NULL OR ag.expires_at > CURRENT_TIMESTAMP)
              AND ag.revoked_at IS NULL
             WHERE ua.provider = %s
-              AND ua.status = 'active'
+              AND ua.status IN ('active', 'pending_oauth')
               AND (
                     ua.user_id = %s
                  OR ag.id IS NOT NULL
