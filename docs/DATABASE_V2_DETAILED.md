@@ -18,7 +18,7 @@ Database V2 phải đáp ứng:
 - Authorization kiểm tra capability, account, resource và package khi áp dụng.
 - Credential chỉ được truy xuất sau Authorization = ALLOW.
 - Device có identity riêng và không phải User.
-- Observation, Event và Activity là các domain riêng.
+- Observation, Event, Activity Session và Activity là các domain riêng.
 - Conversation, Memory và Knowledge là các domain riêng.
 - SQL giữ metadata, quan hệ, ownership, authorization, transaction và audit.
 - Qdrant giữ vector retrieval; SQL giữ mapping và authorization metadata.
@@ -1277,7 +1277,7 @@ Resource có provider/external account phải tham chiếu user_account tương 
 028 memories
 
 029 knowledge_documents
-029 knowledge_chunks
+030 knowledge_chunks
 
 031 agents
 032 agent_capabilities
@@ -1536,7 +1536,22 @@ data_package_versions
 
  agents ─────► agent_capabilities
    │
-   └────────► agent_runs ─────► tool_runs ─────► tools
+   ├────────► agent_runs ─────► tool_runs ─────► tools
+   ├────────► agent_messages
+   ├────────► agent_tasks
+   └────────► agent_permissions
+
+ observations
+      ↓
+    events
+      ↓
+ activity_sessions
+      ↓
+   activities
+
+tasks ─────► activity_sessions / activities
+
+anomalies ─────► anomaly_evidence
 
  users ─────► automations
                  ├────► automation_triggers
