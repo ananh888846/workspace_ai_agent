@@ -53,8 +53,14 @@ erDiagram
     DEVICES ||--o{ DEVICE_CAPABILITIES : exposes
     DEVICES ||--o{ OBSERVATIONS : produces
     OBSERVATIONS }o--o{ EVENTS : contributes
+    EVENTS ||--o{ ACTIVITY_SESSIONS : starts
     EVENTS ||--o{ ACTIVITIES : informs
     ACTIVITY_SESSIONS ||--o{ ACTIVITIES : groups
+    ORGANIZATIONS ||--o{ ACTIVITY_SESSIONS : scopes
+    ORGANIZATIONS ||--o{ ACTIVITIES : scopes
+    ORGANIZATIONS ||--o{ EVENTS : scopes
+    TASKS ||--o{ ACTIVITY_SESSIONS : reconciles
+    TASKS ||--o{ ACTIVITIES : reconciles
     RESOURCES ||--o{ ACTIVITY_SESSIONS : scopes
     USERS ||--o{ ACTIVITY_SESSIONS : owns
 ```
@@ -89,10 +95,25 @@ erDiagram
     AGENTS ||--o{ AGENT_TASKS : creates
     AGENTS ||--o{ AGENT_TASKS : receives
     AGENTS ||--o{ AGENT_PERMISSIONS : grants
+    ORGANIZATIONS ||--o{ AGENT_MESSAGES : scopes
+    ORGANIZATIONS ||--o{ AGENT_TASKS : scopes
+    ORGANIZATIONS ||--o{ AGENT_PERMISSIONS : scopes
+    AGENTS ||--o{ AGENT_TASKS : creates
+    AGENTS ||--o{ AGENT_TASKS : receives
+    AGENT_TASKS ||--o{ AGENT_MESSAGES : carries
+    ORGANIZATIONS ||--o{ TASKS : scopes
+    RESOURCES ||--o{ TASKS : assigned
     USERS ||--o{ AUTOMATIONS : owns
     AUTOMATIONS ||--o{ AUTOMATION_TRIGGERS : triggers
     AUTOMATIONS ||--o{ AUTOMATION_ACTIONS : acts
     USERS ||--o{ AUDIT_LOGS : generates
+    ORGANIZATIONS ||--o{ ANOMALIES : scopes
+    ANOMALIES ||--o{ ANOMALY_EVIDENCE : has
+    EVENTS ||--o{ ANOMALIES : detects
+    ACTIVITIES ||--o{ ANOMALIES : detects
+    TASKS ||--o{ ANOMALIES : detects
+    DEVICES ||--o{ ANOMALIES : detects
+    RESOURCES ||--o{ ANOMALIES : detects
 ```
 
 Agent-to-Agent message/task không tự cấp quyền; execution vẫn qua Application Authorization.
@@ -133,3 +154,13 @@ Credential Resolver = NOT CALLED
 Tool = NOT CALLED
 Provider API = NOT CALLED
 ```
+
+
+## 7. V2.1 integrity rules
+
+- Organization-scoped entities cannot reference resources/devices/tasks/agents from another organization.
+- `parent_resource_id` must remain inside the same organization as `resources.organization_id`.
+- Device/resource binding must remain inside the same organization.
+- Agent-to-Agent delegation is same-organization only in V2.1.
+- Anomaly evidence must resolve to a source entity in the same organization as the anomaly.
+- Agent message/task is transport/work state; it never grants authorization by itself.
