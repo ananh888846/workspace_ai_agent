@@ -1,3 +1,14 @@
+## 2026-09-21 — Migration 034 → 045 production SQL created
+
+- Thêm [database/migrations/034_create_tool_capabilities.sql](../database/migrations/034_create_tool_capabilities.sql) → [database/migrations/045_create_audit_logs.sql](../database/migrations/045_create_audit_logs.sql).
+- Khóa DB-level tenant integrity cho Agent Run, Agent Task, Agent Permission, Agent Message và Automation.
+- Automation Trigger/Action kế thừa tenant scope từ Automation root.
+- Anomaly dùng composite tenant references và confidence/time CHECK.
+- Anomaly Evidence dùng bảy nullable source FK + exactly-one CHECK; không dùng polymorphic source.
+- Audit Log có append-only trigger và secret-key metadata guard.
+- Thêm [database/tests/acceptance_034_045.sql](../database/tests/acceptance_034_045.sql) và [database/tests/README_034_045.md](../database/tests/README_034_045.md).
+- **Status:** Production SQL đã tạo; PostgreSQL acceptance 034 → 045 chưa chạy. Gate vẫn OPEN.
+
 ## 2026-09-21 — Migration 011 → 033 integration acceptance verified
 
 - Đã chạy [database/tests/acceptance_011_033.sql](../database/tests/acceptance_011_033.sql) trên PostgreSQL 18.6 với ON_ERROR_STOP=1.
