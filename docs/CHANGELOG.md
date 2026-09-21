@@ -1,10 +1,12 @@
 
-## 2026-09-21 10:00:00 +07:00 — Acceptance Suite Migration 001 → 010
+## 2026-09-21 08:30:00 +07:00 — Migration 001 → 010 verified on PostgreSQL 18.6
 
-- Added `database/tests/acceptance_001_010.sql` — acceptance tests AT-001 → AT-008 for tenant integrity, account ownership, temporal CHECK and role/permission FK.
-- Added `database/tests/README.md` — clean PostgreSQL 18+ execution instructions and acceptance gate.
-- **Status:** test suite đã được tạo trên GitHub; **chưa chạy**, nên chưa đánh dấu PASS.
-- **Gate:** chỉ tiếp tục Migration 011 → 020 sau khi chạy suite trên PostgreSQL 18+ sạch và AT-001 → AT-008 đều PASS.
+- Đã chạy thực tế [database/migrations/001_create_organizations.sql](../database/migrations/001_create_organizations.sql) → [database/migrations/010_create_account_grants.sql](../database/migrations/010_create_account_grants.sql) trên PostgreSQL 18.6 trong database sạch.
+- Đã chạy [database/tests/acceptance_001_010.sql](../database/tests/acceptance_001_010.sql) với `ON_ERROR_STOP=1`.
+- Kết quả: **AT-001 → AT-008 đều PASS**.
+- Acceptance test kết thúc bằng `ROLLBACK`, nên dữ liệu test không được giữ lại.
+- Cập nhật [database/tests/README.md](../database/tests/README.md), [docs/MIGRATIONS_V2_DESIGN.md](./MIGRATIONS_V2_DESIGN.md), [docs/MIGRATION_CONTRACT_V2.md](./MIGRATION_CONTRACT_V2.md), [docs/DATABASE_V2_DETAILED.md](./DATABASE_V2_DETAILED.md) và [docs/DECISIONS.md](./DECISIONS.md) để phản ánh trạng thái đã verify.
+- **Gate:** Migration 001 → 010 đã PASS; đủ điều kiện chuyển sang review/implementation Migration 011 → 020.
 ## 2026-09-21 09:20:00 +07:00
 
 ### Migration 041–045 DDL design
