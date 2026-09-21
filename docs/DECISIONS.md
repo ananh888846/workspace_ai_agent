@@ -240,3 +240,17 @@ DBR-001 → DBR-007 đã được giải quyết bằng migration hậu V2.1 046
 **Date:** 2026-09-21
 
 Google Calendar Event CRUD được triển khai như capability/tool của Google provider, không tạo provider-specific Core table chỉ để lưu event. V1 dùng `calendar.read` cho read và `calendar.write` cho create/update/delete. Mọi mutation phải qua AccountResolver → Authorization → CredentialResolver → ToolResolver → Google Calendar Adapter và có audit/tool-run trace. Delete/update phải có target event rõ ràng; nhiều candidate thì yêu cầu user chọn/xác nhận. Không cần Migration 052 cho Event CRUD với schema V2.1 hiện tại.
+
+
+## Decision 045 — Google OAuth Credential Boundary
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Google OAuth được triển khai như integration boundary, không bypass Core Authorization.
+
+- OAuth state phải ràng buộc account/user/organization, có chữ ký HMAC và thời hạn.
+- Authorization code chỉ được đổi trong callback hợp lệ.
+- Credential phải được mã hóa trước khi lưu vào `account_credentials`.
+- OAuth không được ghi token plaintext vào log, AgentContext, prompt, audit hoặc HTTP response.
+- Sau OAuth, account có credential hợp lệ mới được chuyển từ `pending_oauth` sang `active`.
+- Agent runtime vẫn phải đi qua CredentialResolver → ToolResolver → Provider.
