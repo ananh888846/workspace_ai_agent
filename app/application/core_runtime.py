@@ -86,8 +86,18 @@ class PermissionRepository(Protocol):
         ...
 
 
+@dataclass(frozen=True)
+class CredentialResolution:
+    """Kết quả kiểm tra trạng thái credential sau khi đã được authorization."""
+
+    status: str
+    credential_type: str | None = None
+    expires_at: datetime | None = None
+    scopes: Any | None = None
+
+
 class CredentialRepository(Protocol):
-    def resolve_authorized_credential(self, *, account: ExternalAccount) -> Any:
+    def resolve_authorized_credential(self, *, account: ExternalAccount) -> CredentialResolution:
         ...
 
 
@@ -171,7 +181,7 @@ class CredentialResolver:
         *,
         decision: AuthorizationDecision,
         account: ExternalAccount,
-    ) -> Any:
+    ) -> CredentialResolution:
         if not decision.allowed:
             raise CoreAuthorizationError("credential_resolution_blocked")
         return self._repository.resolve_authorized_credential(account=account)
