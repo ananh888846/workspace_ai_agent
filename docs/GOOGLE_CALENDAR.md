@@ -57,7 +57,7 @@ Repository triển khai `AccountRepository.find_candidates()` cho PostgreSQL và
 
 Candidate hợp lệ gồm:
 
-- account do chính User sở hữu và đang active trong Organization;
+- account do chính User sở hữu và có trạng thái `active` hoặc `pending_oauth` trong Organization;
 - hoặc account được User khác delegate qua `account_grants`, với grant active, đúng Organization và còn hiệu lực theo thời gian.
 
 Repository cũng kiểm tra Organization membership của account owner trước khi trả account. Account hint chỉ được match exact theo account ID, external account ID hoặc email; không fuzzy-match.
@@ -147,7 +147,7 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - Application orchestration boundary: `app/application/calendar.py`.
 - Google Calendar tool boundary: `app/tools/calendar.py`.
 - Core authorization runtime boundary: `app/application/core_runtime.py`.
-- PostgreSQL AccountResolver repository: `app/infrastructure/database/repositories/accounts.py`.
+- PostgreSQL AccountResolver repository: `app/infrastructure/database/repositories/accounts.py`; hỗ trợ resolve metadata của account `pending_oauth` để chuyển đúng sang OAuth/Credential gate.
 - Phase 2B HTTP runtime wiring: `POST /api/v1/agent/chat` → AgentContext → PostgresAccountRepository → AccountResolver.
 - Unit tests cho AccountResolver repository mapping và exact account hint.
 - Local PostgreSQL Calendar fixture: `scripts/calendar/bootstrap_test_data.sql`.
@@ -170,7 +170,7 @@ Thứ tự triển khai được giữ cố định:
 ```text
 Local DB fixture
   ↓
-PostgreSQL AccountResolver repository  ← DONE
+PostgreSQL AccountResolver repository  ← DONE (active + pending_oauth metadata)
   ↓
 Phase 2B AccountResolver HTTP runtime  ← DONE
   ↓
