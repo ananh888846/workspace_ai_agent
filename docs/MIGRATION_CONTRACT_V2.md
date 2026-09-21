@@ -88,6 +88,24 @@ Các entity tenant-scoped cần hỗ trợ cặp:
 
 Database phải dùng composite FK cho các quan hệ cần enforce same-organization; không chỉ kiểm tra bằng application code.
 
+Locked composite FK set:
+
+~~~text
+account_grants(organization_id, owner_user_id) → organization_members(organization_id, user_id)
+account_grants(organization_id, grantee_user_id) → organization_members(organization_id, user_id)
+account_grants(user_account_id, owner_user_id) → user_accounts(id, user_id)
+resources(parent_resource_id, organization_id) → resources(id, organization_id)
+data_packages(organization_id, owner_user_id) → organization_members(organization_id, user_id)
+data_package_versions(data_package_id, organization_id) → data_packages(id, organization_id)
+data_package_resources(package_version_id, organization_id) → data_package_versions(id, organization_id)
+data_package_resources(resource_id, organization_id) → resources(id, organization_id)
+data_package_grants(package_version_id, organization_id) → data_package_versions(id, organization_id)
+data_package_grants(organization_id, user_id) → organization_members(organization_id, user_id)
+devices(resource_id, organization_id) → resources(id, organization_id)
+~~~
+
+Các target table phải có UNIQUE(id, organization_id) hoặc composite key tương đương.
+
 ## 4. Organization / tenant contract
 
 organizations là tenant/business boundary.
