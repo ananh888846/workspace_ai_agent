@@ -130,3 +130,10 @@ Mỗi entry trong `docs/CHANGELOG.md` khi ghi nhận file được thêm hoặc 
 - Automation root/trigger/action đều tenant-scoped.
 
 Các implementation gate tương ứng đã được đóng. Chưa tạo SQL production/database/runtime.
+
+
+## Decision 030 — Migration 001→010 Verification Gate
+**Status:** Accepted  
+**Date:** 2026-09-21 08:30:00 +07:00
+
+Migration 001 → 010 được chạy trên PostgreSQL 18.6 với database sạch. Acceptance test AT-001 → AT-008 đều PASS và transaction test kết thúc bằng ROLLBACK. Gate 001 → 010 được coi là đã verify; Migration 011 → 020 chỉ được triển khai theo contract và acceptance gate tương ứng.
