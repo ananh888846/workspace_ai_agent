@@ -1,3 +1,13 @@
+## 2026-09-21 08:45:00 +07:00
+
+### Migration 001–010 DDL design
+
+- Thêm `docs/MIGRATION_001_010_DDL.md`.
+- Thiết kế chi tiết DDL cho Organizations, Users, Organization Members, External Accounts, Credentials, Roles, Permissions, User Roles, Role Permissions và Account Grants.
+- Khóa composite tenant FK cho Account Grant và ownership FK của external account.
+- Khóa UNIQUE target keys, delete policy, temporal CHECK, index contract và acceptance tests.
+- Chưa tạo SQL migration production, chưa tạo database thật và chưa thay đổi application/runtime code.
+
 ## 2026-09-21 08:35:52 +07:00
 
 ### V2.1 tenant isolation hardening
