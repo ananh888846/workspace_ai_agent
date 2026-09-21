@@ -437,3 +437,28 @@ Trước khi code:
 - Acceptance transaction kết thúc bằng `ROLLBACK`, nên dữ liệu test không được giữ lại.
 - Lỗi fixture AT-020 trước đó đã được sửa bằng cách dùng `device_b` thuộc Org B để kiểm tra session Org A + device Org B.
 - **Gate:** Migration 011 → 020 đã PASS; đủ điều kiện chuyển sang review/implementation Migration 021 → 030.
+
+
+## 2026-09-21 08:00:00 +07:00 — Post-V2.1 DBR decisions and migrations 046–050
+
+### Added
+
+- [database/migrations/046_harden_activity_event_user_tenant_integrity.sql](../database/migrations/046_harden_activity_event_user_tenant_integrity.sql) — same-organization user membership for Event, Activity Session and Activity.
+- [database/migrations/047_harden_conversation_owner_integrity.sql](../database/migrations/047_harden_conversation_owner_integrity.sql) — bind Agent Run conversation to the same user.
+- [database/migrations/048_bind_tool_run_account_context.sql](../database/migrations/048_bind_tool_run_account_context.sql) — bind Tool Run to execution tenant/user and direct/delegated account context.
+- [database/migrations/049_bind_audit_account_context.sql](../database/migrations/049_bind_audit_account_context.sql) — bind Audit Log account context to direct ownership or Account Grant.
+- [database/migrations/050_lock_resource_identity_semantics.sql](../database/migrations/050_lock_resource_identity_semantics.sql) — separate account-backed and local resource identity uniqueness.
+- [database/tests/acceptance_046_050.sql](../database/tests/acceptance_046_050.sql) — acceptance tests AT-053 → AT-065.
+- [database/tests/README_046_050.md](../database/tests/README_046_050.md) — execution guide for the 046 → 050 acceptance gate.
+
+### Updated
+
+- [docs/DECISIONS.md](./DECISIONS.md) — Decision 039 → 042 accepted DBR-005 → DBR-007 and migration set 046 → 050.
+- [docs/DATABASE_V2_1_DBR_RESOLUTION.md](./DATABASE_V2_1_DBR_RESOLUTION.md) — DBR-001 → DBR-007 resolved for migration.
+- [docs/MIGRATION_CONTRACT_V2.md](./MIGRATION_CONTRACT_V2.md) — post-V2.1 migration contract.
+- [docs/DATABASE_V2_DETAILED.md](./DATABASE_V2_DETAILED.md) — Tool Run, Audit Log and Resource identity amendments.
+- [docs/ERD_V2.md](./ERD_V2.md) — post-V2.1 integrity relationship amendments.
+
+### Gate
+
+Migration 046 → 050 đã được tạo nhưng **chưa được verify runtime trên PostgreSQL 18.6**. Database V2.1 overall gate vẫn **OPEN** cho đến khi acceptance và catalog verification PASS.
