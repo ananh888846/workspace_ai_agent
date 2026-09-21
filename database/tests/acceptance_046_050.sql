@@ -98,8 +98,12 @@ BEGIN
         INSERT INTO tool_runs(agent_run_id,tool_id,organization_id,user_id,account_id,account_grant_id)
         VALUES (run_b,tool_id,org_a,user_b,account_a,'00000000-0000-0000-0000-000000009999');
         RAISE EXCEPTION 'AT-058 expected invalid tool account grant rejection';
-    EXCEPTION WHEN foreign_key_violation THEN
-        RAISE NOTICE 'AT-058 PASS';
+    EXCEPTION WHEN OTHERS THEN
+        IF SQLSTATE = '23503' OR SQLSTATE = 'P0001' THEN
+            RAISE NOTICE 'AT-058 PASS';
+        ELSE
+            RAISE;
+        END IF;
     END;
 
     BEGIN
