@@ -48,3 +48,9 @@
 - Sau khi resolve account, runtime tiếp tục `AuthorizationService` rồi `CredentialResolver` theo đúng thứ tự bảo vệ.
 - Request không nhận diện được intent vẫn chỉ trả về contract metadata và không gọi account/provider.
 - Chưa đánh dấu Google Calendar provider E2E PASS; bước gọi Google Calendar API vẫn là gate tiếp theo.
+
+## 2026-09-21 — Sửa lỗi cú pháp Calendar runtime
+
+- Loại bỏ đoạn Calendar runtime bị lặp trong `app/main.py` sau lần nối luồng Agent.
+- Lỗi runtime tương ứng: `IndentationError: unexpected indent` tại dòng khởi tạo `ExternalAccount`.
+- Chưa thay đổi logic OAuth, AccountResolver, Authorization hoặc CredentialResolver.
