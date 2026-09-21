@@ -73,7 +73,7 @@ def agent_chat(
             external_account_id=execution_account["external_account_id"],
             display_name=execution_account["display_name"],
             email=execution_account["email"],
-            status="active",
+            status=execution_account["status"],
         )
 
     if payload.capability:
