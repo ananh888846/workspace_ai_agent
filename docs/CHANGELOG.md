@@ -285,3 +285,15 @@ Trước khi code:
 - Đồng bộ `MIGRATION_CONTRACT_V2.md` với bộ composite FK V2.1.
 - Kiểm tra migration order 001 → 045: không phát hiện dependency cycle trong contract hiện tại.
 - Chưa tạo migration SQL/runtime code.
+
+
+## 2026-09-21 09:35:00 +07:00
+
+### Full Migration 001→045 review and lock
+
+- Thêm Decision 029 trong [docs/DECISIONS.md](./DECISIONS.md).
+- Chốt Agent tenant scope và composite Agent FK.
+- Chốt Task/Work Order schema trong [docs/MIGRATION_021_030_DDL.md](./MIGRATION_021_030_DDL.md).
+- Chốt Anomaly Evidence bằng explicit source FK trong [docs/MIGRATION_041_045_DDL.md](./MIGRATION_041_045_DDL.md).
+- Chốt Automation tenant scope.
+- Kết luận: Migration 001→045 đủ design contract để chuyển sang production SQL; chưa tạo SQL/database/runtime.
