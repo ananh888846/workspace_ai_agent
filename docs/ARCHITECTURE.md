@@ -1,366 +1,181 @@
 # Workspace AI Agent — ARCHITECTURE V2 FINAL
 
-> Tài liệu kiến trúc chuẩn để làm blueprint trước khi viết code. Phase này chỉ mô tả thiết kế; không giả định các module đã được triển khai.
+> Blueprint kiến trúc chính thức. Đây là nguồn tham chiếu trước khi viết code.
 
-## 1. Mục tiêu
+## 1. Quy tắc bất biến
 
-Workspace AI Agent là nền tảng Agent có khả năng mở rộng từ một Agent cá nhân thành hệ thống nhiều user, nhiều tài khoản ngoài, nhiều thiết bị, nhiều Agent, nhiều Provider và nhiều Data Package.
+1. Identity xác định ai; Authorization quyết định được làm gì.
+2. Account xác định nguồn tài khoản; Account Grant xác định ai được dùng account.
+3. Capability mô tả khả năng; Tool là implementation.
+4. Agent không truy cập trực tiếp provider API, SQL hoặc Qdrant nếu bỏ qua Application/Authorization.
+5. LLM không quyết định identity, account hoặc permission.
+6. Device không phải User.
+7. Conversation, Memory, Knowledge, Observation, Event, Activity và Data Package là các domain riêng.
+8. Credential chỉ được lấy sau khi Authorization ALLOW.
+9. Provider-specific logic nằm trong Provider/Tool layer.
+10. Muốn đổi kiến trúc phải cập nhật Decision Log.
 
-Mục tiêu chính:
+## 2. Request lifecycle
 
-- Một user có thể có nhiều external account.
-- Account là dependency của capability, không phải dependency của Agent.
-- Quyền truy cập được kiểm soát bằng Authorization + Resource Access + Data Package.
-- User A có thể cho User B truy cập một account/resource/package mà không cấp toàn bộ quyền của A.
-- Hỗ trợ ESP32/ESP32-CAM/Luckfox/Home Assistant.
-- Tách Conversation, Memory, Knowledge, Event, Activity và Data Package.
-- Có nền tảng cho LangChain và CrewAI.
-- Có thể thêm Google, Facebook, Zalo, Telegram, Home Assistant... mà không sửa Agent Core.
-- Có audit và trace để biết ai đã làm gì, dùng account nào và gọi tool nào.
-
-## 2. Nguyên tắc kiến trúc
-
-### Decision 1 — User Account
-
-`user_accounts` là mô hình tài khoản chuẩn của Workspace AI Agent.
-
-Quan hệ chuẩn:
-
-```text
-User
-  └── user_accounts
-       ├── Google
-       ├── Facebook
-       ├── Zalo
-       ├── Telegram
-       └── Provider khác
-```
-
-Không thiết kế User chỉ có một external account.
-
-### Decision 2 — Account và Permission là hai khái niệm khác nhau
-
-Account xác định nguồn/tài khoản bên ngoài. Authorization xác định user nào được phép sử dụng resource của account đó.
-
-### Decision 3 — Account là dependency của capability
-
-```text
+~~~text
 Request
-  ↓
-Identity
-  ↓
+ ↓
+Authentication
+ ↓
 AgentContext
-  ↓
-Router
-  ↓
-Capability
-  ↓
-AccountResolver (chỉ khi capability cần account)
-  ↓
+ ↓
+Route / Capability
+ ↓
+Resolve candidate Account nếu cần
+ ↓
 Authorization
-  ↓
-Tool
-```
-
-Capability không cần account phải hoạt động bình thường mà không có external account.
-
-### Decision 4 — Data Package / Resource Access
-
-Quyền truy cập dữ liệu phải có thể cấp theo package/resource, không cấp mặc định toàn bộ database cho user.
-
-```text
-User
-  ↓
-Data Package
-  ↓
-Package Version
-  ↓
-Resource
-  ↓
-Action
-```
-
-Ví dụ User A có dữ liệu lịch nghỉ học của User C và cấp package đó cho User B; User B đọc được package, User không có grant thì không đọc được.
-
-### Decision 5 — Data Package có version
-
-Package có version để giữ lịch sử thay đổi, audit và khả năng rollback logic ở tầng dữ liệu.
-
-### Decision 6 — AgentContext
-
-Mỗi request sau xác thực phải có context gồm request/user/session/device/capability/account/permission/package metadata cần thiết.
-
-Agent không tự bypass authorization để đọc dữ liệu.
-
-### Decision 7 — Ownership và Access tách biệt
-
-Owner của resource không đồng nghĩa với người được phép đọc/ghi resource.
-
-### Decision 8 — Account Delegation
-
-User B có thể được cấp quyền dùng Google Account của User A thông qua grant. Grant phải có scope/action/status/thời hạn nếu cần.
-
-### Decision 9 — Conversation / Memory / Knowledge / Data Package tách biệt
-
-- Conversation: nội dung tương tác.
-- Memory: điều Agent cần nhớ.
-- Knowledge: dữ liệu có thể retrieval.
-- Data Package: phạm vi dữ liệu user được phép truy cập.
-
-### Decision 10 — Device Identity
-
-Device là thực thể riêng, không phải User. Một User có nhiều device; device có capability riêng.
-
-### Decision 11 — LangChain + CrewAI
-
-LangChain dùng cho model/tool/retrieval/agent components. CrewAI dùng cho multi-agent/task workflow. Hai framework không được quyết định user/account/permission.
-
-### Decision 12 — Event / Activity
-
-Observation → Event → Activity là các lớp khác nhau. AI inference không tự động trở thành sự thật nếu chưa có quy tắc xác nhận phù hợp.
-
-## 3. Kiến trúc lớp
-
-```text
-Clients
-  ↓
-API / Gateway
-  ↓
-Identity & Session
-  ↓
-AgentContext
-  ↓
-Application Layer
-  ├── Router
-  ├── Authorization
-  ├── Account Resolver
-  ├── Data Package Resolver
-  └── Tool Resolver
-  ↓
-Agent Orchestrator
-  ├── Simple Agent
-  ├── Workflow Agent
-  └── Specialist Agent
-  ↓
-AI Layer
-  ├── LangChain
-  ├── CrewAI
-  └── Model Providers
-  ↓
-Capability Layer
-  ├── Knowledge
-  ├── Event / Activity
-  ├── Device
-  └── Tool
-  ↓
-Provider / Infrastructure
-  ├── Google
-  ├── Facebook
-  ├── Zalo
-  ├── Telegram
-  ├── Home Assistant
-  ├── SQL database
-  └── Qdrant
-```
-
-## 4. Request lifecycle
-
-```text
-Request
-  ↓
-Authenticate
-  ↓
-Build AgentContext
-  ↓
-Classify/Route capability
-  ↓
-Resolve account nếu cần
-  ↓
-Authorize resource/action
-  ↓
-Resolve Data Package nếu request dùng package
-  ↓
+ ├── Capability permission
+ ├── Account access
+ ├── Resource access
+ └── Data Package access nếu áp dụng
+ ↓
+Resolve Credential
+ ↓
 Resolve Tool
-  ↓
+ ↓
 Execute
-  ↓
-Record Agent Run / Tool Run / Audit
-  ↓
+ ↓
+Agent Run / Tool Run / Audit
+ ↓
 Response
-```
+~~~
 
-LLM có thể hỗ trợ hiểu intent nhưng không được trở thành nguồn quyết định quyền.
+AccountResolver trước Authorization chỉ được xác định candidate account/metadata. Không lấy secret trước ALLOW.
 
-## 5. Provider abstraction
+## 3. Authorization
 
-Provider-specific code nằm dưới provider/tool layer. Agent Core chỉ làm việc với capability và contract.
+Operation protected chỉ được ALLOW khi mọi điều kiện bắt buộc đạt:
 
-Ví dụ:
+~~~text
+Capability Permission
+AND Account Access
+AND Resource Access
+AND Package Access nếu áp dụng
+=
+ALLOW
+~~~
 
-```text
-Capability: calendar.read
-        ↓
+Thiếu hoặc DENY một điều kiện bắt buộc thì không gọi provider/tool.
+
+## 4. AgentContext
+
+~~~text
+request_id
+user_id
+session_id
+device_id
+capability
+action
+target_account
+target_resource
+target_package
+metadata
+~~~
+
+Context không phải nguồn cấp quyền.
+
+## 5. Account và Capability
+
+~~~text
+Capability
+ ├── requires_account=false → Tool
+ └── requires_account=true
+          ↓
+      Account Resolver
+          ↓
+      Authorization
+          ↓
+          Tool
+~~~
+
+Nếu có nhiều account cùng provider mà request không chỉ rõ account, dùng policy default hoặc yêu cầu user chọn. Không để LLM tự đoán.
+
+## 6. Data Package
+
+Data Package là access definition, không phải credential và không bắt buộc là bản sao dữ liệu.
+
+~~~text
+Data Package
+ └── Version
+      ├── Resource A
+      ├── Resource B
+      └── Resource C
+             ↓
+           Grant → User
+~~~
+
+Resource authorization vẫn có hiệu lực.
+
+## 7. Provider
+
+~~~text
+Capability
+ ↓
 Tool Resolver
-        ↓
-Google Calendar Tool
-```
+ ↓
+Provider Adapter
+ ↓
+External API
+~~~
 
-Sau này có thể có provider khác mà không thay đổi Authorization model.
+Google là provider đầu tiên. Facebook/Meta, Zalo, Telegram, Home Assistant và provider khác triển khai sau Core.
 
-## 6. Device architecture
+## 8. Device / Event
 
-```text
-ESP32-CAM 01 ─┐
-ESP32-CAM 02 ─┤
-...           ├─ Device Gateway → Observation → Event → Activity
-ESP32-CAM 10 ─┘
-```
-
-Camera có thể capture ảnh, nhận diện khuôn mặt và tạo observation. Việc xác định user và tạo activity phải qua policy phù hợp.
-
-## 7. Activity Agent
-
-Ví dụ:
-
-```text
-Camera nhận diện User A về nhà
-  ↓
+~~~text
+Device
+ ↓
 Observation
-  ↓
-Face verification
-  ↓
-Event: home_arrival
-  ↓
-Activity Agent
-  ↓
-Activity: User A arrived home
-```
+ ↓
+Verification / Detection
+ ↓
+Event
+ ↓
+Activity
+~~~
 
-Medication:
+AI inference không mặc định là fact.
 
-```text
-Prescription image
-  ↓
-Vision / Document extraction
-  ↓
-Medication information
-  ↓
-Schedule
-  ↓
-Automation
-  ↓
-Reminder
-```
+## 9. Knowledge
 
-## 8. Knowledge architecture
-
-```text
+~~~text
 Source
-  ↓
+ ↓
 Document
-  ↓
+ ↓
+Normalize
+ ↓
 Chunk
-  ↓
+ ↓
 Embedding
-  ↓
+ ↓
 Qdrant
-```
+~~~
 
-SQL giữ metadata/ownership/access; Qdrant giữ vector và retrieval index.
+SQL giữ metadata, ownership, access, version/checksum và mapping. Retrieval phải chạy trong authorization context.
 
-## 9. LangChain và CrewAI
+## 10. LangChain / CrewAI
 
-Không đưa framework vào authorization core.
+LangChain cung cấp LLM, retrieval, tool và agent primitives. CrewAI cung cấp multi-agent/task/workflow orchestration. Authorization vẫn thuộc Application Layer.
 
-LangChain:
+## 11. Audit
 
-- LLM abstraction
-- prompt
-- retrieval
-- tool calling
-- chains/agents
+Operation nhạy cảm phải truy được request_id, user, session/device, capability/action, account, resource/package, tool, result và thời gian.
 
-CrewAI:
+## 12. Quy tắc thay đổi
 
-- multi-agent
-- task orchestration
-- workflow
-- specialist collaboration
+Khi phát sinh yêu cầu mới:
+1. cập nhật Decision Log;
+2. cập nhật Architecture/Database/domain docs;
+3. cập nhật Roadmap nếu cần;
+4. ghi Changelog;
+5. rồi mới triển khai code.
 
-Application Layer vẫn là nguồn sự thật về identity, account và authorization.
+## 13. Trạng thái
 
-## 10. Audit và observability
-
-Mọi operation nhạy cảm cần có request_id và audit context.
-
-Cần truy được:
-
-- user nào gửi request;
-- device/session nào;
-- capability nào;
-- account nào;
-- resource/package nào;
-- tool nào;
-- kết quả thành công/thất bại;
-- thời gian thực thi.
-
-## 11. Cấu trúc thư mục định hướng
-
-```text
-workspace_ai_agent/
-├── src/workspace_agent/
-│   ├── identity/
-│   ├── application/
-│   │   ├── context/
-│   │   ├── router/
-│   │   ├── authorization/
-│   │   ├── account_resolver/
-│   │   ├── data_package_resolver/
-│   │   └── tool_resolver/
-│   ├── agents/
-│   │   ├── general/
-│   │   ├── knowledge/
-│   │   ├── activity/
-│   │   └── medication/
-│   ├── ai/
-│   │   ├── langchain/
-│   │   ├── crewai/
-│   │   └── models/
-│   ├── capabilities/
-│   ├── tools/
-│   ├── providers/
-│   │   ├── google/
-│   │   ├── facebook/
-│   │   ├── zalo/
-│   │   └── home_assistant/
-│   ├── devices/
-│   ├── events/
-│   ├── activities/
-│   ├── data_packages/
-│   ├── knowledge/
-│   ├── memory/
-│   ├── conversations/
-│   ├── automation/
-│   ├── database/
-│   └── audit/
-├── tests/
-└── docs/
-```
-
-## 12. Nguyên tắc không phá kiến trúc
-
-Không cho Agent truy cập trực tiếp provider API, database hoặc Qdrant nếu operation đó bỏ qua Application/Authorization layer.
-
-Không để LLM tự chọn account theo suy đoán khi request không chỉ rõ account mà policy cần user confirmation/selection.
-
-Không gộp memory với knowledge.
-
-Không gộp event với activity.
-
-Không coi device là user.
-
-Không xây tất cả provider trước khi core authorization/data package được kiểm chứng.
-
-## 13. Trạng thái blueprint
-
-Đây là bản thiết kế V2 để duyệt. Chưa coi các module tương lai là đã triển khai.
+Blueprint V2 đã chốt để làm nguồn tham chiếu implementation. Chưa có nghĩa module đã được triển khai.
