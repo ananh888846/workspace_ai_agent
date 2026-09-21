@@ -56,4 +56,8 @@ Account-backed: `(provider,user_account_id,resource_type,external_id)`. Local: `
 
 ## 9. Gate
 
-DBR-001 → DBR-007: **RESOLVED FOR MIGRATION**. Database V2.1 overall gate remains **OPEN** until migrations 046 → 050 pass acceptance on PostgreSQL 18.6 and runtime catalog verification is complete.
+DBR-001 → DBR-007: **CLOSED**.
+
+Migrations 046 → 050 đã được chạy thực tế trên PostgreSQL 18.6. Acceptance AT-053 → AT-065 đạt **13/13 PASS** và transaction kết thúc bằng `ROLLBACK`. Runtime catalog verification RV-001 → RV-014 đạt **14/14 PASS** và transaction kết thúc bằng `ROLLBACK`.
+
+**Database V2.1 Post-Implementation Review Gate: CLOSED.** Không sửa ngược Migration 001 → 045; các finding DBR-001 → DBR-007 đã được giải quyết bằng migration 046 → 050.
