@@ -747,7 +747,7 @@ Contract này khóa:
 [✓] No source-code implementation
 ~~~
 
-Sau khi contract được duyệt, bước tiếp theo mới là tạo migration files 001 → 045.
+Migration 001 → 010 đã được tạo, chạy trên PostgreSQL 18.6 sạch và acceptance test AT-001 → AT-008 đã PASS. Bước tiếp theo là triển khai theo gate Migration 011 → 020.
 
 
 ---
@@ -755,3 +755,10 @@ Sau khi contract được duyệt, bước tiếp theo mới là tạo migration
 # Migration Review Lock — 2026-09-21 09:35 +07:00
 
 Final lock: Agent tenant scope, Task schema, Anomaly Evidence explicit source FKs và Automation tenant scope đã được chốt. Không còn implementation gate nào trong bốn điểm này trước production SQL.
+
+
+---
+
+# Verification Update — 2026-09-21 08:30:00 +07:00
+
+Migration 001 → 010 đã được verify thực tế trên PostgreSQL 18.6. Acceptance AT-001 → AT-008 đều PASS; test data được ROLLBACK. Contract gate 001 → 010 đã đóng.
