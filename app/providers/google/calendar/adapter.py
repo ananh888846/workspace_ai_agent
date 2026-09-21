@@ -5,7 +5,7 @@ from typing import Any, Protocol
 
 
 class GoogleCalendarService(Protocol):
-    """Minimal interface required from googleapiclient.discovery.build()."""
+    """Giao diện tối thiểu mà Google Calendar service phải cung cấp."""
 
     def events(self) -> Any: ...
 
@@ -27,10 +27,10 @@ class CalendarEvent:
 
 
 class GoogleCalendarAdapter:
-    """Provider adapter for Google Calendar event CRUD.
+    """Adapter Google Calendar cho thao tác CRUD event.
 
-    This class only translates provider requests/responses. Authorization,
-    account selection and credential resolution must happen before it is used.
+    Lớp này chỉ chuyển đổi request/response của provider. Authorization,
+    chọn account và phân giải credential phải hoàn tất trước khi gọi lớp này.
     """
 
     provider = "google"
