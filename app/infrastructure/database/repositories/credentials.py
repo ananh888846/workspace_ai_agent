@@ -57,8 +57,9 @@ class PostgresCredentialRepository:
                 Fernet(key.encode("ascii")).decrypt(row[1]).decode("utf-8")
             )
             expires_at = row[2]
-            if expires_at is not None and expires_at.tzinfo is None:
-                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at is not None:
+                if expires_at.tzinfo is not None:
+                    expires_at = expires_at.astimezone(timezone.utc).replace(tzinfo=None)
 
             credentials = Credentials(
                 token=payload.get("token"),
