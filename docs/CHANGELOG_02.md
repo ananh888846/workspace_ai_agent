@@ -267,3 +267,13 @@
 - Đồng bộ `docs/GOOGLE_CALENDAR.md`, `docs/API_PHASE2.md` và `docs/ARCHITECTURE.md`.
 - Không tạo Migration 052 và không thay đổi schema.
 
+
+## 2026-09-21 — Fix Authorization account access với pending_oauth
+
+- Xác định nguyên nhân Calendar Authorization trả `account_access_denied`: `PostgresPermissionRepository.has_account_access()` chỉ cho account owner có trạng thái `active`, trong khi local Calendar fixture cố ý dùng `pending_oauth`.
+- Sửa kiểm tra account ownership và delegated account để chấp nhận metadata account ở trạng thái `active` hoặc `pending_oauth`.
+- Giữ nguyên boundary: `pending_oauth` không phải credential readiness; sau Authorization = ALLOW vẫn phải đi qua CredentialResolver/OAuth.
+- Chuyển comment tiếng Anh còn lại trong `permissions.py` sang tiếng Việt theo quy tắc Python của project.
+- Bổ sung unit test xác nhận `pending_oauth` được chấp nhận ở account access và không truy cập `account_credentials`.
+- Đồng bộ `docs/API_PHASE2.md` và `docs/GOOGLE_CALENDAR.md`.
+- Không tạo Migration 052, không tạo credential giả và không bypass Authorization.
