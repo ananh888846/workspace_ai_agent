@@ -169,3 +169,10 @@ Production SQL 021→030 và acceptance AT-021→AT-030 đã được tạo theo
 **Date:** 2026-09-21
 
 Migration 011 → 033 integration acceptance đã được chạy trên PostgreSQL 18.6 với ON_ERROR_STOP=1. AT-035 → AT-040 đều PASS (6/6). Test transaction kết thúc bằng ROLLBACK. Gate integration 011 → 033 được coi là đã verify và đóng. Production verification của từng migration block vẫn được duy trì theo gate tương ứng khi cần clean-database acceptance.
+
+
+## Decision 036 — Migration 034→045 Production SQL Created
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Production SQL 034 → 045 đã được tạo theo schema/tenant review lock. Migration 034→040 enforce Agent/Automation tenant integrity bằng composite FK; Migration 041→042 kế thừa Automation tenant scope; Migration 043→044 enforce Anomaly/Evidence tenant integrity bằng explicit source FKs; Migration 045 enforce append-only Audit Log và audit metadata secret boundary. Acceptance verification trên PostgreSQL 18.6 chưa chạy, nên gate 034 → 045 vẫn OPEN.
