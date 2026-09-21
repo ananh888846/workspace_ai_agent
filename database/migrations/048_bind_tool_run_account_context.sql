@@ -25,11 +25,6 @@ ALTER TABLE tool_runs
     REFERENCES agent_runs(id, organization_id, user_id)
     ON DELETE RESTRICT;
 
-ALTER TABLE tool_runs
-    ADD CONSTRAINT fk_tool_runs_account_owner
-    FOREIGN KEY (account_id, user_id)
-    REFERENCES user_accounts(id, user_id)
-    ON DELETE RESTRICT;
 
 ALTER TABLE tool_runs
     ADD CONSTRAINT fk_tool_runs_account_grant
