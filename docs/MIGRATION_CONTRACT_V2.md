@@ -782,3 +782,13 @@ Migration 001 → 010 đã được verify thực tế trên PostgreSQL 18.6. Ac
 ## Migration 011 → 020 Additional Tenant Lock — 2026-09-21 10:05:00 +07:00
 
 resource_permissions is tenant-scoped. The resource and permission grantee must belong to the same organization at database level.
+
+## Verification Gate — Migration 011 → 020
+
+Migration 011 → 020 đã được verify trên PostgreSQL 18.6.
+
+- Production SQL 011 → 020: **PASS**
+- Acceptance AT-011 → AT-022: **12/12 PASS**
+- Transaction test: **ROLLBACK**
+- Tenant/resource/session/device integrity gate: **CLOSED**
+- Gate tiếp theo: Migration 021 → 030.
