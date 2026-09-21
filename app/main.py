@@ -59,8 +59,8 @@ def agent_chat(
     account = None
     if payload.account_hint:
         execution_account = resolve_google_account(
-            user_id=x_user_id,  # type: ignore[arg-type]
-            organization_id=x_organization_id,  # type: ignore[arg-type]
+            user_id=x_user_id,  # Bỏ qua kiểm tra kiểu vì header đã được kiểm tra ở trên.
+            organization_id=x_organization_id,  # Bỏ qua kiểm tra kiểu vì header đã được kiểm tra ở trên.
             account_hint=payload.account_hint,
         )
         body["execution"]["account"] = execution_account
