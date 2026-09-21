@@ -59,3 +59,13 @@
 - Thêm unit contract tests cho DENY, first ingestion và unchanged checksum.
 - Cập nhật `docs/SOURCE_TREE_V2.md` để ghi nhận phase Knowledge Ingestion V1.
 - Chưa gọi Google API/Qdrant runtime trong bước này; runtime integration sẽ thực hiện sau khi PostgreSQL Migration 051 verification PASS.
+
+
+## 2026-09-21 — Migration 051 baseline audit + SQL correction
+- Xác nhận PostgreSQL baseline 001–050 trên database sạch: **45 bảng**.
+- Xác nhận `knowledge_documents` và `knowledge_chunks` hiện tại đến từ Migration 029/030.
+- Xác nhận `idx_knowledge_chunks_content_hash` đã tồn tại từ Migration 030.
+- Hoàn thiện/publish `database/migrations/051_knowledge_v1.sql` theo baseline thực tế.
+- Migration 051 **không tạo lại** `idx_knowledge_chunks_content_hash`, loại bỏ nguyên nhân duplicate-index đã gặp trước đó.
+- Cập nhật acceptance 051 để kiểm tra thực tế multi-source provenance.
+- Runtime verification của Migration 051 vẫn **PENDING** cho đến khi chạy trên PostgreSQL thực tế.
