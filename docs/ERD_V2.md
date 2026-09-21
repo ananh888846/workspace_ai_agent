@@ -1,0 +1,135 @@
+# Workspace AI Agent — ERD V2.1
+
+> ERD logic cấp architecture. Schema chi tiết nằm trong `DATABASE_V2_DETAILED.md`.
+
+## 1. Tenant / Identity / Authorization
+
+```mermaid
+erDiagram
+    USERS ||--o{ ORGANIZATION_MEMBERS : joins
+    ORGANIZATIONS ||--o{ ORGANIZATION_MEMBERS : contains
+    USERS ||--o{ USER_SESSIONS : owns
+    USERS ||--o{ USER_ACCOUNTS : owns
+    USER_ACCOUNTS ||--o{ ACCOUNT_CREDENTIALS : secures
+    USERS ||--o{ USER_ROLES : assigned
+    ROLES ||--o{ USER_ROLES : grants
+    ROLES ||--o{ ROLE_PERMISSIONS : maps
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : defines
+    USER_ACCOUNTS ||--o{ ACCOUNT_GRANTS : delegated
+    USERS ||--o{ ACCOUNT_GRANTS : owner
+    USERS ||--o{ ACCOUNT_GRANTS : grantee
+```
+
+**Quan trọng:** `organization_members.member_role` không thay thế `roles/permissions/role_permissions`.
+
+## 2. Resource / Package
+
+```mermaid
+erDiagram
+    ORGANIZATIONS ||--o{ RESOURCES : scopes
+    RESOURCES ||--o{ RESOURCES : parent
+    USERS ||--o{ RESOURCES : owns
+    USER_ACCOUNTS ||--o{ RESOURCES : backs
+    RESOURCES ||--o{ RESOURCE_PERMISSIONS : protects
+    USERS ||--o{ RESOURCE_PERMISSIONS : receives
+    USERS ||--o{ DATA_PACKAGES : owns
+    DATA_PACKAGES ||--o{ DATA_PACKAGE_VERSIONS : versions
+    DATA_PACKAGE_VERSIONS ||--o{ DATA_PACKAGE_RESOURCES : contains
+    RESOURCES ||--o{ DATA_PACKAGE_RESOURCES : included
+    DATA_PACKAGE_VERSIONS ||--o{ DATA_PACKAGE_GRANTS : grants
+    USERS ||--o{ DATA_PACKAGE_GRANTS : receives
+```
+
+Invariant: `parent_resource_id` phải cùng `organization_id`.
+
+## 3. Device / Event / Activity
+
+```mermaid
+erDiagram
+    ORGANIZATIONS ||--o{ DEVICES : scopes
+    RESOURCES ||--o{ DEVICES : binds
+    USERS ||--o{ DEVICE_USERS : uses
+    DEVICES ||--o{ DEVICE_USERS : assigned
+    DEVICES ||--o{ DEVICE_CAPABILITIES : exposes
+    DEVICES ||--o{ OBSERVATIONS : produces
+    OBSERVATIONS }o--o{ EVENTS : contributes
+    EVENTS ||--o{ ACTIVITIES : informs
+    ACTIVITY_SESSIONS ||--o{ ACTIVITIES : groups
+    RESOURCES ||--o{ ACTIVITY_SESSIONS : scopes
+    USERS ||--o{ ACTIVITY_SESSIONS : owns
+```
+
+Observation là raw observation; Event là meaningful event; Activity Session là lifecycle; Activity là recorded domain activity.
+
+## 4. Conversation / Memory / Knowledge
+
+```mermaid
+erDiagram
+    USERS ||--o{ CONVERSATIONS : owns
+    CONVERSATIONS ||--o{ MESSAGES : contains
+    USERS ||--o{ MEMORIES : owns
+    CONVERSATIONS ||--o{ MEMORIES : sources
+    RESOURCES ||--o{ KNOWLEDGE_DOCUMENTS : scopes
+    KNOWLEDGE_DOCUMENTS ||--o{ KNOWLEDGE_CHUNKS : contains
+    KNOWLEDGE_CHUNKS }o--|| QDRANT : indexed
+```
+
+SQL là source of truth cho ownership/access metadata; Qdrant là vector retrieval store.
+
+## 5. Agents / Tools / Automation / Audit
+
+```mermaid
+erDiagram
+    AGENTS ||--o{ AGENT_CAPABILITIES : has
+    AGENTS ||--o{ AGENT_RUNS : executes
+    AGENT_RUNS ||--o{ TOOL_RUNS : calls
+    TOOLS ||--o{ TOOL_RUNS : executes
+    AGENTS ||--o{ AGENT_MESSAGES : sends
+    AGENTS ||--o{ AGENT_MESSAGES : receives
+    AGENTS ||--o{ AGENT_TASKS : creates
+    AGENTS ||--o{ AGENT_TASKS : receives
+    AGENTS ||--o{ AGENT_PERMISSIONS : grants
+    USERS ||--o{ AUTOMATIONS : owns
+    AUTOMATIONS ||--o{ AUTOMATION_TRIGGERS : triggers
+    AUTOMATIONS ||--o{ AUTOMATION_ACTIONS : acts
+    USERS ||--o{ AUDIT_LOGS : generates
+```
+
+Agent-to-Agent message/task không tự cấp quyền; execution vẫn qua Application Authorization.
+
+## 6. Authorization execution path
+
+```text
+Request
+ ↓
+Authentication
+ ↓
+Organization Context
+ ↓
+Capability
+ ↓
+Account Resolver (candidate only)
+ ↓
+Authorization
+ ├─ Membership / tenant eligibility
+ ├─ Capability permission
+ ├─ Account access
+ ├─ Resource access
+ └─ Package access (if applicable)
+ ↓
+Credential Resolver
+ ↓
+Tool
+ ↓
+Provider
+ ↓
+Audit / Run Trace
+```
+
+Nếu Authorization = DENY:
+
+```text
+Credential Resolver = NOT CALLED
+Tool = NOT CALLED
+Provider API = NOT CALLED
+```
