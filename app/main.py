@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException\nfrom fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from app.api.chat import (
@@ -12,7 +12,7 @@ from app.api.chat import (
     resolve_google_credential,
 )
 from app.api.schemas import ChatRequest
-from app.application.core_runtime import ExternalAccount
+from app.application.core_runtime import ExternalAccount\nfrom app.infrastructure.oauth.google import GoogleOAuthService
 
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase2c")
 
@@ -24,6 +24,42 @@ class AgentChatRequest(BaseModel):
     capability: str | None = None
     action: str | None = None
     target_resource: str | None = None
+
+
+
+@app.get("/auth/google/start")
+def google_oauth_start(
+    account_id: str,
+    x_user_id: str | None = Header(default=None),
+    x_organization_id: str | None = Header(default=None),
+) -> RedirectResponse:
+    """Tạo URL Google OAuth sau khi kiểm tra context runtime tối thiểu."""
+    if not x_user_id or not x_organization_id:
+        raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required")
+    try:
+        url = GoogleOAuthService().authorization_url(
+            account_id=account_id,
+            user_id=x_user_id,
+            organization_id=x_organization_id,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return RedirectResponse(url=url, status_code=302)
+
+
+@app.get("/auth/google/callback")
+def google_oauth_callback(code: str, state: str) -> dict:
+    """Đổi authorization code lấy credential và lưu credential đã mã hóa."""
+    try:
+        oauth_state = GoogleOAuthService().handle_callback(code=code, state=state)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "status": "ok",
+        "account_id": oauth_state.account_id,
+        "organization_id": oauth_state.organization_id,
+        "message": "Google OAuth hoàn tất.",
+    }
 
 
 @app.get("/health")
