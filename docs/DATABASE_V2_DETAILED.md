@@ -1810,3 +1810,16 @@ Before production SQL, the schema source of truth was hardened so session/device
 ## Migration 011 → 020 Additional Tenant Lock — 2026-09-21 10:05:00 +07:00
 
 resource_permissions is tenant-scoped and cannot grant a resource to a user from another organization.
+
+## Verification Gate — Migration 011 → 020
+
+Migration 011 → 020 đã được chạy và kiểm thử thực tế trên PostgreSQL 18.6.
+
+- AT-011 → AT-022: **12/12 PASS**
+- Resource hierarchy và resource permission tenant isolation: **PASS**
+- Resource/account ownership và provider compatibility: **PASS**
+- Data Package tenant integrity: **PASS**
+- Device/resource và user session tenant integrity: **PASS**
+- Device capability uniqueness: **PASS**
+- Acceptance transaction kết thúc bằng ROLLBACK.
+- Database gate 011 → 020: **CLOSED**.
