@@ -1,3 +1,14 @@
+## 2026-09-21 — Database V2.1 Post-Implementation Review CLOSED
+
+- Đã chạy acceptance [database/tests/acceptance_046_050.sql](../database/tests/acceptance_046_050.sql) trên PostgreSQL 18.6 với `ON_ERROR_STOP=1`.
+- Kết quả: **AT-053 → AT-065 PASS (13/13)**; transaction kết thúc bằng **ROLLBACK**.
+- Đã chạy runtime catalog verification [database/tests/runtime_catalog_verification_046_050.sql](../database/tests/runtime_catalog_verification_046_050.sql).
+- Kết quả: **RV-001 → RV-014 PASS (14/14)**; transaction kết thúc bằng **ROLLBACK**.
+- Xác nhận DBR-001 → DBR-007 đã được giải quyết bởi migration hậu V2.1 046 → 050.
+- Cập nhật [docs/DATABASE_V2_1_DBR_RESOLUTION.md](./DATABASE_V2_1_DBR_RESOLUTION.md) chuyển gate sang **CLOSED**.
+- Cập nhật [docs/DECISIONS.md](./DECISIONS.md) với Decision 043.
+- **Status:** Database V2.1 Post-Implementation Review Gate = **CLOSED**.
+
 ## 2026-09-21 — Database V2.1 Post-Implementation Review
 
 - Thêm [docs/DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md](./DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md).
