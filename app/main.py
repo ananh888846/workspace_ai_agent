@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-from fastapi import FastAPI, Header, HTTPException\nfrom fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from app.api.chat import (
@@ -12,7 +13,8 @@ from app.api.chat import (
     resolve_google_credential,
 )
 from app.api.schemas import ChatRequest
-from app.application.core_runtime import ExternalAccount\nfrom app.infrastructure.oauth.google import GoogleOAuthService
+from app.application.core_runtime import ExternalAccount
+from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
 
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase2c")
