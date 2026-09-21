@@ -1841,3 +1841,14 @@ Migration 011 → 020 đã được chạy và kiểm thử thực tế trên Po
 - `tools` là shared/global catalog trong V2.1, không mang `organization_id`; identity `name` là UNIQUE toàn hệ thống.
 - `tools` không cấp authorization; `tool_capabilities` mới mô tả capability contract và `requires_account` chỉ mô tả dependency.
 - Migration 031 → 033 chỉ tạo Agent identity, Agent capability mapping và Tool catalog; chưa tạo Agent Run/Tool Run/A2A.
+
+
+# V2.1 Migration 011 → 033 Integration Verification — 2026-09-21
+
+- PostgreSQL thực tế: **18.6**.
+- Integration acceptance: [database/tests/acceptance_011_033.sql](../database/tests/acceptance_011_033.sql).
+- AT-035 → AT-040: **6/6 PASS**.
+- Cross-tenant device → resource: **REJECT đúng**.
+- Cross-tenant task → event: **REJECT đúng**.
+- Transaction test kết thúc bằng **ROLLBACK**.
+- **Integration gate 011 → 033: CLOSED**.
