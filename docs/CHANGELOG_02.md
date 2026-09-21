@@ -255,3 +255,15 @@
 - Đưa phần loại trùng vào subquery rồi sắp xếp ở truy vấn ngoài, giữ nguyên kết quả và thứ tự hiển thị mong muốn.
 - Chuẩn hóa các docstring/comment trong file Python vừa chỉnh sửa sang tiếng Việt theo quy tắc đã chốt.
 - Không thay đổi schema, migration hoặc authorization contract.
+
+
+## 2026-09-21 — Fix AccountResolver với account pending_oauth
+
+- Xác định nguyên nhân `account_not_found`: PostgreSQL AccountResolver chỉ lọc `user_accounts.status = 'active'`, trong khi Calendar local fixture cố ý dùng `pending_oauth` để biểu diễn account chưa có OAuth credential.
+- Sửa `PostgresAccountRepository.find_candidates()` cho phép resolve metadata của account có trạng thái `active` hoặc `pending_oauth`.
+- Giữ nguyên boundary: `pending_oauth` chỉ cho phép resolve metadata và đi qua Authorization; không được xem là credential hợp lệ và không được bypass CredentialResolver.
+- Sửa Agent HTTP runtime để giữ nguyên trạng thái thật của account sau AccountResolver, thay vì chuyển mọi account thành `active`.
+- Chuẩn hóa các docstring tiếng Anh trong `app/application/core_runtime.py` sang tiếng Việt theo quy tắc Python đã chốt.
+- Đồng bộ `docs/GOOGLE_CALENDAR.md`, `docs/API_PHASE2.md` và `docs/ARCHITECTURE.md`.
+- Không tạo Migration 052 và không thay đổi schema.
+
