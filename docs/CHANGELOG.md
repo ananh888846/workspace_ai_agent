@@ -1,3 +1,10 @@
+
+## 2026-09-21 10:00:00 +07:00 — Acceptance Suite Migration 001 → 010
+
+- Added `database/tests/acceptance_001_010.sql` — acceptance tests AT-001 → AT-008 for tenant integrity, account ownership, temporal CHECK and role/permission FK.
+- Added `database/tests/README.md` — clean PostgreSQL 18+ execution instructions and acceptance gate.
+- **Status:** test suite đã được tạo trên GitHub; **chưa chạy**, nên chưa đánh dấu PASS.
+- **Gate:** chỉ tiếp tục Migration 011 → 020 sau khi chạy suite trên PostgreSQL 18+ sạch và AT-001 → AT-008 đều PASS.
 ## 2026-09-21 09:20:00 +07:00
 
 ### Migration 041–045 DDL design
