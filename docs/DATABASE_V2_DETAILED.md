@@ -410,7 +410,7 @@ Ví dụ Google Drive file, Google Calendar, Home Assistant entity hoặc Facebo
 
 Unique:
 
-UNIQUE(provider, user_account_id, resource_type, external_id)
+UNIQUE(provider, user_account_id, resource_type, external_id)\nUNIQUE(id, organization_id)
 
 Nếu `user_account_id` khác NULL, provider của resource phải khớp provider của user_account.
 
@@ -453,7 +453,7 @@ Resource permission không tự tạo capability permission.
 
 ## 8.2 data_package_versions
 
-Package phải versioned. Version thuộc cùng organization với package.
+Package phải versioned. Package và mọi package child đều thuộc cùng organization.
 
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
@@ -498,7 +498,7 @@ Unique:
 
 UNIQUE(package_version_id, user_id, permission)
 
-Package grant không bypass capability, account hoặc resource authorization.
+Package grant không bypass capability, account hoặc resource authorization.\n\nTenant integrity:\n\n- `data_package_versions.organization_id` = package organization.\n- `data_package_resources.organization_id` = version/resource organization.\n- `data_package_grants.organization_id` = version organization và user phải là member của organization.\n- Package không được chứa resource ngoài organization.
 
 ---
 
@@ -509,7 +509,7 @@ Package grant không bypass capability, account hoặc resource authorization.
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| organization_id | UUID | YES | NULL | FK, INDEX |\n| resource_id | UUID | YES | NULL | FK, INDEX |\n| device_uuid | UUID | NO | — | UNIQUE |
+| organization_id | UUID | NO | — | FK, INDEX |\n| resource_id | UUID | YES | NULL | FK, INDEX |\n| device_uuid | UUID | NO | — | UNIQUE |
 | device_type | VARCHAR(64) | NO | — | INDEX |
 | name | VARCHAR(255) | YES | NULL | |
 | status | VARCHAR(32) | NO | active | INDEX |
@@ -518,7 +518,7 @@ Package grant không bypass capability, account hoặc resource authorization.
 | updated_at | TIMESTAMPTZ | NO | now() | |
 | last_seen_at | TIMESTAMPTZ | YES | NULL | INDEX |
 
-Device credential nếu cần phải được thiết kế như security domain riêng.
+Tenant integrity:\n\n- `devices.organization_id` is NOT NULL.\n- Nếu `resource_id` khác NULL, resource phải cùng organization.\n\nDevice credential nếu cần phải được thiết kế như security domain riêng.
 
 ## 9.2 device_users
 
