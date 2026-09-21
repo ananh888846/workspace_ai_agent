@@ -4,7 +4,7 @@
 
 ## 1. Mục tiêu
 
-Thiết kế pipeline cho Google Drive trước, sau đó mở rộng cho Gmail/Meta/Zalo/Telegram/provider khác.
+Thiết kế pipeline Knowledge-first: Google trước, sau đó Facebook/Meta, TikTok và Instagram. Gmail/Zalo/Telegram chỉ thêm khi capability được duyệt.
 
 Mục tiêu:
 
