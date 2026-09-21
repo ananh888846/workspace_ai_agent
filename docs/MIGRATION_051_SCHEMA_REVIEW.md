@@ -70,11 +70,11 @@ Các acceptance case chính:
 
 ## 6. Verification status
 
-**SQL prepared:** PASS.
+**SQL prepared:** PASS — baseline 001–050 đã được runtime xác nhận có 45 bảng; Migration 051 không tạo lại index `idx_knowledge_chunks_content_hash` đã có từ Migration 030.
 
-**Acceptance SQL prepared:** PASS.
+**Acceptance SQL prepared:** PASS — đã bổ sung kiểm tra multi-source provenance thực tế.
 
-**PostgreSQL runtime verification:** PENDING — chưa ghi PASS khi chưa có runtime PostgreSQL thực tế chạy hai file:
+**PostgreSQL runtime verification:** PENDING — baseline 001–050 đã PASS; riêng 051 + acceptance chưa chạy. — chưa ghi PASS khi chưa có runtime PostgreSQL thực tế chạy hai file:
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/051_knowledge_v1.sql
