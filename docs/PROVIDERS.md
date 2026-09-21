@@ -8,6 +8,8 @@ Chuẩn hóa cách kết nối external services mà không làm Agent Core ph�
 
 - Google: Gmail, Drive, Calendar
 - Facebook/Meta
+- TikTok
+- Instagram
 - Zalo
 - Telegram
 - Home Assistant
