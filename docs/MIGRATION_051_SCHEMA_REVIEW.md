@@ -2,7 +2,7 @@
 
 > Ngày review: 2026-09-21
 >
-> Trạng thái: **SCHEMA DESIGN LOCKED → SQL IMPLEMENTED → VERIFICATION PENDING**
+> Trạng thái: **SCHEMA DESIGN LOCKED → SQL IMPLEMENTED → RUNTIME VERIFIED → GATE CLOSED**
 >
 > Phạm vi: Knowledge Source / Provenance / Document Version / Asset Storage / Chunk / Qdrant mapping.
 
@@ -74,16 +74,16 @@ Các acceptance case chính:
 
 **Acceptance SQL prepared:** PASS — đã bổ sung kiểm tra multi-source provenance thực tế.
 
-**PostgreSQL runtime verification:** PENDING — baseline 001–050 đã PASS; riêng 051 + acceptance chưa chạy. — chưa ghi PASS khi chưa có runtime PostgreSQL thực tế chạy hai file:
+**PostgreSQL runtime verification:** PASS — database sạch đã chạy Migration 001–050 thành công (45 bảng), Migration 051 đã áp dụng thành công và acceptance AT-051-01..11 đã PASS với ROLLBACK.
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/051_knowledge_v1.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/tests/acceptance_051.sql
 ```
 
-Sau khi runtime PASS mới đóng gate Migration 051.
+Migration 051 đã đóng gate runtime.
 
 ## 7. Next gate
 
-`Migration 051 PostgreSQL Verification → Knowledge Ingestion V1`.
+`Migration 051 Gate CLOSED → Knowledge Ingestion V1 runtime integration`
 
