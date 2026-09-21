@@ -132,3 +132,14 @@
 - Thêm unit test `tests/unit/application/test_calendar_application.py` cho DENY/ALLOW boundary.
 - Cập nhật `docs/GOOGLE_CALENDAR.md`.
 - Chưa tạo Migration 052; chưa tạo runtime AccountResolver/CredentialResolver giả.
+
+
+## 2026-09-21 — Core authorization runtime boundary + local Calendar DB fixture
+
+- Thêm `app/application/core_runtime.py` với AgentContext, AccountResolver, AuthorizationService và CredentialResolver contracts/runtime boundaries.
+- Khóa nguyên tắc: CredentialResolver chỉ được resolve sau Authorization = ALLOW.
+- Multi-account không tự đoán; nhiều candidate trả `account_selection_required`.
+- Thêm `tests/unit/application/test_core_runtime.py` cho account selection và credential boundary.
+- Thêm `scripts/calendar/bootstrap_test_data.sql` để tạo tenant/user/role/permission/Google account metadata cho local test.
+- Fixture không chứa OAuth access/refresh token và không tạo credential giả.
+- Cập nhật `docs/GOOGLE_CALENDAR.md`.
