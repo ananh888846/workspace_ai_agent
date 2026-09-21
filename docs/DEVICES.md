@@ -50,8 +50,13 @@ Device credential và user identity phải tách nhau. Device không được t�
 
 ## Organization / Resource binding V2.1
 
-Device có thể thuộc một Organization và gắn với Resource cụ thể:
+Device thuộc một Organization và có thể gắn với một Resource cụ thể:
 
 `Organization → Resource → Device → Observation → Event`
 
 Binding này giúp xác định camera/cảm biến thuộc phòng nào, khu vực nào hoặc workspace nào. Device vẫn là identity độc lập và không kế thừa quyền User tự động.
+
+
+## Tenant integrity
+
+Nếu `resource_id` khác NULL, Device và Resource phải cùng `organization_id`. Device không được bind chéo Organization.
