@@ -156,3 +156,9 @@ Migration 011 → 020 đã được chạy thực tế trên PostgreSQL 18.6 và
 **Date:** 2026-09-21 17:00 +07:00
 
 Migration 021→030 được khóa theo source of truth hiện hành: Observation tenant-scoped; Event/Activity Session/Activity dùng composite tenant integrity; Task/Work Order dùng exact V2.1 column contract; Conversation/Memory giữ user ownership; Knowledge authorization dựa trên SQL metadata/access policy và Qdrant không phải authorization source. Production SQL chỉ được tạo sau review lock này.
+
+## Decision 034 — Migration 021→030 Production SQL Created
+**Status:** Accepted
+**Date:** 2026-09-21 17:20 +07:00
+
+Production SQL 021→030 và acceptance AT-021→AT-030 đã được tạo theo schema lock. Chưa coi gate 021→030 là CLOSED cho đến khi chạy thực tế trên PostgreSQL 18.6 và toàn bộ acceptance PASS.
