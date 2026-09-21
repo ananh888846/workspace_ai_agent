@@ -9,6 +9,7 @@ from app.api.chat import (
     authorize_request,
     build_chat_response,
     resolve_google_account,
+    resolve_google_credential,
 )
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
@@ -73,7 +74,7 @@ def agent_chat(
             external_account_id=execution_account["external_account_id"],
             display_name=execution_account["display_name"],
             email=execution_account["email"],
-            status=execution_account["status"],
+            status=execution_account.get("account_state", "active"),
         )
 
     if payload.capability:
@@ -86,5 +87,10 @@ def agent_chat(
             target_resource=payload.target_resource,
         )
         body["execution"]["authorization"] = authorization
+        if authorization.get("status") == "allow" and account is not None:
+            body["execution"]["credential"] = resolve_google_credential(
+                account=account,
+                authorization=authorization,
+            )
 
     return body
