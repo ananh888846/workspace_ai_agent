@@ -50,3 +50,12 @@
 - Thêm `docs/MIGRATION_051_ACCEPTANCE.md`.
 - Acceptance bao phủ six-layer schema, provider-neutral source, idempotency, cross-tenant rejection, version/checksum, provenance, asset storage key và version-scoped chunk.
 - PostgreSQL runtime verification chưa được ghi PASS cho đến khi chạy thực tế.
+
+## 2026-09-21 — Knowledge Ingestion V1 core implementation
+- Thêm canonical `KnowledgeSourceItem` và `KnowledgeAssetRef` tại `app/domain/knowledge/`.
+- Thêm application ingestion service với authorization gate, checksum idempotency, versioning, chunking, embedding và Qdrant reconciliation ports.
+- Thêm provider-neutral `ProviderAdapter` contract.
+- Thêm Google Drive normalizer đầu tiên; provider adapter chỉ normalize, không tự authorize/resolve credential.
+- Thêm unit contract tests cho DENY, first ingestion và unchanged checksum.
+- Cập nhật `docs/SOURCE_TREE_V2.md` để ghi nhận phase Knowledge Ingestion V1.
+- Chưa gọi Google API/Qdrant runtime trong bước này; runtime integration sẽ thực hiện sau khi PostgreSQL Migration 051 verification PASS.
