@@ -2,7 +2,7 @@
 
 > Thiết kế database chi tiết chính thức cho Architecture V2.
 >
-> Trạng thái: Design only. Chưa tạo migration, chưa tạo bảng thật, chưa viết application code.
+> Trạng thái: Schema source of truth; Migration 001 → 010 đã được triển khai và verify trên PostgreSQL 18.6. Application runtime chưa triển khai trong gate này.
 >
 > Tài liệu này triển khai chi tiết docs/DATABASE.md và phải nhất quán với ARCHITECTURE.md, AUTHORIZATION.md và DECISIONS.md.
 
@@ -1780,3 +1780,15 @@ Không tạo migration trước khi Database V2 được chốt.
 - Anomaly Evidence bỏ polymorphic source_type/source_id; dùng bảy nullable source FK: observation_id, event_id, activity_session_id, activity_id, task_id, device_id, resource_id; CHECK đúng một source; mọi source FK phải cùng organization.
 - Automations, automation_triggers và automation_actions đều tenant-scoped bằng organization_id và composite FK.
 - Các quy tắc trên là quyết định chốt và thay thế các implementation gate cũ.
+
+
+---
+
+# V2.1 Verification Update — 2026-09-21 08:30:00 +07:00
+
+- PostgreSQL thực tế: **18.6**.
+- Database test được xác nhận sạch trước Migration 001 → 010.
+- Migration 001 → 010: **PASS**.
+- Acceptance AT-001 → AT-008: **PASS**.
+- Acceptance transaction kết thúc bằng **ROLLBACK**.
+- Schema contract 001 → 010 đã được verify thực tế; các domain 011 → 045 vẫn theo migration gate riêng.
