@@ -118,3 +118,15 @@ Anomaly là inference về sai lệch dựa trên evidence, không phải kết 
 ## Decision 028 — CHANGELOG Must Link Changed/Added Files
 **Status:** Accepted  
 Mỗi entry trong `docs/CHANGELOG.md` khi ghi nhận file được thêm hoặc thay đổi phải gắn Markdown link trực tiếp tới file trong repository. Quy tắc này áp dụng cho mọi thay đổi documentation/code được ghi vào CHANGELOG, để từ changelog có thể mở thẳng file liên quan. Không ghi tên file dạng plain text nếu file có thể được link nội bộ.
+
+
+## Decision 029 — V2.1 Migration Review Gates Locked
+**Status:** Accepted  
+**Date:** 2026-09-21 09:35 +07:00
+
+- Agent là tenant-scoped; organization_id bắt buộc và A2A dùng composite tenant FK.
+- Task/Work Order schema được khóa explicit.
+- Anomaly Evidence dùng bảy nullable source FK + exactly-one CHECK, không dùng polymorphic source.
+- Automation root/trigger/action đều tenant-scoped.
+
+Các implementation gate tương ứng đã được đóng. Chưa tạo SQL production/database/runtime.
