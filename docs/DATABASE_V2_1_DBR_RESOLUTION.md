@@ -1,82 +1,59 @@
 # Database V2.1 — DBR Design Resolution
 
-> Ngày: 2026-09-21  
-> Phạm vi: DBR-001 → DBR-007 từ Post-Implementation Review.  
-> Nguyên tắc: không sửa ngược migration 001 → 045; thay đổi schema chỉ qua migration hậu V2.1.
+> Ngày cập nhật: 2026-09-21  
+> Không sửa ngược migration 001 → 045; thay đổi schema chỉ qua migration hậu V2.1.
 
 ## 1. Resolution matrix
 
-| Finding | Resolution | Action |
-|---|---|---|
-| DBR-001 Event user/org | ACCEPT FIX | Composite FK (organization_id,user_id) → organization_members |
-| DBR-002 Activity Session user/org | ACCEPT FIX | Composite FK (organization_id,user_id) → organization_members |
-| DBR-003 Activity user/org | ACCEPT FIX | Composite FK (organization_id,user_id) → organization_members |
-| DBR-004 Agent Run/Conversation ownership | ACCEPT FIX | Add UNIQUE(id,user_id) to conversations; composite FK from agent_runs |
-| DBR-005 Tool Run/account context | DEFER | Contract decision required |
-| DBR-006 Audit Log/account context | DEFER | Contract decision required |
-| DBR-007 Resource uniqueness | DEFER | Provider identity decision required |
+| Finding | Resolution | Migration | Status |
+|---|---|---|---|
+| DBR-001 Event user/org | ACCEPT FIX | 046 | RESOLVED FOR MIGRATION |
+| DBR-002 Activity Session user/org | ACCEPT FIX | 046 | RESOLVED FOR MIGRATION |
+| DBR-003 Activity user/org | ACCEPT FIX | 046 | RESOLVED FOR MIGRATION |
+| DBR-004 Agent Run/Conversation ownership | ACCEPT FIX | 047 | RESOLVED FOR MIGRATION |
+| DBR-005 Tool Run/account context | ACCEPT FIX | 048 | RESOLVED FOR MIGRATION |
+| DBR-006 Audit Log/account context | ACCEPT FIX | 049 | RESOLVED FOR MIGRATION |
+| DBR-007 Resource uniqueness | ACCEPT FIX | 050 | RESOLVED FOR MIGRATION |
 
 ## 2. DBR-001 → DBR-003
 
-Event, Activity Session và Activity đều có organization_id. user_id nullable phải được enforce là member của chính organization.
-
-Migration hậu V2.1 sẽ thay FK đơn user_id → users bằng composite FK:
-(organization_id,user_id) → organization_members(organization_id,user_id).
-
-Không đổi nullability.
+Event, Activity Session và Activity enforce `(organization_id,user_id) → organization_members(organization_id,user_id)`. Nullability không thay đổi.
 
 ## 3. DBR-004
 
-Conversation vẫn user-owned; không thêm organization_id.
+Conversation vẫn user-owned. Thêm `UNIQUE(id,user_id)` và Agent Run dùng composite FK `(conversation_id,user_id) → conversations(id,user_id)`.
 
-Để Agent Run không thể tham chiếu conversation của user khác:
+## 4. DBR-005 — Tool Run execution account
 
-- thêm UNIQUE(id,user_id) vào conversations;
-- thay FK agent_runs.conversation_id → conversations.id bằng composite FK:
-  (conversation_id,user_id) → conversations(id,user_id).
+`tool_runs` ghi `organization_id` và `user_id` từ `agent_runs`, cùng optional `account_grant_id`. Account context là direct ownership hoặc active delegated grant. Trigger kiểm tra organization, grantee, account, status/revocation và thời hạn tại `agent_runs.started_at`.
 
-Điều này giữ nguyên Decision 009/033.
+## 5. DBR-006 — Audit Log account context
 
-## 4. DBR-005 — Deferred
+`audit_logs` bổ sung `account_grant_id`. Khi `account_id` có giá trị, `organization_id` và `user_id` bắt buộc có. Account phải owned trực tiếp hoặc delegated hợp lệ tại `created_at`.
 
-tool_runs.account_id cần chốt semantics: account của user thực hiện Agent Run, account được grant, hay account do execution context chọn.
+## 6. DBR-007 — Resource identity
 
-Không suy đoán và không sửa schema trước khi có architecture decision.
+Account-backed: `(provider,user_account_id,resource_type,external_id)`. Local: `(organization_id,provider,resource_type,external_id)` khi `user_account_id IS NULL`. Migration 050 dùng hai partial unique indexes.
 
-## 5. DBR-006 — Deferred
+## 7. Migration hậu V2.1
 
-audit_logs.account_id có thể là account do user sở hữu hoặc account được grant/execution sử dụng.
-
-Chưa thêm composite FK account/user cho tới khi semantics được khóa.
-
-## 6. DBR-007 — Deferred
-
-Current resource identity:
-UNIQUE(provider,user_account_id,resource_type,external_id)
-
-Chưa tự thêm organization_id. Cần chốt provider/resource identity semantics trước khi thay đổi uniqueness.
-
-## 7. Migration hậu V2.1 dự kiến
-
-046_harden_activity_event_user_tenant_integrity.sql xử lý DBR-001 → DBR-003.
-
-047_harden_conversation_owner_integrity.sql xử lý DBR-004.
-
-DBR-005 → DBR-007 chỉ tạo migration sau khi Decision tương ứng được Accepted.
+- [046_harden_activity_event_user_tenant_integrity.sql](../database/migrations/046_harden_activity_event_user_tenant_integrity.sql)
+- [047_harden_conversation_owner_integrity.sql](../database/migrations/047_harden_conversation_owner_integrity.sql)
+- [048_bind_tool_run_account_context.sql](../database/migrations/048_bind_tool_run_account_context.sql)
+- [049_bind_audit_account_context.sql](../database/migrations/049_bind_audit_account_context.sql)
+- [050_lock_resource_identity_semantics.sql](../database/migrations/050_lock_resource_identity_semantics.sql)
 
 ## 8. Acceptance bắt buộc
 
-- Cross-org Event user → REJECT.
-- Cross-org Activity Session user → REJECT.
-- Cross-org Activity user → REJECT.
-- Agent Run user A → Conversation user B → REJECT.
-- Same-user Conversation → ACCEPT.
-- NULL optional values vẫn hoạt động đúng.
+- Cross-org Event/Activity Session/Activity user → REJECT.
+- Agent Run user A → Conversation user B → REJECT; same-user → ACCEPT.
+- Tool Run owned account → ACCEPT; active delegated account → ACCEPT; invalid/expired/revoked/wrong-org grant → REJECT.
+- Audit owned account → ACCEPT; active delegated account → ACCEPT; invalid delegated account → REJECT.
+- Account-backed duplicate identity → REJECT.
+- Local duplicate within same organization → REJECT.
+- Same local identity across different organizations → ACCEPT.
+- NULL optional values remain valid.
 
 ## 9. Gate
 
-DBR-001 → DBR-004: RESOLVED FOR MIGRATION.
-
-DBR-005 → DBR-007: OPEN — REQUIRES ARCHITECTURE DECISION.
-
-Database V2.1 overall post-implementation gate vẫn OPEN cho đến khi migration hậu V2.1 và các deferred decisions hoàn tất.
+DBR-001 → DBR-007: **RESOLVED FOR MIGRATION**. Database V2.1 overall gate remains **OPEN** until migrations 046 → 050 pass acceptance on PostgreSQL 18.6 and runtime catalog verification is complete.
