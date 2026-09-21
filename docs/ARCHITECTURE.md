@@ -22,6 +22,8 @@ V2.1 bổ sung các domain nền tảng mà không thay đổi nguyên tắc Aut
 ### 2.1 Organization / Tenant
 Organization là boundary của workspace/domain. Một User có thể là member của nhiều Organization.
 
+`organization_members.member_role` chỉ là vai trò membership trong tenant (owner/admin/member/guest). Nó không thay thế `roles`, `permissions` và `role_permissions` của application authorization. Membership không tự cấp quyền đọc/ghi resource hoặc dùng external account.
+
 ### 2.2 Resource hierarchy
 Resource có thể có quan hệ cha/con. Hierarchy chỉ mô tả cấu trúc, không tự cấp quyền.
 
@@ -39,6 +41,22 @@ Agent có thể giao task/message cho Agent khác nhưng không bypass AgentCont
 
 ### 2.7 Anomaly Detection
 Anomaly là kết quả phát hiện sai lệch từ facts/events/activities/tasks; không mặc định là kết luận "fraud".
+
+### 2.9 Execution boundary
+
+```text
+LLM / Agent
+  ↓ intent / plan
+Application
+  ↓ authorization
+Capability
+  ↓
+Tool
+  ↓
+Provider
+```
+
+Không có đường đi `LLM → Tool` hoặc `LLM → Credential`.
 
 ### 2.8 Nguyên tắc V2.1
 - Organization là tenant boundary; không dùng User làm tenant thay thế.
