@@ -154,3 +154,14 @@
 - Cập nhật `docs/GOOGLE_CALENDAR.md` với quy trình seed local PostgreSQL và các dữ liệu cố ý không được tạo.
 - Không tạo Migration 052.
 - Không lưu OAuth secret/token trong repository.
+
+
+## 2026-09-21 — Configuration V1 baseline
+- Thêm `.env.example` làm template cấu hình local, không chứa secret thật.
+- Thêm `.gitignore` để loại `.env`, runtime data, Python cache và local storage khỏi Git.
+- Thêm `app/config/settings.py` và `app/config/__init__.py` làm central configuration layer.
+- Thêm `docs/CONFIGURATION.md` để ghi rõ nhóm cấu hình, secret boundary và thứ tự triển khai.
+- PostgreSQL, Qdrant, Ollama và File Storage có cấu hình baseline.
+- Google OAuth chỉ được đánh dấu `configured` khi có Client ID + Client Secret; chưa yêu cầu OAuth để Agent khởi động.
+- OAuth access/refresh token không được lưu trong `.env`; credential của từng external account vẫn thuộc `account_credentials` và CredentialResolver.
+- Chưa thay đổi Docker Compose vì repository hiện chưa có `docker-compose.yml` được quản lý trên GitHub.
