@@ -92,8 +92,6 @@ erDiagram
     TOOLS ||--o{ TOOL_RUNS : executes
     AGENTS ||--o{ AGENT_MESSAGES : sends
     AGENTS ||--o{ AGENT_MESSAGES : receives
-    AGENTS ||--o{ AGENT_TASKS : creates
-    AGENTS ||--o{ AGENT_TASKS : receives
     AGENTS ||--o{ AGENT_PERMISSIONS : grants
     ORGANIZATIONS ||--o{ AGENT_MESSAGES : scopes
     ORGANIZATIONS ||--o{ AGENT_TASKS : scopes
