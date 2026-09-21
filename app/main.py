@@ -11,6 +11,7 @@ from app.api.chat import (
     resolve_google_account,
 )
 from app.api.schemas import ChatRequest
+from app.application.core_runtime import ExternalAccount
 
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase2c")
 
@@ -64,20 +65,16 @@ def agent_chat(
         body["execution"]["account"] = execution_account
         if execution_account["status"] != "resolved":
             return body
-        account = type(
-            "ResolvedAccount",
-            (),
-            {
-                "id": execution_account["account_id"],
-                "user_id": x_user_id,
-                "provider": execution_account["provider"],
-                "account_type": "oauth",
-                "external_account_id": execution_account["external_account_id"],
-                "display_name": execution_account["display_name"],
-                "email": execution_account["email"],
-                "status": "active",
-            },
-        )()
+        account = ExternalAccount(
+            id=execution_account["account_id"],
+            user_id=x_user_id,
+            provider=execution_account["provider"],
+            account_type="oauth",
+            external_account_id=execution_account["external_account_id"],
+            display_name=execution_account["display_name"],
+            email=execution_account["email"],
+            status="active",
+        )
 
     if payload.capability:
         authorization = authorize_request(
