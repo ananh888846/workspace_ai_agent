@@ -1,6 +1,6 @@
 # Workspace AI Agent — KNOWLEDGE SOURCE CONTRACT V1
 
-> Status: Design locked — 2026-09-21
+> Status: Design locked → Migration 051 baseline verified — 2026-09-21
 
 Contract chung cho mọi provider đưa dữ liệu vào Knowledge Systematization Agent.
 
