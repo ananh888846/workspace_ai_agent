@@ -1,3 +1,11 @@
+## 2026-09-21 — Migration Contract V2.1 locked
+
+- Thêm `docs/MIGRATION_CONTRACT_V2.md` làm contract chính thức trước migration implementation.
+- Khóa PostgreSQL/UUIDv7/TIMESTAMPTZ/JSONB convention, FK/delete policy, composite tenant integrity, UNIQUE/CHECK/INDEX, transaction, seed và rollback policy.
+- Khóa migration dependency order 001 → 045.
+- Sửa dependency order trong `docs/DATABASE_V2_DETAILED.md`: `resources` phải tồn tại trước `devices`; `devices` phải tồn tại trước `user_sessions`.
+- Chưa tạo migration files, chưa tạo database thật và chưa thay đổi application/runtime code.
+
 ## 2026-09-21 08:16:10 +07:00
 
 ### Final V2.1 documentation consistency fixes
