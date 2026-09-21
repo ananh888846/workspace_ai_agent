@@ -1,4 +1,4 @@
-# Workspace AI Agent — SOURCE TREE V2
+# Workspace AI Agent — SOURCE TREE V2.1
 
 > Blueprint source tree trước implementation. Chưa phải application code.
 
@@ -33,19 +33,34 @@ workspace_ai_agent/
 │   ├── application/
 │   │   ├── context/
 │   │   ├── authentication/
+│   │   ├── organizations/
 │   │   ├── authorization/
 │   │   ├── accounts/
 │   │   ├── resources/
 │   │   ├── packages/
+│   │   ├── devices/
+│   │   ├── observations/
+│   │   ├── events/
+│   │   ├── activity_sessions/
+│   │   ├── activities/
+│   │   ├── tasks/
+│   │   ├── observations/
+│   │   ├── events/
+│   │   ├── activity_sessions/
+│   │   ├── activities/
+│   │   ├── tasks/
 │   │   ├── capabilities/
 │   │   ├── knowledge/
 │   │   ├── conversations/
 │   │   ├── memory/
 │   │   ├── agents/
+│   │   ├── agent_communication/
+│   │   ├── anomalies/
 │   │   ├── automation/
 │   │   └── audit/
 │   ├── domain/
 │   │   ├── identity/
+│   │   ├── organizations/
 │   │   ├── accounts/
 │   │   ├── authorization/
 │   │   ├── resources/
@@ -56,11 +71,14 @@ workspace_ai_agent/
 │   │   ├── memory/
 │   │   ├── knowledge/
 │   │   ├── agents/
+│   │   ├── agent_communication/
+│   │   ├── anomalies/
 │   │   ├── tools/
 │   │   └── automation/
 │   ├── security/
 │   │   ├── authentication/
 │   │   ├── authorization/
+│   │   ├── organization_scope/
 │   │   ├── credentials/
 │   │   ├── secrets/
 │   │   └── audit/
@@ -68,6 +86,7 @@ workspace_ai_agent/
 │   │   ├── orchestrator.py
 │   │   ├── planner.py
 │   │   ├── router.py
+│   │   ├── communication.py
 │   │   └── context.py
 │   ├── tools/
 │   │   ├── registry.py
@@ -129,6 +148,7 @@ domain ✕ Qdrant
 ## 4. Core contracts
 - `AgentContext`
 - `AuthenticationService`
+- `OrganizationContextResolver`
 - `AuthorizationService`
 - `AccountResolver`
 - `CredentialResolver`
@@ -141,13 +161,21 @@ domain ✕ Qdrant
 
 Contract không chứa secret.
 
-## 5. Phase 1 implementation boundary
+## 5. Organization / Resource boundary
+
+Mọi use-case tenant-scoped phải resolve `organization_id` trước khi truy cập dữ liệu. `parent_resource_id` không được trỏ sang organization khác. Device phải thuộc organization và có thể bind resource.
+
+## 6. Phase 1 implementation boundary
 Chỉ implement foundation, identity, session, AgentContext, database boundary và test contracts. Chưa implement Google, Qdrant, CrewAI, automation hoặc device workflow.
 
-## 6. Phase 2 boundary
+## 7. Phase 2 boundary
 Thêm accounts, resources, authorization, credentials, provider base, Google adapter và tools. Google chỉ được gọi sau authorization.
 
-## 7. Quy tắc import
+## 8. Phase 3+ domain boundaries
+
+Activity Session, Tasks, Agent-to-Agent communication và Anomaly chỉ triển khai sau khi core organization/resource/authorization boundary ổn định.
+
+## 9. Quy tắc import
 - domain → infrastructure: cấm
 - domain → providers: cấm
 - domain → agent framework: cấm
@@ -155,11 +183,13 @@ Thêm accounts, resources, authorization, credentials, provider base, Google ada
 - LLM → credential store: cấm
 - tool → tự bypass AuthorizationService: cấm
 
-## 8. Configuration boundary
+## 10. Configuration boundary
 `.env`/secret store chỉ cấp configuration và secret cho module cần thiết. Không đưa credential vào AgentContext, prompt, log, audit payload hoặc tool run metadata.
 
-## 9. Test boundary
+## 11. Test boundary
 Mọi capability protected phải có owner ALLOW, delegated account ALLOW, denied account DENY, credential chưa resolve khi DENY và provider API không gọi khi DENY.
 
-## 10. Không tạo file chỉ để có đủ cây
+V2.1 bổ sung test organization isolation, resource hierarchy, device → resource, activity session, task → activity, agent → agent permission và anomaly → evidence.
+
+## 12. Không tạo file chỉ để có đủ cây
 Source tree này là target architecture. File chỉ được tạo khi phase tương ứng bắt đầu.
