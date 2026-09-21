@@ -6,7 +6,7 @@ from app.application.core_runtime import ExternalAccount
 
 
 class PostgresPermissionRepository:
-    """PostgreSQL authorization queries; never reads credential secrets."""
+    """Triển khai các truy vấn authorization bằng PostgreSQL; không đọc secret credential."""
 
     def __init__(self, connection: Any) -> None:
         self._connection = connection
@@ -42,8 +42,10 @@ class PostgresPermissionRepository:
         account: ExternalAccount,
         capability: str,
     ) -> bool:
-        # Ownership is account access. A delegated account requires an
-        # active, non-expired grant in the same organization.
+        # Account do chính user sở hữu được cấp quyền truy cập metadata.
+        # Account được ủy quyền cần grant còn hiệu lực trong cùng organization.
+        # pending_oauth vẫn là account metadata hợp lệ; credential readiness
+        # được kiểm tra ở CredentialResolver sau khi authorization được ALLOW.
         query = """
             SELECT EXISTS (
                 SELECT 1
@@ -54,7 +56,7 @@ class PostgresPermissionRepository:
                  AND om.status = 'active'
                 WHERE ua.id = %s
                   AND ua.user_id = %s
-                  AND ua.status = 'active'
+                  AND ua.status IN ('active', 'pending_oauth')
             )
             OR EXISTS (
                 SELECT 1
@@ -73,7 +75,7 @@ class PostgresPermissionRepository:
                  AND (ag.expires_at IS NULL OR ag.expires_at > CURRENT_TIMESTAMP)
                  AND ag.revoked_at IS NULL
                 WHERE ua.id = %s
-                  AND ua.status = 'active'
+                  AND ua.status IN ('active', 'pending_oauth')
             )
         """
         with self._connection.cursor() as cursor:
