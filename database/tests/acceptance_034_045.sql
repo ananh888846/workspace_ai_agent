@@ -269,6 +269,7 @@ BEGIN
     failed := true;
   END;
   IF NOT failed THEN RAISE EXCEPTION 'AT-050 FAIL: invalid evidence weight accepted'; END IF;
+  RAISE NOTICE 'AT-050 PASS';
 
   INSERT INTO audit_logs (
     request_id, organization_id, user_id, action, resource_id, result, metadata
