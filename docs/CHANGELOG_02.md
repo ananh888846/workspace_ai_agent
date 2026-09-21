@@ -143,3 +143,14 @@
 - Thêm `scripts/calendar/bootstrap_test_data.sql` để tạo tenant/user/role/permission/Google account metadata cho local test.
 - Fixture không chứa OAuth access/refresh token và không tạo credential giả.
 - Cập nhật `docs/GOOGLE_CALENDAR.md`.
+
+
+## 2026-09-21 — Local Calendar DB fixture hardening
+- Kiểm tra các migration 001–011 liên quan đến tenant, user, membership, account, credentials, roles, permissions và resources.
+- Điều chỉnh `scripts/calendar/bootstrap_test_data.sql` để idempotent hơn khi chạy lại.
+- Google account fixture chuyển sang trạng thái `pending_oauth` với external ID cục bộ, tránh giả lập một Google account đã xác thực.
+- Fixture không tạo `account_credentials`, access token, refresh token hoặc fake Calendar resource.
+- Thêm các truy vấn verification cho tenant/user/account/permissions.
+- Cập nhật `docs/GOOGLE_CALENDAR.md` với quy trình seed local PostgreSQL và các dữ liệu cố ý không được tạo.
+- Không tạo Migration 052.
+- Không lưu OAuth secret/token trong repository.
