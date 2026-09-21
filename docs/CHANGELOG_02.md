@@ -213,3 +213,17 @@
 - Không đọc account_credentials, không authorize và không gọi provider.
 - Bổ sung API tests và đồng bộ docs/API_PHASE2.md.
 - Phase 2B = DONE. Phase 2C = PostgreSQL Authorization runtime.
+
+
+## 2026-09-21 — Phase 2C — PostgreSQL Authorization runtime
+
+- Thêm app/infrastructure/database/repositories/permissions.py triển khai PostgreSQL PermissionRepository.
+- Capability permission được resolve qua user_roles → role_permissions → permissions.
+- Account access kiểm tra account ownership hoặc account_grants active, cùng Organization và còn hiệu lực.
+- Resource access kiểm tra resource_permissions với tenant membership, action, effect=allow và expiry.
+- Không đọc account_credentials; credential/provider vẫn nằm sau Authorization gate.
+- Mở rộng POST /api/v1/agent/chat với capability, action, target_resource.
+- Runtime flow: AccountResolver → AuthorizationService → PostgreSQL PermissionRepository → ALLOW/DENY.
+- Bổ sung unit/API tests cho PostgreSQL authorization repository và Phase 2C HTTP wiring.
+- Đồng bộ docs/API_PHASE2.md và docs/GOOGLE_CALENDAR.md.
+- Phase 2C = DONE. Phase 2D = nối Web Chat vào real Agent API.
