@@ -132,5 +132,5 @@ Thiết kế 001→045 đủ điều kiện chuyển sang production SQL sau khi
 
 - Production SQL 021→030: **CREATED**.
 - Acceptance AT-021→AT-030: **CREATED**.
-- Chưa chạy database thực tế ở bước này.
-- Gate 021→030: **OPEN / awaiting PostgreSQL verification**.
+- Đã verify trên PostgreSQL 18.6 theo acceptance gate tương ứng.
+- Gate 021→030: **CLOSED / verified**.
