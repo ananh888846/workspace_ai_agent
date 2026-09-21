@@ -193,3 +193,13 @@
 - Thêm unit tests cho mapping metadata và exact hint parameterization.
 - Cập nhật `docs/GOOGLE_CALENDAR.md` với runtime status và gate tiếp theo.
 - Chưa tạo Migration 052; chưa gọi OAuth hoặc Google Calendar API.
+
+
+## 2026-09-21 — Phase 2A — Agent HTTP contract
+- Thêm app/main.py với FastAPI và POST /api/v1/agent/chat.
+- Thêm app/api/schemas.py và app/api/chat.py làm HTTP/application boundary.
+- Endpoint chưa gọi LLM, credential, tool hoặc provider; provider_called=false được trả về rõ ràng.
+- Thêm unit/API tests cho health, conversation_id và account_hint.
+- Thêm docs/API_PHASE2.md.
+- Bổ sung runtime dependencies trong requirements.txt.
+- Phase 2A = DONE. Phase 2B bắt đầu bằng AccountResolver runtime wiring.
