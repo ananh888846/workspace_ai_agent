@@ -175,3 +175,11 @@
 - Thêm `GOOGLE_CREDENTIALS_FILE` và `GOOGLE_TOKEN_DIR` vào `.env.example` và `app/config/settings.py`.
 - Cập nhật `docs/CONFIGURATION.md` với mapping local → Docker: `data/google/` → `/app/data/google/`.
 - Chưa chạy OAuth và chưa tạo token thật.
+
+
+## 2026-09-21 — Docker infrastructure configuration baseline
+- Thêm `docker-compose.yml` quản lý PostgreSQL 18 và Qdrant với named volumes.
+- Bổ sung biến `POSTGRES_*` và `QDRANT_*_HOST_PORT` vào `.env.example`.
+- Cập nhật `docs/CONFIGURATION.md` về boundary giữa infrastructure container và application runtime.
+- Chưa thêm Agent application service vào Compose vì source tree hiện chưa có `app/main.py` và Dockerfile runtime hoàn chỉnh trên GitHub.
+- Chốt không copy `credentials.json` vào Docker image; application runtime sau này sẽ mount `data/google/` vào `/app/data/google/` theo policy secret.
