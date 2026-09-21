@@ -1,3 +1,13 @@
+## 2026-09-21 — Migration 011 → 033 integration acceptance verified
+
+- Đã chạy [database/tests/acceptance_011_033.sql](../database/tests/acceptance_011_033.sql) trên PostgreSQL 18.6 với ON_ERROR_STOP=1.
+- Kết quả: **AT-035 → AT-040 đều PASS (6/6)**.
+- Đã xác nhận resource/device/session, observation/event/activity/task, conversation/message/memory, knowledge/Qdrant mapping và agent/capability/tool integration hoạt động đúng trong transaction test.
+- Đã xác nhận cross-tenant device → resource và task → event bị database reject.
+- Acceptance transaction kết thúc bằng **ROLLBACK**, nên dữ liệu test không được giữ lại.
+- **Gate:** Migration 011 → 033 integration đã PASS và được đóng.
+- Các migration block vẫn giữ verification gate riêng theo contract.
+
 ## 2026-09-21 17:20:00 +07:00 — Migration 021 → 030 production SQL created
 
 - Tạo production SQL `database/migrations/021_...sql` → `030_...sql` theo schema lock.
