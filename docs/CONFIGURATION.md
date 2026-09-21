@@ -139,3 +139,11 @@ Calendar E2E
 ```
 
 Không bỏ qua Core authorization để gọi provider API trực tiếp.
+
+
+## 10. OAuth security secrets
+
+- `GOOGLE_OAUTH_STATE_SECRET`: secret dùng để ký OAuth state bằng HMAC. Không commit.
+- `GOOGLE_CREDENTIAL_ENCRYPTION_KEY`: khóa Fernet dùng để mã hóa credential trước khi ghi `account_credentials.encrypted_value`. Không commit.
+- Hai giá trị này không được đưa vào prompt, log, audit hoặc HTTP response.
+- Nếu thiếu một trong hai secret, OAuth flow phải dừng thay vì tạo credential không bảo vệ.
