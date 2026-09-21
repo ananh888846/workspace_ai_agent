@@ -9,7 +9,12 @@
 - Chốt Data Package.
 - Chưa code business logic.
 
-## Phase 1 — Foundation / Core Contracts
+## Phase 1 — Foundation
+
+- organization / tenant
+- organization membership
+- resource hierarchy
+- device ↔ resource binding / Core Contracts
 
 Trước implementation, tạo source tree theo `docs/SOURCE_TREE_V2.md` và khóa interface theo `docs/CORE_CONTRACTS_V2.md`.
 
@@ -88,12 +93,28 @@ Kiểm tra runtime thực tế trước khi mở rộng:
 ## Phase 8 — Devices / Events
 
 - device registry
+- Organization / Resource binding
+- ESP32-CAM
+- observations
+- events
+- activities
+- activity sessions
+
+- device registry
 - ESP32-CAM
 - observations
 - events
 - activities
 
 ## Phase 9 — Agents
+
+- General Agent
+- Knowledge Agent
+- Activity Agent
+- Device Agent
+- Agent-to-Agent Message/Task/Permission
+- Task / Work Order
+- Anomaly Detection
 
 - General Agent
 - Knowledge Agent
@@ -127,3 +148,10 @@ Chỉ sau khi runtime ổn định mới cân nhắc queue/event bus, caching, w
 ## Nguyên tắc rollout
 
 Không triển khai phase sau khi phase trước chưa có test/verification phù hợp. Không thêm provider chỉ để tăng số lượng trong khi authorization và data package chưa ổn định.
+
+
+## V2.1 Gate
+
+Trước khi tạo migration, phải review và khóa: Organization/Tenant; Resource hierarchy; Device ↔ Resource ↔ Organization; Activity Session; Task/Work Order; Agent-to-Agent communication; Anomaly + evidence.
+
+Chỉ sau gate này mới chuyển Database V2.1 sang migration contract.
