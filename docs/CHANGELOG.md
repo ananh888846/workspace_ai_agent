@@ -1,3 +1,11 @@
+## 2026-09-21 08:00:00 +07:00 — Migration 034 → 045 PostgreSQL acceptance verified
+
+- Đã chạy acceptance [database/tests/acceptance_034_045.sql](../database/tests/acceptance_034_045.sql) trên PostgreSQL 18.6 với `ON_ERROR_STOP=1`.
+- Kết quả: **AT-041 → AT-052 đều PASS (12/12)**.
+- Acceptance transaction kết thúc bằng **ROLLBACK**, nên dữ liệu test không được giữ lại.
+- Migration 041 được tạo thành công; các migration 042 → 045 đã tồn tại trong database và không cần chạy lại.
+- **Gate:** Migration 034 → 045 đã PASS và được đóng.
+
 ## 2026-09-21 — Migration 034 → 045 production SQL created
 
 - Thêm [database/migrations/034_create_tool_capabilities.sql](../database/migrations/034_create_tool_capabilities.sql) → [database/migrations/045_create_audit_logs.sql](../database/migrations/045_create_audit_logs.sql).
