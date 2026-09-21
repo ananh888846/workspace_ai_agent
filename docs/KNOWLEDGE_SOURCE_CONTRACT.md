@@ -5,7 +5,7 @@
 Contract chung cho mọi provider đưa dữ liệu vào Knowledge Systematization Agent.
 
 ## 1. Mục tiêu
-Provider adapter phải chuyển dữ liệu riêng của provider thành một canonical KnowledgeSourceItem. Agent Core không biết API schema riêng của Google, Facebook, TikTok hoặc Instagram.
+Provider adapter phải chuyển dữ liệu riêng của provider thành một canonical KnowledgeSourceItem. Agent Core không biết API schema riêng của Google Drive, Gmail, Facebook/Meta, TikTok, Instagram, Zalo hoặc provider tương lai.
 
 ## 2. Canonical source item
 ~~~text
@@ -104,3 +104,7 @@ Không expose credential hoặc raw secret trong error.
 7. External provider errors không làm mất SQL state hiện có.
 8. URL không thay thế identity/provenance model.
 9. Binary phải đi qua StorageService abstraction.
+
+## 14. Migration 051 alignment
+
+Source identity/provenance, source URL/canonical URL, tenant/account context và multi-source provenance của contract này đã được hiện thực hóa trong Migration 051. PostgreSQL runtime acceptance AT-051-01..11 đã PASS.
