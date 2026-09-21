@@ -33,4 +33,20 @@
 - Chốt source có thể tạm thời chưa có resource; không được bypass authorization.
 - Chốt derived knowledge hỗ trợ nhiều source qua `knowledge_document_version_sources`.
 - Chốt retention giữ lịch sử version và không cascade hard-delete.
-- Design Lock = APPROVED. Bước tiếp theo: production SQL Migration 051 + acceptance tests + PostgreSQL verification.
+- Design Lock = APPROVED.
+
+## 2026-09-21 — Production SQL Migration 051 implemented
+- Thêm `migrations/051_knowledge_v1.sql`.
+- Thêm `knowledge_sources` với source identity/provenance, source URL + canonical URL, account/resource context và tenant isolation.
+- Thêm `knowledge_document_versions` để giữ canonical content/version/checksum.
+- Thêm `knowledge_document_version_sources` cho primary/derived/supporting multi-source provenance.
+- Thêm `knowledge_assets` cho metadata binary; binary không lưu trong PostgreSQL.
+- Nâng `knowledge_chunks` từ logical document sang document version, vẫn giữ Qdrant point mapping.
+- Có backfill từ 029/030; legacy version thiếu canonical content được đánh dấu `rebuild_required`, không bịa nội dung.
+- Không sửa migration 001–050.
+
+## 2026-09-21 — Migration 051 acceptance contract
+- Thêm `database/tests/acceptance_051.sql`.
+- Thêm `docs/MIGRATION_051_ACCEPTANCE.md`.
+- Acceptance bao phủ six-layer schema, provider-neutral source, idempotency, cross-tenant rejection, version/checksum, provenance, asset storage key và version-scoped chunk.
+- PostgreSQL runtime verification chưa được ghi PASS cho đến khi chạy thực tế.
