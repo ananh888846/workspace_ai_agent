@@ -96,6 +96,11 @@ User có thể thuộc nhiều organization. organization_members chỉ xác đ�
 
 Tenant-scoped V2.1:
 
+- account_grants
+- data_packages
+- data_package_versions
+- data_package_resources
+- data_package_grants
 - resources
 - devices
 - events
@@ -173,6 +178,8 @@ Thiếu hoặc DENY điều kiện bắt buộc thì protected provider/tool kh�
 
 ## 6. Resource hierarchy
 
+`resources.organization_id` và `devices.organization_id` là NOT NULL trong V2.1.
+
 resources phải hỗ trợ organization scope và parent/child hierarchy.
 
 Bắt buộc:
@@ -190,6 +197,8 @@ Nếu user_account_id khác NULL:
 - owner_user_id phải phù hợp account ownership policy.
 
 ## 7. Data Package
+
+Data Package là tenant-scoped trong V2.1. `organization_id` là NOT NULL trên package và các bảng package child để database có thể enforce same-organization integrity.
 
 Lifecycle:
 
@@ -212,6 +221,12 @@ UNIQUE(package_version_id, user_id, permission)
 ~~~
 
 Package không chứa credential và không bypass capability/account/resource authorization.
+
+Bắt buộc:
+
+- package, version, package-resource và package-grant cùng `organization_id`;
+- package-resource chỉ được chứa resource cùng organization;
+- package-grant chỉ cấp cho user thuộc organization.
 
 ## 8. Device / Observation / Event
 
@@ -632,6 +647,9 @@ Schema:
 - [ ] đúng UUID/TIMESTAMPTZ/JSONB convention.
 
 Tenant isolation:
+- [ ] account grant owner/grantee khác organization bị reject;
+- [ ] package resource khác organization bị reject;
+- [ ] package grant user khác organization bị reject;
 - [ ] resource parent khác organization bị reject;
 - [ ] device → resource khác organization bị reject;
 - [ ] activity/session khác organization bị reject;
