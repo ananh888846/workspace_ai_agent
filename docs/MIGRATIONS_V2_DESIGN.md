@@ -118,3 +118,11 @@ Thiết kế 001→045 đủ điều kiện chuyển sang production SQL sau khi
 - Acceptance AT-001 → AT-008: **PASS**.
 - Database sạch trước migration; acceptance test dùng transaction và **ROLLBACK**.
 - Gate 001 → 010 đã đóng.
+
+## Verification Gate — Migration 011 → 020
+
+- PostgreSQL 18.6 thực tế đã chạy Migration 011 → 020 thành công.
+- Acceptance AT-011 → AT-022 đạt **12/12 PASS**.
+- Acceptance transaction kết thúc bằng ROLLBACK.
+- Gate 011 → 020 được đóng.
+- Migration 021 → 030 là gate tiếp theo.
