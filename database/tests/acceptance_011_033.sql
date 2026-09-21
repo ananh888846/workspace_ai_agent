@@ -19,7 +19,7 @@ BEGIN
  INSERT INTO events (event_uuid,event_type,organization_id,user_id,device_id,source_type,resource_id,occurred_at,confidence,metadata) VALUES (uuidv7(),'observation.created',org_a,user_a,device_a,'observation',resource_a,now(),0.99,'{}'::jsonb) RETURNING id INTO event_a;
  INSERT INTO activity_sessions (organization_id,user_id,resource_id,session_type,started_at,status,source_event_id) VALUES (org_a,user_a,resource_a,'test',now(),'completed',event_a) RETURNING id INTO activity_session_a;
  INSERT INTO activities (organization_id,user_id,activity_type,resource_id,started_at,status,source_event_id,activity_session_id) VALUES (org_a,user_a,'test.activity',resource_a,now(),'completed',event_a,activity_session_a) RETURNING id INTO activity_a;
- INSERT INTO tasks (organization_id,created_by_user_id,assigned_user_id,title,description,task_type,priority,status,resource_id,source_event_id) VALUES (org_a,user_a,user_a,'AT Task','integration test','test','normal','pending',resource_a,event_a) RETURNING id INTO task_a;
+ INSERT INTO tasks (organization_id,created_by_user_id,assigned_user_id,title,description,task_type,priority,status,resource_id,source_event_id) VALUES (org_a,user_a,user_a,'AT Task','integration test','test',1,'pending',resource_a,event_a) RETURNING id INTO task_a;
  INSERT INTO conversations (user_id,session_id,title) VALUES (user_a,session_a,'AT Conversation') RETURNING id INTO conversation_a;
  INSERT INTO messages (conversation_id,role,content) VALUES (conversation_a,'user','integration test');
  INSERT INTO memories (user_id,memory_type,content,importance,source_conversation_id) VALUES (user_a,'test','integration memory',0.5,conversation_a);
@@ -43,7 +43,7 @@ BEGIN
  failed:=false; BEGIN INSERT INTO devices (organization_id,resource_id,device_uuid,device_type) VALUES (org_b,resource_a,uuidv7(),'esp32'); EXCEPTION WHEN foreign_key_violation THEN failed:=true; END;
  IF NOT failed THEN RAISE EXCEPTION 'AT-039 FAIL: cross-tenant device/resource reference accepted'; END IF;
  RAISE NOTICE 'AT-039 PASS';
- failed:=false; BEGIN INSERT INTO tasks (organization_id,created_by_user_id,assigned_user_id,title,task_type,priority,status,source_event_id) VALUES (org_b,user_b,user_b,'Cross tenant task','test','normal','pending',event_a); EXCEPTION WHEN foreign_key_violation THEN failed:=true; END;
+ failed:=false; BEGIN INSERT INTO tasks (organization_id,created_by_user_id,assigned_user_id,title,task_type,priority,status,source_event_id) VALUES (org_b,user_b,user_b,'Cross tenant task','test',1,'pending',event_a); EXCEPTION WHEN foreign_key_violation THEN failed:=true; END;
  IF NOT failed THEN RAISE EXCEPTION 'AT-040 FAIL: cross-tenant task/event reference accepted'; END IF;
  RAISE NOTICE 'AT-040 PASS';
 END $$;
