@@ -1852,3 +1852,4 @@ Migration 011 → 020 đã được chạy và kiểm thử thực tế trên Po
 - Cross-tenant task → event: **REJECT đúng**.
 - Transaction test kết thúc bằng **ROLLBACK**.
 - **Integration gate 011 → 033: CLOSED**.
+\n\n# V2.1 Migration 034 → 045 Production SQL Review Lock — 2026-09-21\n\n- Agent/Tool runtime trace và A2A đều enforce tenant boundary ở DB bằng composite FK.\n- Automation root/trigger/action đều tenant-scoped.\n- Anomaly Evidence dùng explicit seven source FKs, exactly-one CHECK; không dùng polymorphic source.\n- Audit Logs append-only trong normal runtime; audit metadata được DB trigger kiểm tra secret-key boundary.\n- Production SQL 034 → 045 đã được tạo. Chưa đánh dấu verification gate CLOSED cho đến khi PostgreSQL acceptance PASS.\n
