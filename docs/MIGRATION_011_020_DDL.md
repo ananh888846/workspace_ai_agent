@@ -57,11 +57,14 @@ Delete:
 
 ## 3. Migration 012 — resource_permissions
 
+Resource permission is tenant-scoped so a resource cannot be granted directly to a user outside the resource organization.
+
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| resource_id | UUID | NO | — | FK, INDEX |
-| user_id | UUID | NO | — | FK, INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |
+| resource_id | UUID | NO | — | composite FK, INDEX |
+| user_id | UUID | NO | — | composite FK, INDEX |
 | action | VARCHAR(100) | NO | — | |
 | effect | VARCHAR(16) | NO | allow | |
 | created_at | TIMESTAMPTZ | NO | now() | |
@@ -69,11 +72,14 @@ Delete:
 
 UNIQUE(resource_id, user_id, action).
 
-FK resource_id → resources.id and user_id → users.id.
+Required tenant FKs:
+- organization_id → organizations.id
+- (resource_id, organization_id) → resources(id, organization_id)
+- (organization_id, user_id) → organization_members(organization_id, user_id)
 
 CHECK: expires_at >= created_at when expires_at is present.
 
-Delete policy: RESTRICT for resource/user; permission records are authorization history, not disposable mapping data.
+Delete policy: RESTRICT; permission records are authorization history, not disposable mapping data.
 
 ## 4. Migration 013 — data_packages
 
@@ -285,16 +291,17 @@ Important dependencies:
 ## 13. Acceptance tests
 
 AT-011 Resource parent from another organization → REJECT.
-AT-012 Resource account ownership/provider mismatch → REJECT.
-AT-013 Package owner not organization member → REJECT.
-AT-014 Package version referencing another organization → REJECT.
-AT-015 Package resource from another organization → REJECT.
-AT-016 Package grant user from another organization → REJECT.
-AT-017 Device resource from another organization → REJECT.
-AT-018 Session references nonexistent user/device → FK REJECT.
-AT-019 Session references user/device across organizations → composite FK REJECT.
-AT-020 Expired/invalid session temporal state → CHECK REJECT.
-AT-021 Device capability duplicate → UNIQUE REJECT.
+AT-012 Resource permission user from another organization → REJECT.
+AT-013 Resource account ownership/provider mismatch → REJECT.
+AT-014 Package owner not organization member → REJECT.
+AT-015 Package version referencing another organization → REJECT.
+AT-016 Package resource from another organization → REJECT.
+AT-017 Package grant user from another organization → REJECT.
+AT-018 Device resource from another organization → REJECT.
+AT-019 Session references nonexistent user/device → FK REJECT.
+AT-020 Session references user/device across organizations → composite FK REJECT.
+AT-021 Expired/invalid session temporal state → CHECK REJECT.
+AT-022 Device capability duplicate → UNIQUE REJECT.
 
 ## 14. Implementation gate
 
@@ -321,3 +328,8 @@ Kết luận: Migration 011 → 020 đã đủ thiết kế DDL để làm input
 - device_users now carries organization_id and uses composite tenant FKs to both devices and organization_members.
 - resources must enforce account ownership with composite FK (user_account_id, owner_user_id) → user_accounts(id, user_id), and provider/account compatibility at database level.
 - SQL 011 → 020 will be generated only after these corrections are reflected in the source-of-truth contract.
+
+
+## 16. Additional tenant review correction — 2026-09-21 10:05:00 +07:00
+
+resource_permissions is tenant-scoped with organization_id. Its resource and grantee user are enforced by composite tenant FKs. Acceptance tests now include cross-organization resource permission rejection.
