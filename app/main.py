@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 
 from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from app.api.chat import (
@@ -213,4 +213,4 @@ def agent_chat(
                 }
                 body["execution"]["provider_called"] = True
 
-    return body
+    return JSONResponse(content=body, media_type="application/json; charset=utf-8")
