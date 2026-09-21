@@ -100,3 +100,14 @@
 - Chốt update/delete phải xác định event mục tiêu; nhiều candidate không được tự chọn.
 - Chốt không tạo Migration 052 chỉ cho Calendar Event CRUD; sử dụng resource/account/authorization/audit model V2.1 hiện tại.
 - Bước tiếp theo: implementation provider adapter → tools → authorization → tests → runtime verification.
+
+
+## 2026-09-21 — Google Calendar provider adapter V1 bắt đầu
+
+- Thêm `app/providers/google/calendar/adapter.py`.
+- Thêm `app/providers/google/calendar/__init__.py`.
+- Adapter triển khai provider mapping cho `list_events`, `get_event`, `create_event`, `update_event`, `delete_event`.
+- Adapter chỉ nhận Google Calendar service đã được inject; chưa tự resolve account, credential hoặc authorization.
+- Thêm unit contract test `tests/unit/providers/test_google_calendar_adapter.py`.
+- Chưa tạo Migration 052.
+- Chưa tích hợp Google OAuth/API runtime; bước kế tiếp là nối CredentialResolver/AccountResolver và Google Calendar API client.
