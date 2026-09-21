@@ -387,3 +387,10 @@ Tenant/A2A acceptance:
 - [x] No production SQL, database, provider call or runtime code is introduced.
 
 Kết luận: Migration 031 → 040 đã được thiết kế ở mức DDL contract. Trước SQL implementation, phải chốt DB-level Agent ↔ Organization binding cho A2A/Agent Task integrity; Migration 041–042 sẽ hoàn thiện Automation children.
+
+
+---
+
+# Migration Review Lock — 2026-09-21 09:35 +07:00
+
+Migration 031 chốt Agent tenant-scoped với organization_id bắt buộc và UNIQUE(organization_id, name). Migration 037–039 dùng composite Agent tenant FK. Migration 040 chốt Automation có organization_id bắt buộc; owner phải thuộc organization và child 041/042 cùng tenant. Agent binding gate đã đóng.
