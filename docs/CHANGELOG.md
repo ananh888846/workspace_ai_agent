@@ -92,3 +92,25 @@ Trước khi code:
 - Thêm `docs/CORE_CONTRACTS_V2.md` cho AgentContext, Authentication, Authorization, AccountResolver, CredentialResolver, ResourceAccessChecker, DataPackageResolver, CapabilityRegistry, ToolResolver, ProviderAdapter và AuditService.
 - Cập nhật `docs/ROADMAP_V2.md` để Core Contracts là gate trước implementation Phase 1.
 - Chưa tạo application code hoặc migration.
+
+
+## 2026-09-21 — Architecture V2.1 domain extensions
+
+### Added
+
+- Organization / Tenant và Organization Member.
+- Resource hierarchy và tenant scope.
+- Device ↔ Resource ↔ Organization binding.
+- Activity Session.
+- Task / Work Order.
+- Agent-to-Agent Message / Task / Permission.
+- Anomaly Detection và Anomaly Evidence.
+
+### Updated
+
+- Architecture, Database, Agents, Devices, Events và Decision Log đồng bộ V2.1.
+- Roadmap thêm V2.1 gate trước migration.
+
+### Important
+
+Đây vẫn là documentation/design phase. Chưa tạo migration, chưa tạo database thật và chưa thay đổi application runtime code.
