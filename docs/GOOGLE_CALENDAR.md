@@ -83,8 +83,7 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 
 ### Chưa triển khai
 
-- AccountResolver runtime implementation.
-- CredentialResolver runtime implementation.
+- PostgreSQL-backed repository implementations cho AccountResolver/AuthorizationService/CredentialResolver.
 - Core ToolResolver registry implementation.
 - OAuth consent/re-authorization UI.
 - Calendar webhook/push sync.
