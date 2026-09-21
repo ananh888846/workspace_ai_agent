@@ -54,8 +54,6 @@ workspace_ai_agent/
 │   │   ├── conversations/
 │   │   ├── memory/
 │   │   ├── agents/
-│   │   ├── agent_communication/
-│   │   ├── anomalies/
 │   │   ├── automation/
 │   │   └── audit/
 │   ├── domain/
@@ -133,6 +131,8 @@ workspace_ai_agent/
 ├── .env.example
 └── README.md
 ~~~
+
+**Quy tắc:** `application/` chứa use-case/orchestration, `domain/` chứa business rules/entities, `security/` chứa security boundary, còn `agent/` chứa agent runtime orchestration. Không tạo thư mục trùng trong cùng một layer để biểu diễn cùng một capability.
 
 ## 3. Dependency direction
 ~~~text
