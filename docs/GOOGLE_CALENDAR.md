@@ -156,7 +156,6 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 ### Chưa triển khai
 
 - PostgreSQL-backed CredentialRepository / CredentialResolver.
-- PostgreSQL-backed CredentialRepository / CredentialResolver.
 - Core ToolResolver registry implementation.
 - OAuth consent/re-authorization UI.
 - Calendar webhook/push sync.
