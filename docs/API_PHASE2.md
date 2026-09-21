@@ -6,6 +6,7 @@
 - Phase 2B AccountResolver runtime: **DONE**
 - Phase 2C PostgreSQL Authorization runtime: **DONE**
 - Phase 2D Web Chat gọi real API: **NEXT**
+- Google OAuth readiness flow: **IMPLEMENTED**
 
 ## Phase 2B — AccountResolver
 
@@ -127,3 +128,35 @@ Debug execution metadata
 ```
 
 Phase 2D mới nối workspace_ai_agent_web vào endpoint thật. Không đưa Google OAuth/provider vào Web trước khi Authorization gate được kiểm chứng.
+
+## Google OAuth runtime gate
+
+Khi CredentialResolver trả `oauth_required`, Agent không gọi provider. Client có thể bắt đầu OAuth qua `GET /auth/google/start?account_id=...` với `X-User-ID` và `X-Organization-ID`.
+
+Flow:
+
+```text
+AccountResolver
+  ↓
+Authorization ALLOW
+  ↓
+CredentialResolver
+  ↓ oauth_required
+GET /auth/google/start
+  ↓
+Google consent
+  ↓
+GET /auth/google/callback
+  ↓
+Authorization code exchange
+  ↓
+Credential mã hóa
+  ↓
+account_credentials
+  ↓
+user_accounts.status = active
+```
+
+OAuth state được ký bằng HMAC và chứa account/user/organization context có thời hạn 10 phút. Callback phải xác thực state trước khi đổi code. Credential secret không được đưa vào response hoặc log.
+
+OAuth callback là authentication integration boundary; không được xem callback thành quyền bypass Authorization của Agent runtime.
