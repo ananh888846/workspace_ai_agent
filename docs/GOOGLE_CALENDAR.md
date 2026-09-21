@@ -1,8 +1,6 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **Calendar Read V1 — CLOSED / E2E PASS**
->
-> AccountResolver → Authorization → CredentialResolver → ToolResolver → Google Calendar API đã được runtime verification thành công.
+> Trạng thái: **Calendar Read V1 — CLOSED / E2E PASS** · **Calendar Write V1 — IMPLEMENTED / READY FOR E2E**
 
 ## 1. Capability
 
@@ -24,7 +22,7 @@ AuthorizationService
   ↓ ALLOW
 CredentialResolver
   ↓
-Google Calendar Client
+Google Calendar Tool
   ↓
 GoogleCalendarAdapter
   ↓
@@ -40,9 +38,7 @@ Nếu Authorization = DENY thì CredentialResolver và Google Calendar API khôn
 
 Bộ scope của từng phiên OAuth phải được giữ nguyên từ lúc tạo authorization URL đến lúc callback đổi authorization code. OAuth state chứa bộ scope đã yêu cầu cùng `code_verifier`, và callback dựng lại `Flow` bằng chính bộ scope đó.
 
-Google có thể trả về thêm scope đã được cấp trước đó khi dùng `include_granted_scopes=true`. Đây không phải lý do để thay đổi `credentials.json` hoặc sửa token thủ công. Scope thực tế do Google trả về được lưu trong `account_credentials.scopes`.
-
-Nếu Google account trước đây chỉ được cấp Drive scope, khi bật Calendar capability có thể cần re-authorization để cấp thêm Calendar scope. Không sửa token trực tiếp.
+Google có thể trả về thêm scope đã được cấp trước đó khi dùng `include_granted_scopes=true`. Scope thực tế do Google trả về được lưu trong `account_credentials.scopes`.
 
 ## 4. Multiple accounts
 
@@ -53,179 +49,139 @@ Account selection thuộc AccountResolver:
 3. Có nhiều account nhưng không xác định được → `account_selection_required`.
 4. Không để LLM tự chọn account chỉ từ tên/email trong câu.
 
-## 5. PostgreSQL AccountResolver repository
+## 5. Authorization account access
 
-Đã thêm `app/infrastructure/database/repositories/accounts.py`.
+PostgreSQL Authorization dùng cùng semantics với AccountResolver. Account owner/delegated account phải qua Authorization trước CredentialResolver.
 
-Repository triển khai `AccountRepository.find_candidates()` cho PostgreSQL và chỉ đọc **account metadata** từ `user_accounts`, không đọc `account_credentials`.
-
-Candidate hợp lệ gồm:
-
-- account do chính User sở hữu và có trạng thái `active` hoặc `pending_oauth` trong Organization;
-- hoặc account được User khác delegate qua `account_grants`, với grant active, đúng Organization và còn hiệu lực theo thời gian.
-
-Repository cũng kiểm tra Organization membership của account owner trước khi trả account. Account hint chỉ được match exact theo account ID, external account ID hoặc email; không fuzzy-match.
-
-Repository không tự resolve credential, không authorize capability và không gọi provider API.
-
-## 6. Authorization account access
-
-PostgreSQL Authorization dùng cùng semantics với AccountResolver:
-
-- Account owner có thể được Authorization chấp nhận khi account ở trạng thái `active` hoặc `pending_oauth`.
-- Account delegated phải có `account_grants` hợp lệ; grant không được thay thế bằng việc chỉ biết account ID.
-- `pending_oauth` không phải credential readiness. Sau Authorization = ALLOW, CredentialResolver/OAuth vẫn phải quyết định account đã đủ điều kiện gọi provider hay chưa.
-- Không chuyển `pending_oauth` thành `active` giả chỉ để vượt qua Authorization.
+- `pending_oauth` không phải credential readiness.
 - DENY phải chặn CredentialResolver, ToolResolver và provider API.
+- Create/update/delete đều phải đi qua capability `calendar.write`.
 
-## 7. Provider client
+## 6. Provider client
 
 `app/providers/google/calendar/client.py` nhận credential context, khởi tạo Google Calendar API v3 service và tạo `GoogleCalendarAdapter`.
 
-Google SDK được import lazy để provider dependency không trở thành dependency bắt buộc của domain/application.
+`app/providers/google/calendar/adapter.py` hỗ trợ:
 
-## 8. Runtime dependency
+- `list_events`
+- `get_event`
+- `create_event`
+- `update_event`
+- `delete_event`
 
-Runtime Calendar cần `google-api-python-client`. Dependency này sẽ được thêm vào dependency manifest/container image khi bắt đầu runtime Google integration.
+## 7. Database và thời gian
 
-## 9. Database
+Không tạo Migration riêng cho Calendar Event CRUD V1. Calendar event là resource của Google; agent không tự tạo bảng event chỉ để mirror provider.
 
-Không tạo Migration 052 cho Event CRUD. V2.1 đã có account/credential/resource/authorization/audit contracts.
+**Nguyên tắc thời gian toàn hệ thống:**
 
-Calendar không được tự tạo bảng domain riêng chỉ vì có CRUD.
+- Timestamp lưu trong database → **UTC**.
+- Datetime nội bộ → timezone-aware.
+- Input Calendar Write có timezone → chuẩn hóa về UTC trước khi gửi provider.
+- Response hiển thị cho người dùng Việt Nam → `Asia/Ho_Chi_Minh` / GMT+7.
+- Không lưu giờ địa phương GMT+7 vào database chỉ vì giao diện đang ở Việt Nam.
 
-## 10. Local PostgreSQL test fixture
+Utility dùng chung: `app/core/datetime.py` với `utc_now()`, `to_utc()` và `to_vietnam_time()`.
 
-Fixture:
+## 8. Calendar Write V1
 
-`scripts/calendar/bootstrap_test_data.sql`
+Runtime đã được nối đầy đủ theo boundary:
 
-được thiết kế để tạo **metadata/authorization fixture**, không tạo OAuth credential.
-
-Fixture tạo:
-
-- Organization: `Local Calendar Test`
-- User: `calendar-test@local.invalid`
-- Membership: `owner`
-- Permissions: `calendar.read`, `calendar.write`
-- Role: `calendar_test`
-- Google account metadata ở trạng thái `pending_oauth`
-
-Fixture **không** tạo:
-
-- `account_credentials`
-- access token
-- refresh token
-- secret/key
-- fake Calendar resource
-
-Google account fixture dùng `local-calendar-oauth-pending` làm external ID cục bộ. Khi OAuth thật hoàn tất, account metadata phải được cập nhật qua flow ứng dụng; không dán token vào SQL fixture.
-
-### Chạy fixture
-
-Sau khi `migrations 001-051` đã được áp dụng:
-
-```powershell
-Get-Content .\\scripts\\calendar\\bootstrap_test_data.sql |
-  docker exec -i workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent
+```text
+POST /api/v1/agent/chat
+  ↓
+Calendar classification
+  ↓
+AccountResolver
+  ↓
+AuthorizationService(calendar.write)
+  ↓ ALLOW
+CredentialResolver
+  ↓ READY
+CalendarToolRegistry
+  ↓
+GoogleCalendarTool
+  ↓
+GoogleCalendarAdapter
+  ↓
+Google Calendar API
 ```
 
-Có thể kiểm tra lại:
+### Create
 
-```powershell
-docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent -c "SELECT email,status FROM users WHERE email='calendar-test@local.invalid';"
-docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent -c "SELECT provider,account_type,external_account_id,status FROM user_accounts WHERE external_account_id='local-calendar-oauth-pending';"
-```
+Yêu cầu tối thiểu:
 
-Nếu fixture đã tồn tại, chạy lại vẫn không tạo duplicate tenant/user/account/role mapping.
+- `summary`
+- `start`
+- `end`
 
-## 11. Safety
+`start` và `end` phải là ISO-8601 có timezone hoặc UTC `Z`. Runtime chuẩn hóa thành UTC trước khi gửi Google.
+
+### Update
+
+- Bắt buộc `event_id`.
+- Chỉ patch các field được truyền vào.
+- `start`/`end` nếu có sẽ được chuẩn hóa UTC.
+
+### Delete
+
+- Bắt buộc `event_id`.
+- Bắt buộc `confirmed=true`.
+- Nếu chưa xác nhận → `confirmation_required` và **không gọi provider**.
+
+### Runtime request fields
+
+`POST /api/v1/agent/chat` hỗ trợ thêm:
+
+- `capability`: `calendar.write`
+- `action`: `create` | `update` | `delete`
+- `event_id`
+- `summary`
+- `start`
+- `end`
+- `description`
+- `location`
+- `confirmed`
+
+Natural-language classification vẫn được giữ cho các câu tiếng Việt thông dụng; với thao tác ghi quan trọng nên gửi `capability/action` và các field resource rõ ràng để tránh suy đoán.
+
+## 9. Safety
 
 Update/delete phải xác định chính xác event.
 
-- 0 candidate → `resource_not_found`
-- 1 candidate → có thể tiếp tục authorization/tool
-- >1 candidate → yêu cầu user chọn/xác nhận
+- 0 candidate → `resource_not_found` ở tầng resource resolution tương lai.
+- 1 candidate → có thể tiếp tục authorization/tool.
+- >1 candidate → yêu cầu user chọn/xác nhận.
+- Delete không được thực hiện nếu thiếu confirmation.
 
-Không tự chọn event để update/delete khi có nhiều candidate.
+LLM không được gọi Google Calendar trực tiếp và không được bypass Authorization/CredentialResolver.
 
-## 12. Runtime implementation status
+## 10. Runtime implementation status
 
 ### Đã triển khai
 
-- PostgreSQL PermissionRepository + AuthorizationService runtime: capability/account/resource authorization gate.
-- Phase 2C HTTP runtime: capability → PostgreSQL authorization decision; DENY không đi tới credential/provider.
-- Provider adapter V1: `app/providers/google/calendar/adapter.py`.
-- Google Calendar API client boundary: `app/providers/google/calendar/client.py`.
-- Application orchestration boundary: `app/application/calendar.py`.
-- Google Calendar tool boundary: `app/tools/calendar.py`.
-- Core authorization runtime boundary: `app/application/core_runtime.py`.
-- PostgreSQL AccountResolver repository: `app/infrastructure/database/repositories/accounts.py`; hỗ trợ resolve metadata của account `pending_oauth` để chuyển đúng sang OAuth/Credential gate.
-- Phase 2B HTTP runtime wiring: `POST /api/v1/agent/chat` → AgentContext → PostgresAccountRepository → AccountResolver.
-- Unit tests cho AccountResolver repository mapping và exact account hint.
-- Local PostgreSQL Calendar fixture: `scripts/calendar/bootstrap_test_data.sql`.
-- Contract tests xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
-- Google OAuth start/callback với state có thời hạn, mã hóa và HMAC.
-- PKCE được tạo chủ động: `code_verifier` được giữ trong OAuth state đã mã hóa; callback khôi phục đúng verifier khi đổi authorization code.
-- OAuth scope consistency: callback sử dụng chính bộ scope đã lưu trong state của phiên OAuth, thay vì tự dựng một bộ scope khác.
-- Credential sau OAuth được mã hóa bằng Fernet trước khi lưu `account_credentials`.
+- PostgreSQL PermissionRepository + AuthorizationService runtime.
+- AccountResolver + PostgreSQL account metadata resolution.
+- CredentialResolver + encrypted Google OAuth credential boundary.
+- Google OAuth state/PKCE hardening.
+- Calendar Tool Registry.
+- Google Calendar Tool.
+- Google Calendar Adapter CRUD.
+- Calendar Read V1 E2E verification.
+- Calendar Write V1 runtime orchestration: create/update/delete.
+- Delete confirmation gate.
+- ISO datetime validation + UTC normalization cho Calendar Write.
+- HTTP response UTF-8.
 
-### Chưa triển khai
+### Chưa đóng acceptance
 
+- E2E Create event với Google Calendar thật.
+- E2E Update event với Google Calendar thật.
+- E2E Delete event với confirmation.
+- Provider error/rollback acceptance.
 - Calendar webhook/push sync.
-- Calendar Write V1 (create/update/delete).
 
-Credential readiness hiện kiểm tra credential active/chưa hết hạn và không trả `encrypted_value`.
-
-OAuth callback không trả secret trong HTTP response. Không lưu `code_verifier`, access token hoặc refresh token vào repository/file runtime. `code_verifier` chỉ tồn tại trong OAuth state mã hóa trong thời gian tối đa 10 phút và được dùng một lần cho token exchange.
-
-Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
-
-## 13. OAuth PKCE callback hardening
-
-OAuth start thực hiện:
-
-```text
-Tạo code_verifier
-      ↓
-SHA-256 + Base64URL
-      ↓
-code_challenge
-      ↓
-Google OAuth
-```
-
-`code_verifier` được đưa vào state payload rồi state được mã hóa bằng Fernet và ký HMAC. Vì vậy URL Google không chứa plaintext verifier.
-
-Callback thực hiện:
-
-```text
-state
-  ↓
-HMAC verify
-  ↓
-Fernet decrypt
-  ↓
-khôi phục scope + code_verifier
-  ↓
-Flow(scopes=scope của state)
-  ↓
-Flow.code_verifier = code_verifier
-  ↓
-fetch_token(code=code)
-```
-
-Điều này xử lý hai vấn đề thực tế:
-
-```text
-InvalidGrantError: (invalid_grant) Missing code verifier
-```
-
-và việc callback dựng một bộ scope khác với authorization request.
-
-State có thời hạn tối đa 10 phút. Không sử dụng lại OAuth URL/callback cũ sau khi đã hoàn tất hoặc hết hạn.
-
-## 14. Calendar Read V1 — Verification Gate CLOSED
+## 11. Calendar Read V1 — Verification Gate CLOSED
 
 Luồng runtime đã được kiểm chứng thực tế:
 
@@ -265,4 +221,19 @@ Acceptance thực tế đã xác nhận:
 
 **Calendar Read V1 được CLOSED.**
 
-Không bỏ qua bước authorization/credential để gọi Google API trực tiếp.
+## 12. Calendar Write V1 — Verification Gate
+
+Code path đã được triển khai nhưng **chưa tuyên bố CLOSED** cho đến khi người dùng chạy E2E trên Google Calendar thật.
+
+Acceptance cần đạt:
+
+1. Create tạo đúng event trên Google Calendar.
+2. Start/end gửi provider ở UTC nhưng hiển thị lại đúng GMT+7.
+3. Update đúng event theo `event_id`.
+4. Delete không gọi provider nếu `confirmed=false`.
+5. Delete có `confirmed=true` xóa đúng event.
+6. Authorization DENY không gọi provider.
+7. Credential thiếu/hết hạn không gọi provider.
+8. Provider error trả `provider_error` thay vì làm sập HTTP runtime.
+
+Không dùng OAuth URL/callback cũ. Không dán access token/refresh token vào request, log hoặc SQL.
