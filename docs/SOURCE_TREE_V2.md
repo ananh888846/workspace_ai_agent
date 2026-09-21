@@ -163,7 +163,7 @@ Contract không chứa secret.
 - Không được tự động suy ra member_role = permission set.
 - Membership hợp lệ là điều kiện tenant access; vẫn phải qua capability/account/resource/package authorization.
 
-## 5. Organization / Resource boundary
+## 6. Organization / Resource boundary
 
 Mọi use-case tenant-scoped phải resolve `organization_id` trước khi truy cập dữ liệu. `parent_resource_id` không được trỏ sang organization khác. Device phải thuộc organization và có thể bind resource.
 
