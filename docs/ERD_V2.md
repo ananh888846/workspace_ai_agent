@@ -174,3 +174,12 @@ Provider API = NOT CALLED
 - Agent-to-Agent delegation is same-organization only in V2.1.
 - Anomaly evidence must resolve to a source entity in the same organization as the anomaly.
 - Agent message/task is transport/work state; it never grants authorization by itself.
+
+
+## 8. Migration 021 → 030 integrity lock
+
+- `OBSERVATIONS` thuộc `ORGANIZATIONS` và `DEVICES` trong cùng tenant.
+- `EVENTS`, `ACTIVITY_SESSIONS`, `ACTIVITIES` giữ organization context và không được bind resource/device/event/session khác tenant.
+- `TASKS` giữ organization context; parent task, resource và source event phải cùng tenant.
+- `CONVERSATIONS`/`MEMORIES` tiếp tục theo user ownership contract.
+- `KNOWLEDGE_DOCUMENTS` → `KNOWLEDGE_CHUNKS` chỉ map retrieval; authorization vẫn do SQL Resource/Package boundary quyết định.
