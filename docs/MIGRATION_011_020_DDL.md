@@ -1,6 +1,6 @@
 # Migration 011 → 020 — DDL Design V2.1
 
-> Design only. Chưa phải SQL production và chưa chạy database thật.
+> Design gate update: schema review complete; SQL production will be created only after the tenant/session integrity corrections below.
 >
 > Source of truth: DATABASE_V2_DETAILED.md, MIGRATION_CONTRACT_V2.md, ERD_V2.md.
 
@@ -189,12 +189,15 @@ Delete resource/device relationship: RESTRICT.
 
 ## 9. Migration 018 — user_sessions
 
+Session is tenant-bound so a session cannot bind a user from one organization to a device from another organization.
+
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| user_id | UUID | NO | — | FK, INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |
+| user_id | UUID | NO | — | composite FK, INDEX |
 | session_token_hash | VARCHAR(255) | NO | — | UNIQUE |
-| device_id | UUID | YES | NULL | FK, INDEX |
+| device_id | UUID | YES | NULL | composite FK, INDEX |
 | ip_address | INET | YES | NULL | |
 | user_agent | TEXT | YES | NULL | |
 | started_at | TIMESTAMPTZ | NO | now() | |
@@ -204,8 +207,9 @@ Delete resource/device relationship: RESTRICT.
 | created_at | TIMESTAMPTZ | NO | now() | |
 
 Required:
-- user_id → users.id
-- device_id → devices.id when present
+- organization_id → organizations.id
+- (organization_id, user_id) → organization_members(organization_id, user_id)
+- (device_id, organization_id) → devices(id, organization_id) when device_id is present
 - session_token_hash UNIQUE
 
 Security:
@@ -215,25 +219,26 @@ Security:
 
 CHECK expires_at >= started_at.
 
-Delete policy: RESTRICT for user/device.
+Delete policy: RESTRICT for organization/user/device.
 
 ## 10. Migration 019 — device_users
 
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
-| device_id | UUID | NO | — | PK, FK |
-| user_id | UUID | NO | — | PK, FK |
+| organization_id | UUID | NO | — | PK, FK, INDEX |
+| device_id | UUID | NO | — | PK, composite FK |
+| user_id | UUID | NO | — | PK, composite FK |
 | relationship | VARCHAR(64) | NO | — | |
 | status | VARCHAR(32) | NO | active | INDEX |
 | created_at | TIMESTAMPTZ | NO | now() | |
 
-PK: (device_id, user_id).
+PK: (organization_id, device_id, user_id).
 
-FK:
-- device_id → devices.id
-- user_id → users.id
+Required tenant FKs:
+- (device_id, organization_id) → devices(id, organization_id)
+- (organization_id, user_id) → organization_members(organization_id, user_id)
 
-Because Device is tenant-scoped, cross-organization device-user binding must be rejected by a database-level tenant constraint/equivalent contract, not only application validation.
+Because Device is tenant-scoped, cross-organization device-user binding is rejected by database-level composite FKs.
 
 Mapping delete policy: CASCADE from device/user into mapping is allowed.
 
@@ -287,8 +292,9 @@ AT-015 Package resource from another organization → REJECT.
 AT-016 Package grant user from another organization → REJECT.
 AT-017 Device resource from another organization → REJECT.
 AT-018 Session references nonexistent user/device → FK REJECT.
-AT-019 Expired/invalid session temporal state → CHECK/runtime REJECT.
-AT-020 Device capability duplicate → UNIQUE REJECT.
+AT-019 Session references user/device across organizations → composite FK REJECT.
+AT-020 Expired/invalid session temporal state → CHECK REJECT.
+AT-021 Device capability duplicate → UNIQUE REJECT.
 
 ## 14. Implementation gate
 
@@ -307,3 +313,11 @@ AT-020 Device capability duplicate → UNIQUE REJECT.
 - [x] No production credentials or user data are seeded.
 
 Kết luận: Migration 011 → 020 đã đủ thiết kế DDL để làm input cho bước SQL implementation, sau khi composite tenant constraint cho device_users được biểu diễn bằng target key tương ứng trong schema SQL.
+
+
+## 15. Pre-SQL review correction — 2026-09-21 10:00:00 +07:00
+
+- user_sessions is explicitly tenant-scoped with organization_id so a session cannot cross-bind a user and device across organizations.
+- device_users now carries organization_id and uses composite tenant FKs to both devices and organization_members.
+- resources must enforce account ownership with composite FK (user_account_id, owner_user_id) → user_accounts(id, user_id), and provider/account compatibility at database level.
+- SQL 011 → 020 will be generated only after these corrections are reflected in the source-of-truth contract.
