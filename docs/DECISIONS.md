@@ -137,3 +137,9 @@ Các implementation gate tương ứng đã được đóng. Chưa tạo SQL pro
 **Date:** 2026-09-21 08:30:00 +07:00
 
 Migration 001 → 010 được chạy trên PostgreSQL 18.6 với database sạch. Acceptance test AT-001 → AT-008 đều PASS và transaction test kết thúc bằng ROLLBACK. Gate 001 → 010 được coi là đã verify; Migration 011 → 020 chỉ được triển khai theo contract và acceptance gate tương ứng.
+
+## Decision 031 — Migration 011→020 Tenant Boundary Hardening
+**Status:** Accepted  
+**Date:** 2026-09-21 10:10 +07:00
+
+Migration 011→020 phải enforce tenant integrity ở database. Resource permissions, user sessions và device-user mappings mang organization scope; resource account ownership dùng composite FK; provider/account compatibility dùng database-level trigger. Acceptance gate AT-011→AT-022 phải PASS trước khi mở Migration 021→030.
