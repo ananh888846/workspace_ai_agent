@@ -183,3 +183,13 @@ Provider API = NOT CALLED
 - `TASKS` giữ organization context; parent task, resource và source event phải cùng tenant.
 - `CONVERSATIONS`/`MEMORIES` tiếp tục theo user ownership contract.
 - `KNOWLEDGE_DOCUMENTS` → `KNOWLEDGE_CHUNKS` chỉ map retrieval; authorization vẫn do SQL Resource/Package boundary quyết định.
+
+---
+
+# Post-V2.1 Integrity Amendments
+
+- Event/Activity Session/Activity user references are same-organization composite relationships.
+- Agent Run → Conversation is user-bound through `(conversation_id,user_id)`.
+- Tool Run carries Agent Run execution tenant/user context and optional delegated Account Grant.
+- Audit Log account context records either direct ownership or Account Grant basis.
+- Resource identity differs for account-backed and local resources.
