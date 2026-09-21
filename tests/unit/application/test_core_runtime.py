@@ -45,7 +45,13 @@ class FakeCredentials:
 
     def resolve_authorized_credential(self, **kwargs):
         self.calls += 1
-        return "credential-context"
+        return __import__(
+            "app.application.core_runtime",
+            fromlist=["CredentialResolution"],
+        ).CredentialResolution(
+            status="ready",
+            credential_type="test",
+        )
 
 
 def account():
@@ -132,5 +138,5 @@ def test_allow_then_credential_resolution():
     assert CredentialResolver(credentials).resolve(
         decision=decision,
         account=account(),
-    ) == "credential-context"
+    ).status == "ready"
     assert credentials.calls == 1
