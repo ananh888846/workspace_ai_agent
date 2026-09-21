@@ -1,4 +1,5 @@
 import hashlib
+from datetime import datetime
 from typing import Any
 
 from app.domain.knowledge.source import KnowledgeSourceItem
@@ -37,6 +38,10 @@ class GoogleDriveNormalizer:
             ]
         )
 
+        modified_at = raw.get("modifiedTime")
+        if isinstance(modified_at, str):
+            modified_at = datetime.fromisoformat(modified_at.replace("Z", "+00:00"))
+
         return KnowledgeSourceItem(
             organization_id=organization_id,
             user_account_id=user_account_id,
@@ -48,7 +53,7 @@ class GoogleDriveNormalizer:
             mime_type=mime_type,
             source_url=raw.get("webViewLink"),
             canonical_url=raw.get("webViewLink"),
-            updated_at=raw.get("modifiedTime"),
+            updated_at=modified_at,
             source_revision=raw.get("version"),
             source_checksum=_checksum(canonical_material),
             metadata={
