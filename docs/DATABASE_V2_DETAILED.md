@@ -1853,3 +1853,24 @@ Migration 011 → 020 đã được chạy và kiểm thử thực tế trên Po
 - Transaction test kết thúc bằng **ROLLBACK**.
 - **Integration gate 011 → 033: CLOSED**.
 \n\n# V2.1 Migration 034 → 045 Production SQL Review Lock — 2026-09-21\n\n- Agent/Tool runtime trace và A2A đều enforce tenant boundary ở DB bằng composite FK.\n- Automation root/trigger/action đều tenant-scoped.\n- Anomaly Evidence dùng explicit seven source FKs, exactly-one CHECK; không dùng polymorphic source.\n- Audit Logs append-only trong normal runtime; audit metadata được DB trigger kiểm tra secret-key boundary.\n- Production SQL 034 → 045 đã được tạo. Chưa đánh dấu verification gate CLOSED cho đến khi PostgreSQL acceptance PASS.\n
+
+---
+
+# Post-V2.1 Schema Amendments — DBR Closure
+
+## Tool Run execution account
+
+`tool_runs` carries `organization_id`, `user_id` and optional `account_grant_id`. The execution user comes from `agent_runs`. Account context is either directly owned by that user or delegated through an active account grant. Database trigger validation is mandatory.
+
+## Audit Log account context
+
+`audit_logs` has optional `account_grant_id`. When `account_id` is present, `organization_id` and `user_id` are required and the account must be directly owned or validly delegated to that user at audit creation time.
+
+## Resource identity
+
+Resource uniqueness is split by account-backed versus local resources:
+
+- Account-backed: `(provider,user_account_id,resource_type,external_id)`.
+- Local: `(organization_id,provider,resource_type,external_id)` where `user_account_id IS NULL`.
+
+This replaces the old single nullable-account UNIQUE constraint because PostgreSQL UNIQUE permits multiple NULL values and therefore cannot fully define local-resource identity.
