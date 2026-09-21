@@ -31,7 +31,11 @@ Google Calendar API
 
 Nếu Authorization = DENY thì CredentialResolver và Google Calendar API không được gọi.
 
-## 3. OAuth scopes
+## 3. Quy trình OAuth thao tác
+
+Khi cần OAuth lại Google account, thực hiện theo runbook chuẩn `docs/GOOGLE_OAUTH.md`. Không tự tạo URL hoặc tự đưa `x-user-id`/`x-organization-id` vào `.env`.
+
+## 4. OAuth scopes
 
 - Read: `https://www.googleapis.com/auth/calendar.readonly`
 - Write: `https://www.googleapis.com/auth/calendar`
@@ -40,7 +44,7 @@ Bộ scope của từng phiên OAuth phải được giữ nguyên từ lúc t�
 
 Google có thể trả về thêm scope đã được cấp trước đó khi dùng `include_granted_scopes=true`. Scope thực tế do Google trả về được lưu trong `account_credentials.scopes`.
 
-## 4. Multiple accounts
+## 5. Multiple accounts
 
 Account selection thuộc AccountResolver:
 
@@ -49,7 +53,7 @@ Account selection thuộc AccountResolver:
 3. Có nhiều account nhưng không xác định được → `account_selection_required`.
 4. Không để LLM tự chọn account chỉ từ tên/email trong câu.
 
-## 5. Authorization account access
+## 6. Authorization account access
 
 PostgreSQL Authorization dùng cùng semantics với AccountResolver. Account owner/delegated account phải qua Authorization trước CredentialResolver.
 
@@ -57,7 +61,7 @@ PostgreSQL Authorization dùng cùng semantics với AccountResolver. Account ow
 - DENY phải chặn CredentialResolver, ToolResolver và provider API.
 - Create/update/delete đều phải đi qua capability `calendar.write`.
 
-## 6. Provider client
+## 7. Provider client
 
 `app/providers/google/calendar/client.py` nhận credential context, khởi tạo Google Calendar API v3 service và tạo `GoogleCalendarAdapter`.
 
@@ -69,7 +73,7 @@ PostgreSQL Authorization dùng cùng semantics với AccountResolver. Account ow
 - `update_event`
 - `delete_event`
 
-## 7. Database và thời gian
+## 8. Database và thời gian
 
 Không tạo Migration riêng cho Calendar Event CRUD V1. Calendar event là resource của Google; agent không tự tạo bảng event chỉ để mirror provider.
 
@@ -83,7 +87,7 @@ Không tạo Migration riêng cho Calendar Event CRUD V1. Calendar event là res
 
 Utility dùng chung: `app/core/datetime.py` với `utc_now()`, `to_utc()` và `to_vietnam_time()`.
 
-## 8. Calendar Write V1
+## 9. Calendar Write V1
 
 Runtime đã được nối đầy đủ theo boundary:
 
@@ -145,7 +149,7 @@ Yêu cầu tối thiểu:
 
 Natural-language classification vẫn được giữ cho các câu tiếng Việt thông dụng; với thao tác ghi quan trọng nên gửi `capability/action` và các field resource rõ ràng để tránh suy đoán.
 
-## 9. Safety
+## 10. Safety
 
 Update/delete phải xác định chính xác event.
 
@@ -156,7 +160,7 @@ Update/delete phải xác định chính xác event.
 
 LLM không được gọi Google Calendar trực tiếp và không được bypass Authorization/CredentialResolver.
 
-## 10. Runtime implementation status
+## 11. Runtime implementation status
 
 ### Đã triển khai
 
@@ -181,7 +185,7 @@ LLM không được gọi Google Calendar trực tiếp và không được bypa
 - Provider error/rollback acceptance.
 - Calendar webhook/push sync.
 
-## 11. Calendar Read V1 — Verification Gate CLOSED
+## 12. Calendar Read V1 — Verification Gate CLOSED
 
 Luồng runtime đã được kiểm chứng thực tế:
 
@@ -221,7 +225,7 @@ Acceptance thực tế đã xác nhận:
 
 **Calendar Read V1 được CLOSED.**
 
-## 12. Calendar Write V1 — Verification Gate
+## 13. Calendar Write V1 — Verification Gate
 
 Code path đã được triển khai nhưng **chưa tuyên bố CLOSED** cho đến khi người dùng chạy E2E trên Google Calendar thật.
 
