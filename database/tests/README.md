@@ -1,5 +1,7 @@
 # Acceptance Test — Migration 001 → 010
 
+> **Verification status (2026-09-21): PASS.** Migration 001 → 010 đã chạy trên PostgreSQL 18.6 sạch và AT-001 → AT-008 đều PASS. Test transaction kết thúc bằng ROLLBACK.
+
 ## Mục tiêu
 
 Kiểm tra clean PostgreSQL cho Migration 001 → 010 theo contract V2.1.
@@ -12,6 +14,15 @@ Suite xác nhận:
 - Temporal CHECK.
 - Role/Permission mapping và FK.
 - Test data được rollback sau khi chạy.
+
+## Trạng thái verification
+
+- PostgreSQL: 18.6
+- Database: clean trước migration
+- Migration 001 → 010: PASS
+- AT-001 → AT-008: PASS
+- Test data: ROLLBACK
+- Gate tiếp theo: review và triển khai Migration 011 → 020.
 
 ## Cách chạy
 
