@@ -254,3 +254,14 @@ Google OAuth được triển khai như integration boundary, không bypass Core
 - OAuth không được ghi token plaintext vào log, AgentContext, prompt, audit hoặc HTTP response.
 - Sau OAuth, account có credential hợp lệ mới được chuyển từ `pending_oauth` sang `active`.
 - Agent runtime vẫn phải đi qua CredentialResolver → ToolResolver → Provider.
+
+
+## Decision 046 — UTC as Database Time Standard
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+- Mọi timestamp lưu trong PostgreSQL dùng UTC làm chuẩn duy nhất.
+- Thời gian từ người dùng phải có timezone hoặc được xác định rõ trước khi chuẩn hóa về UTC.
+- Application/presentation chuyển UTC sang `Asia/Ho_Chi_Minh` (GMT+7) khi hiển thị cho người dùng.
+- Provider timezone chỉ là boundary concern và không thay đổi chuẩn timestamp của database.
+- Dùng utility thời gian chung thay vì tự xử lý timezone rải rác trong từng domain.
