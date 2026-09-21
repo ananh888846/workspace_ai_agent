@@ -193,3 +193,30 @@ Post-Implementation Review của Migration 001 → 045 đã được thực hi�
 Chưa coi Database V2.1 là hoàn toàn CLOSED về tenant-integrity cho đến khi các finding được chốt, migration hậu V2.1 được tạo nếu cần, acceptance bổ sung PASS và runtime catalog verification hoàn tất.
 
 Chi tiết nằm trong [docs/DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md](./DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md).
+
+
+## Decision 039 — Post-V2.1 Execution Account Context
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+`tool_runs` phải ghi nhận execution context của `agent_run` bằng `organization_id` và `user_id`.
+
+`tool_runs.account_id` có hai semantics hợp lệ: owned account của execution user; hoặc delegated account qua `account_grant_id` hợp lệ cùng organization, đúng grantee/account và còn hiệu lực tại `agent_runs.started_at`. Database trigger enforce semantics này.
+
+## Decision 040 — Audit Account Authorization Context
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Khi `audit_logs.account_id` khác NULL, `user_id` và `organization_id` bắt buộc khác NULL. Account phải thuộc trực tiếp user hoặc được delegated qua `account_grant_id` hợp lệ cùng organization, đúng grantee/account và còn hiệu lực tại `audit_logs.created_at`. Audit không lưu credential/secret.
+
+## Decision 041 — Resource Identity by Account-backed vs Local Resource
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Resource identity được chia thành account-backed và local/tenant. Account-backed dùng `(provider, user_account_id, resource_type, external_id)`. Local dùng `(organization_id, provider, resource_type, external_id)` khi `user_account_id IS NULL`. Database enforce bằng hai partial unique indexes.
+
+## Decision 042 — Post-V2.1 DBR Closure Migration Set
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+DBR-001 → DBR-007 được chuyển thành migration hậu V2.1: 046 Event/Activity user tenant integrity; 047 Conversation owner integrity; 048 Tool Run execution account context; 049 Audit Log account authorization context; 050 Resource identity semantics. Không sửa ngược 001 → 045. Acceptance PostgreSQL 18.6 và runtime catalog verification là gate trước CLOSED.
