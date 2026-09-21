@@ -151,7 +151,6 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 
 - PostgreSQL PermissionRepository + AuthorizationService runtime: capability/account/resource authorization gate.
 - Phase 2C HTTP runtime: capability → PostgreSQL authorization decision; DENY không đi tới credential/provider.
-
 - Provider adapter V1: `app/providers/google/calendar/adapter.py`.
 - Google Calendar API client boundary: `app/providers/google/calendar/client.py`.
 - Application orchestration boundary: `app/application/calendar.py`.
@@ -162,26 +161,61 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - Unit tests cho AccountResolver repository mapping và exact account hint.
 - Local PostgreSQL Calendar fixture: `scripts/calendar/bootstrap_test_data.sql`.
 - Contract tests xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
+- Google OAuth start/callback với state có thời hạn, mã hóa và HMAC.
+- PKCE được tạo chủ động: `code_verifier` được giữ trong OAuth state đã mã hóa; callback khôi phục đúng verifier khi đổi authorization code.
+- Credential sau OAuth được mã hóa bằng Fernet trước khi lưu `account_credentials`.
 
 ### Chưa triển khai
 
-- PostgreSQL-backed CredentialRepository / CredentialResolver readiness gate.
-- Google OAuth start/callback, state verification và credential storage mã hóa.
 - Core ToolResolver registry implementation.
 - Calendar webhook/push sync.
 - End-to-end Google Calendar API runtime verification.
 
-Credential readiness hiện chỉ kiểm tra credential active/chưa hết hạn và không trả encrypted_value.
-Google OAuth callback đổi authorization code thành credential, mã hóa credential bằng Fernet trước khi lưu `account_credentials`, cập nhật account từ `pending_oauth` sang `active` và không trả secret trong HTTP response. OAuth sử dụng PKCE; `code_verifier` được tạo tại OAuth start, đưa vào state đã mã hóa/ký và được khôi phục tại callback để hoàn tất token exchange.
-Nếu chưa có credential hợp lệ, runtime trả oauth_required và chưa gọi provider.
+Credential readiness hiện kiểm tra credential active/chưa hết hạn và không trả `encrypted_value`.
+
+OAuth callback không trả secret trong HTTP response. Không lưu `code_verifier`, access token hoặc refresh token vào repository/file runtime. `code_verifier` chỉ tồn tại trong OAuth state mã hóa trong thời gian tối đa 10 phút và được dùng một lần cho token exchange.
 
 Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
 
 ## 13. OAuth PKCE callback hardening
 
-OAuth start tạo `code_verifier` riêng cho từng phiên và gửi `code_challenge` S256 tới Google. `code_verifier` không xuất hiện plaintext trong URL vì state được mã hóa trước khi ký HMAC. Callback chỉ chấp nhận state hợp lệ, chưa quá 10 phút, sau đó dùng đúng verifier để đổi authorization code lấy credential.
+OAuth start thực hiện:
 
-Lỗi `invalid_grant: Missing code verifier` đã được xử lý trong commit `0d7f64184b3484afd27afcb30965c69a94d50286`.
+```text
+Tạo code_verifier
+      ↓
+SHA-256 + Base64URL
+      ↓
+code_challenge
+      ↓
+Google OAuth
+```
+
+`code_verifier` được đưa vào state payload rồi state được mã hóa bằng Fernet và ký HMAC. Vì vậy URL Google không chứa plaintext verifier.
+
+Callback thực hiện:
+
+```text
+state
+  ↓
+HMAC verify
+  ↓
+Fernet decrypt
+  ↓
+khôi phục code_verifier
+  ↓
+Flow.code_verifier = code_verifier
+  ↓
+fetch_token(code=code)
+```
+
+Điều này xử lý lỗi thực tế đã gặp:
+
+```text
+InvalidGrantError: (invalid_grant) Missing code verifier
+```
+
+State có thời hạn tối đa 10 phút. Không sử dụng lại OAuth URL/callback cũ sau khi đã hoàn tất hoặc hết hạn.
 
 ## 14. Next runtime gate
 
@@ -198,9 +232,9 @@ PostgreSQL Authorization repository   ← DONE (active + pending_oauth account a
   ↓
 CredentialResolver / readiness gate
   ↓
-OAuth nếu credential chưa sẵn sàng
+OAuth PKCE start/callback              ← DONE
   ↓
-Credential lưu mã hóa
+Credential lưu mã hóa                  ← DONE
   ↓
 ToolResolver registry
   ↓
