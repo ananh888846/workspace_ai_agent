@@ -12,6 +12,7 @@ from app.api.chat import (
     classify_chat_request,
     resolve_google_account,
     resolve_google_credential,
+    execute_google_calendar_read,
 )
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
@@ -174,9 +175,42 @@ def agent_chat(
     )
     body["execution"]["authorization"] = authorization
     if authorization.get("status") == "allow":
+        from app.application.core_runtime import AuthorizationDecision, CredentialResolver
+        from app.infrastructure.database.connection import database_connection
+        from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
+
+        with database_connection() as connection:
+            credential_result = CredentialResolver(
+                PostgresCredentialRepository(connection)
+            ).resolve(
+                decision=AuthorizationDecision(
+                    allowed=True,
+                    reason="authorized",
+                    code="allow",
+                ),
+                account=account,
+            )
+
         body["execution"]["credential"] = resolve_google_credential(
             account=account,
             authorization=authorization,
         )
+        if credential_result.status == "ready" and action == "read":
+            try:
+                body["calendar"] = execute_google_calendar_read(
+                    account=account,
+                    credential_resolution=credential_result,
+                )
+                body["execution"]["provider_called"] = True
+                body["execution"]["account"]["provider_called"] = True
+                body["execution"]["authorization"]["provider_called"] = True
+                body["execution"]["credential"]["provider_called"] = True
+            except Exception as exc:
+                body["calendar"] = {
+                    "status": "provider_error",
+                    "error": str(exc),
+                    "provider_called": True,
+                }
+                body["execution"]["provider_called"] = True
 
     return body
