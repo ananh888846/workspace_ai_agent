@@ -233,4 +233,4 @@ Khi phát sinh yêu cầu mới:
 
 Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, device-resource binding, activity session, task/work order, agent-to-agent communication và anomaly detection.
 
-Đây vẫn là blueprint; chưa có nghĩa các module đã được triển khai.
+Architecture contract đã chốt. Database V2.1 001 → 050 đã CLOSED; Agent/Knowledge application runtime vẫn chưa triển khai.
