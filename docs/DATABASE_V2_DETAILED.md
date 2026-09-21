@@ -111,6 +111,26 @@ Có thể dùng ON DELETE CASCADE cho mapping thuần túy như:
 
 Không cascade tùy tiện trên business history hoặc audit.
 
+### 3.1 V2.1 composite tenant FK contract
+
+Các composite FK dưới đây là database-level requirement, không phải application-only rule:
+
+- `account_grants(organization_id, owner_user_id) → organization_members(organization_id, user_id)`.
+- `account_grants(organization_id, grantee_user_id) → organization_members(organization_id, user_id)`.
+- `account_grants(user_account_id, owner_user_id) → user_accounts(id, user_id)`.
+- `resources(parent_resource_id, organization_id) → resources(id, organization_id)` khi parent không NULL.
+- `data_packages(organization_id, owner_user_id) → organization_members(organization_id, user_id)`.
+- `data_package_versions(data_package_id, organization_id) → data_packages(id, organization_id)`.
+- `data_package_resources(package_version_id, organization_id) → data_package_versions(id, organization_id)`.
+- `data_package_resources(resource_id, organization_id) → resources(id, organization_id)`.
+- `data_package_grants(package_version_id, organization_id) → data_package_versions(id, organization_id)`.
+- `data_package_grants(organization_id, user_id) → organization_members(organization_id, user_id)`.
+- `devices(resource_id, organization_id) → resources(id, organization_id)` khi resource không NULL.
+- Tenant-scoped Activity/Task/A2A relations phải dùng cùng pattern `(id, organization_id)` hoặc equivalent database constraint để ngăn cross-organization reference.
+
+Các bảng được target bởi composite FK phải có UNIQUE key tương ứng, ví dụ `UNIQUE(id, organization_id)`.
+
+
 ---
 
 # 4. DOMAIN 00 — Organization / Tenant
@@ -369,7 +389,7 @@ Cho phép một User sử dụng external account của User khác.
 | revoked_at | TIMESTAMPTZ | YES | NULL | |
 | created_at | TIMESTAMPTZ | NO | now() | |
 
-Business constraints:
+Unique:\n\nUNIQUE(id, organization_id)\n\nBusiness constraints:
 
 - `(organization_id, owner_user_id)` và `(organization_id, grantee_user_id)` phải thuộc `organization_members` của cùng organization.
 - `(user_account_id, owner_user_id)` phải được enforce bằng composite FK tới `user_accounts(id, user_id)`; không chỉ kiểm tra ở application.
