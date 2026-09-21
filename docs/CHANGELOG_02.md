@@ -235,3 +235,10 @@
 - Environment variables được inject sẵn luôn được ưu tiên và không bị `.env` ghi đè.
 - Cập nhật `docs/CONFIGURATION.md` để phân biệt PostgreSQL endpoint khi Agent chạy ngoài Docker (`127.0.0.1:5433`) và hostname trong Docker network.
 - Không thêm dependency mới và không thay đổi schema/migration.
+
+## 2026-09-21 — Quy tắc ngôn ngữ ghi chú Python
+
+- Chốt nguyên tắc: mọi comment, docstring và ghi chú trong file `.py` phải viết bằng **tiếng Việt**.
+- Các tên kỹ thuật bắt buộc như tên biến/hàm, package, class, API, exception, protocol và framework được giữ nguyên.
+- Cập nhật `docs/ARCHITECTURE.md` để khóa nguyên tắc này trong kiến trúc chính thức.
+- Quy tắc áp dụng cho code Python mới và các phần được chỉnh sửa về sau.
