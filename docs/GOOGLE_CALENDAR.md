@@ -64,23 +64,33 @@ Repository cũng kiểm tra Organization membership của account owner trước
 
 Repository không tự resolve credential, không authorize capability và không gọi provider API.
 
-## 6. Provider client
+## 6. Authorization account access
+
+PostgreSQL Authorization dùng cùng semantics với AccountResolver:
+
+- Account owner có thể được Authorization chấp nhận khi account ở trạng thái `active` hoặc `pending_oauth`.
+- Account delegated phải có `account_grants` hợp lệ; grant không được thay thế bằng việc chỉ biết account ID.
+- `pending_oauth` không phải credential readiness. Sau Authorization = ALLOW, CredentialResolver/OAuth vẫn phải quyết định account đã đủ điều kiện gọi provider hay chưa.
+- Không chuyển `pending_oauth` thành `active` giả chỉ để vượt qua Authorization.
+- DENY phải chặn CredentialResolver, ToolResolver và provider API.
+
+## 7. Provider client
 
 `app/providers/google/calendar/client.py` nhận credential context, khởi tạo Google Calendar API v3 service và tạo `GoogleCalendarAdapter`.
 
 Google SDK được import lazy để provider dependency không trở thành dependency bắt buộc của domain/application.
 
-## 7. Runtime dependency
+## 8. Runtime dependency
 
 Runtime Calendar cần `google-api-python-client`. Dependency này sẽ được thêm vào dependency manifest/container image khi bắt đầu runtime Google integration.
 
-## 8. Database
+## 9. Database
 
 Không tạo Migration 052 cho Event CRUD. V2.1 đã có account/credential/resource/authorization/audit contracts.
 
 Calendar không được tự tạo bảng domain riêng chỉ vì có CRUD.
 
-## 9. Local PostgreSQL test fixture
+## 10. Local PostgreSQL test fixture
 
 Fixture:
 
@@ -125,7 +135,7 @@ docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent 
 
 Nếu fixture đã tồn tại, chạy lại vẫn không tạo duplicate tenant/user/account/role mapping.
 
-## 10. Safety
+## 11. Safety
 
 Update/delete phải xác định chính xác event.
 
@@ -135,7 +145,7 @@ Update/delete phải xác định chính xác event.
 
 Không tự chọn event để update/delete khi có nhiều candidate.
 
-## 11. Runtime implementation status
+## 12. Runtime implementation status
 
 ### Đã triển khai
 
@@ -163,7 +173,7 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 
 Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
 
-## 12. Next runtime gate
+## 13. Next runtime gate
 
 Thứ tự triển khai được giữ cố định:
 
@@ -174,7 +184,7 @@ PostgreSQL AccountResolver repository  ← DONE (active + pending_oauth metadata
   ↓
 Phase 2B AccountResolver HTTP runtime  ← DONE
   ↓
-PostgreSQL Authorization repository   ← DONE
+PostgreSQL Authorization repository   ← DONE (active + pending_oauth account access)
   ↓
 Real Google OAuth
   ↓
