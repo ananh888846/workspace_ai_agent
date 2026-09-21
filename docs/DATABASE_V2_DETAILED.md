@@ -293,6 +293,8 @@ Business constraints:
 
 - owner_user_id phải là owner thực tế của user_account_id.
 - grantee_user_id là User được cấp quyền.
+- Với account-backed resource, resources.user_account_id phải trỏ đúng external account cung cấp resource.
+- Resource local không có external account có thể để user_account_id = NULL nếu provider contract cho phép.
 - Account grant không thay thế capability permission.
 - scope chỉ mô tả phạm vi grant.
 
@@ -316,6 +318,7 @@ Ví dụ Google Drive file, Google Calendar, Home Assistant entity hoặc Facebo
 | resource_type | VARCHAR(100) | NO | — | INDEX |
 | provider | VARCHAR(64) | NO | — | INDEX |
 | external_id | VARCHAR(255) | NO | — | INDEX |
+| user_account_id | UUID | YES | NULL | FK, INDEX |
 | owner_user_id | UUID | NO | — | FK, INDEX |
 | name | VARCHAR(500) | YES | NULL | |
 | status | VARCHAR(32) | NO | active | INDEX |
@@ -325,7 +328,7 @@ Ví dụ Google Drive file, Google Calendar, Home Assistant entity hoặc Facebo
 
 Unique:
 
-UNIQUE(provider, resource_type, external_id)
+UNIQUE(provider, user_account_id, resource_type, external_id)
 
 ## 7.2 resource_permissions
 
@@ -747,10 +750,12 @@ Trace security-sensitive operation.
 | request_id | UUID | NO | — | INDEX |
 | user_id | UUID | YES | NULL | FK, INDEX |
 | device_id | UUID | YES | NULL | FK, INDEX |
+| capability | VARCHAR(100) | YES | NULL | INDEX |
 | action | VARCHAR(100) | NO | — | INDEX |
 | resource_type | VARCHAR(100) | YES | NULL | |
 | resource_id | UUID | YES | NULL | INDEX |
 | account_id | UUID | YES | NULL | FK, INDEX |
+| package_version_id | UUID | YES | NULL | FK, INDEX |
 | result | VARCHAR(32) | NO | — | INDEX |
 | ip_address | INET | YES | NULL | |
 | user_agent | TEXT | YES | NULL | |
@@ -874,10 +879,11 @@ Authorization:
 Resource:
 
 - resources(owner_user_id)
+- resources(user_account_id)
 - resources(provider)
 - resources(resource_type)
 - resources(external_id)
-- resources(provider, resource_type, external_id)
+- resources(provider, user_account_id, resource_type, external_id)
 
 Package:
 
@@ -901,6 +907,7 @@ Runtime:
 - audit_logs(user_id)
 - audit_logs(resource_id)
 - audit_logs(account_id)
+- audit_logs(package_version_id)
 - audit_logs(created_at)
 
 Không tạo quá nhiều index trước khi có query thực tế.
@@ -939,32 +946,37 @@ Không cho duplicate:
 
 Mọi credential phải thuộc một user_account.
 
+## Resource account binding
+
+Resource có provider/external account phải tham chiếu user_account tương ứng; resource không gắn external account chỉ được phép khi provider/domain contract định nghĩa rõ.
+
 ---
 
 # 21. Migration order
 
 001 users
-002 user_sessions
+002 devices
+003 user_sessions
 
-003 user_accounts
-004 account_credentials
+004 user_accounts
+005 account_credentials
 
-005 roles
-006 permissions
-007 user_roles
-008 account_grants
+006 roles
+007 permissions
+008 user_roles
+009 role_permissions
+010 account_grants
 
-009 resources
-010 resource_permissions
+011 resources
+012 resource_permissions
 
-011 data_packages
-012 data_package_versions
-013 data_package_resources
-014 data_package_grants
+013 data_packages
+014 data_package_versions
+015 data_package_resources
+016 data_package_grants
 
-015 devices
-016 device_users
-017 device_capabilities
+017 device_users
+018 device_capabilities
 
 018 observations
 019 events
@@ -1248,6 +1260,7 @@ Schema chỉ ready for implementation khi:
 - [ ] User/account model được khóa.
 - [ ] Credential boundary được khóa.
 - [ ] Role/permission model được khóa.
+- [ ] Role-to-permission mapping được khóa.
 - [ ] Account grant model được khóa.
 - [ ] Resource authorization được khóa.
 - [ ] Data Package versioning được khóa.
@@ -1329,11 +1342,19 @@ Unauthorized chunks = 0
 
 Runtime gate phải kiểm tra side effect/provider call thực tế, không chỉ HTTP response.
 
+## Test F — Role permission
+
+User → Role → role_permissions → Capability Permission
+
+Role không có permission tương ứng phải bị DENY.
+
 ---
 
 # 33. Chốt trạng thái
 
 DATABASE_V2_DETAILED.md là schema design blueprint, chưa phải implementation.
+
+Schema V2 đã được review nội bộ theo các dependency và authorization invariants; các điểm bắt buộc gồm role-to-permission mapping, resource-to-account binding và migration FK order.
 
 Trình tự tiếp theo:
 
