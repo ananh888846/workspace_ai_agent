@@ -36,3 +36,16 @@ Trước khi code:
 3. Đối chiếu với yêu cầu thực tế.
 4. Chốt schema/migration plan.
 5. Sau đó mới triển khai Phase 1.
+
+
+## 2026-09-21 07:36:00 +07:00
+
+### Finalize Architecture V2 blueprint
+
+- Hoàn thiện request lifecycle và authorization boundary.
+- Khóa quy tắc credential chỉ được lấy sau Authorization ALLOW.
+- Hoàn thiện database conventions: ID, time, FK, unique, index và metadata.
+- Bổ sung Decision Log 001–017.
+- Bổ sung Runtime Contract và runtime gate.
+- Bổ sung Security V2 cho credential, logging, data isolation và webhook.
+- Chưa tạo application code hoặc database migration.
