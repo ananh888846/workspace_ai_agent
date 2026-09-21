@@ -49,6 +49,8 @@ workspace_ai_agent/
 │   │   ├── conversations/
 │   │   ├── memory/
 │   │   ├── agents/
+│   │   ├── agent_communication/
+│   │   ├── anomalies/
 │   │   ├── automation/
 │   │   └── audit/
 │   ├── domain/
@@ -59,7 +61,11 @@ workspace_ai_agent/
 │   │   ├── resources/
 │   │   ├── packages/
 │   │   ├── devices/
+│   │   ├── observations/
 │   │   ├── events/
+│   │   ├── activity_sessions/
+│   │   ├── activities/
+│   │   ├── tasks/
 │   │   ├── conversations/
 │   │   ├── memory/
 │   │   ├── knowledge/
@@ -113,6 +119,12 @@ workspace_ai_agent/
 │   ├── unit/
 │   ├── integration/
 │   ├── authorization/
+│   ├── organizations/
+│   ├── resources/
+│   ├── activity_sessions/
+│   ├── tasks/
+│   ├── agents/
+│   ├── anomalies/
 │   ├── providers/
 │   └── runtime/
 ├── scripts/
