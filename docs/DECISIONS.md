@@ -233,3 +233,10 @@ DBR-001 → DBR-007 đã được giải quyết bằng migration hậu V2.1 046
 - Không sửa ngược Migration 001 → 045.
 - Database V2.1 Post-Implementation Review Gate được **CLOSED**.
 - Migration 046 → 050 là phần closure của DBR-001 → DBR-007 và không được chạy lại trên database đã áp dụng.
+
+
+## Decision 044 — Google Calendar Event CRUD Boundary
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Google Calendar Event CRUD được triển khai như capability/tool của Google provider, không tạo provider-specific Core table chỉ để lưu event. V1 dùng `calendar.read` cho read và `calendar.write` cho create/update/delete. Mọi mutation phải qua AccountResolver → Authorization → CredentialResolver → ToolResolver → Google Calendar Adapter và có audit/tool-run trace. Delete/update phải có target event rõ ràng; nhiều candidate thì yêu cầu user chọn/xác nhận. Không cần Migration 052 cho Event CRUD với schema V2.1 hiện tại.
