@@ -1,3 +1,20 @@
+## 2026-09-21 — V2.1 documentation synchronization
+
+Đồng bộ các tài liệu còn lệch sau đợt mở rộng Architecture V2.1.
+
+### Updated
+
+- `docs/DATABASE.md` → nâng thành DATABASE V2.1, bổ sung Organization/Tenant, resource hierarchy, device binding, Activity Session, Task/Work Order, Agent-to-Agent và Anomaly/Evidence.
+- `docs/CORE_CONTRACTS_V2.md` → bổ sung OrganizationContext, tenant isolation, Agent-to-Agent permission, Activity/Task contract và Anomaly evidence contract.
+- `docs/SOURCE_TREE_V2.md` → đồng bộ source tree mục tiêu V2.1 với organizations, devices/events, activity_sessions, tasks, agent_communication và anomalies.
+- `docs/RUNTIME.md` → bổ sung runtime acceptance tests cho organization isolation, resource hierarchy, device/resource, activity session, task reconciliation, agent permission và anomaly evidence.
+
+### Status
+
+- Chỉ cập nhật documentation/architecture contract.
+- Chưa tạo migration, database table hoặc application runtime code.
+- V2.1 tiếp tục giữ migration gate: Architecture → Database → ERD → FK/UNIQUE/CHECK → INDEX → Migration Order → Implementation → Runtime Verification.
+
 # CHANGELOG
 
 ## 2026-09-20 — Architecture V2 documentation reset
