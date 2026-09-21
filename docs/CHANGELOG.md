@@ -1,3 +1,11 @@
+## 2026-09-21 10:20:00 +07:00 — Fix acceptance AT-020 fixture
+
+- Lần chạy acceptance 011 → 020 đầu tiên dừng tại **AT-020** do fixture của test dùng `device_a` cùng organization với session, nên điều kiện cross-organization không thể xảy ra.
+- Không phải lỗi production migration 018; đây là lỗi của test fixture.
+- Sửa [database/tests/acceptance_011_020.sql](../database/tests/acceptance_011_020.sql): thêm `device_b` thuộc Org B và dùng device này cho AT-020 để kiểm tra đúng session Org A + user Org A + device Org B → **REJECT**.
+- Commit sửa test: `77b7fc76d46c418bcb5f22bd1cc70298b554a462`.
+- **Status:** Migration 011 → 020 đã chạy `BEGIN → COMMIT`; acceptance AT-011 → AT-022 cần chạy lại sau khi sửa fixture.
+
 ## 2026-09-21 10:10:00 +07:00 — Production SQL Migration 011 → 020
 
 - Thêm [database/migrations/011_create_resources.sql](../database/migrations/011_create_resources.sql).
