@@ -7,7 +7,8 @@ DO $$
 DECLARE
   org_a UUID := uuidv7(); org_b UUID := uuidv7();
   user_a UUID := uuidv7(); user_b UUID := uuidv7();
-  account_a UUID := uuidv7(); source_a UUID := uuidv7();
+  account_a UUID := uuidv7();
+  source_a UUID := uuidv7(); source_b UUID := uuidv7();
   doc_a UUID := uuidv7(); version_b UUID := uuidv7();
   asset_a UUID := uuidv7(); chunk_a UUID := uuidv7();
 BEGIN
@@ -88,10 +89,18 @@ BEGIN
   EXCEPTION WHEN unique_violation THEN NULL;
   END;
 
-  -- AT-051-07: provenance supports derived/supporting vocabulary.
+  -- AT-051-07: provenance supports primary/derived/supporting vocabulary.
+  INSERT INTO knowledge_sources(
+    id,organization_id,user_account_id,provider,resource_type,external_id,status
+  ) VALUES(
+    source_b,org_a,account_a,'google_drive','file','file-at051-002','active'
+  );
+
   INSERT INTO knowledge_document_version_sources(
     organization_id,document_version_id,source_id,relation_type
-  ) VALUES(org_a,version_b,source_a,'supporting');
+  ) VALUES
+    (org_a,version_b,source_a,'primary'),
+    (org_a,version_b,source_b,'supporting');
 
   -- AT-051-08: binary metadata uses logical storage key only.
   INSERT INTO knowledge_assets(
@@ -127,8 +136,15 @@ BEGIN
   EXCEPTION WHEN foreign_key_violation THEN NULL;
   END;
 
-  -- AT-051-11: derived multi-source structure can be represented.
-  -- (The second source uses the same tenant and is created without provider-specific tables.)
+  -- AT-051-11: multiple source provenance works without provider-specific tables.
+  IF (
+    SELECT count(*)
+    FROM knowledge_document_version_sources
+    WHERE document_version_id = version_b
+  ) <> 2 THEN
+    RAISE EXCEPTION 'AT-051-11 FAIL: multi-source provenance missing';
+  END IF;
+
   RAISE NOTICE 'AT-051-01..11 PASS';
 END $$;
 
