@@ -1,6 +1,6 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **Provider adapter V1 + API client boundary + local DB fixture implemented**
+> Trạng thái: **AccountResolver PostgreSQL repository V1 đã triển khai; Authorization/Credential PostgreSQL repositories và OAuth vẫn PENDING**
 >
 > Calendar chưa được đánh dấu runtime E2E PASS cho đến khi PostgreSQL-backed authorization, OAuth và Google Calendar API verification hoàn tất.
 
@@ -49,23 +49,38 @@ Account selection thuộc AccountResolver:
 3. Có nhiều account nhưng không xác định được → `account_selection_required`.
 4. Không để LLM tự chọn account chỉ từ tên/email trong câu.
 
-## 5. Provider client
+## 5. PostgreSQL AccountResolver repository
+
+Đã thêm `app/infrastructure/database/repositories/accounts.py`.
+
+Repository triển khai `AccountRepository.find_candidates()` cho PostgreSQL và chỉ đọc **account metadata** từ `user_accounts`, không đọc `account_credentials`.
+
+Candidate hợp lệ gồm:
+
+- account do chính User sở hữu và đang active trong Organization;
+- hoặc account được User khác delegate qua `account_grants`, với grant active, đúng Organization và còn hiệu lực theo thời gian.
+
+Repository cũng kiểm tra Organization membership của account owner trước khi trả account. Account hint chỉ được match exact theo account ID, external account ID hoặc email; không fuzzy-match.
+
+Repository không tự resolve credential, không authorize capability và không gọi provider API.
+
+## 6. Provider client
 
 `app/providers/google/calendar/client.py` nhận credential context, khởi tạo Google Calendar API v3 service và tạo `GoogleCalendarAdapter`.
 
 Google SDK được import lazy để provider dependency không trở thành dependency bắt buộc của domain/application.
 
-## 6. Runtime dependency
+## 7. Runtime dependency
 
 Runtime Calendar cần `google-api-python-client`. Dependency này sẽ được thêm vào dependency manifest/container image khi bắt đầu runtime Google integration.
 
-## 7. Database
+## 8. Database
 
 Không tạo Migration 052 cho Event CRUD. V2.1 đã có account/credential/resource/authorization/audit contracts.
 
 Calendar không được tự tạo bảng domain riêng chỉ vì có CRUD.
 
-## 8. Local PostgreSQL test fixture
+## 9. Local PostgreSQL test fixture
 
 Fixture:
 
@@ -97,7 +112,7 @@ Google account fixture dùng `local-calendar-oauth-pending` làm external ID c�
 Sau khi `migrations 001-051` đã được áp dụng:
 
 ```powershell
-Get-Content .\scripts\calendar\bootstrap_test_data.sql |
+Get-Content .\\scripts\\calendar\\bootstrap_test_data.sql |
   docker exec -i workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent
 ```
 
@@ -110,7 +125,7 @@ docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent 
 
 Nếu fixture đã tồn tại, chạy lại vẫn không tạo duplicate tenant/user/account/role mapping.
 
-## 9. Safety
+## 10. Safety
 
 Update/delete phải xác định chính xác event.
 
@@ -120,7 +135,7 @@ Update/delete phải xác định chính xác event.
 
 Không tự chọn event để update/delete khi có nhiều candidate.
 
-## 10. Runtime implementation status
+## 11. Runtime implementation status
 
 ### Đã triển khai
 
@@ -129,12 +144,15 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - Application orchestration boundary: `app/application/calendar.py`.
 - Google Calendar tool boundary: `app/tools/calendar.py`.
 - Core authorization runtime boundary: `app/application/core_runtime.py`.
+- PostgreSQL AccountResolver repository: `app/infrastructure/database/repositories/accounts.py`.
+- Unit tests cho AccountResolver repository mapping và exact account hint.
 - Local PostgreSQL Calendar fixture: `scripts/calendar/bootstrap_test_data.sql`.
 - Contract tests xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
 
 ### Chưa triển khai
 
-- PostgreSQL-backed repository implementations cho AccountResolver/AuthorizationService/CredentialResolver.
+- PostgreSQL-backed PermissionRepository / AuthorizationService.
+- PostgreSQL-backed CredentialRepository / CredentialResolver.
 - Core ToolResolver registry implementation.
 - OAuth consent/re-authorization UI.
 - Calendar webhook/push sync.
@@ -142,14 +160,16 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 
 Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
 
-## 11. Next runtime gate
+## 12. Next runtime gate
 
 Thứ tự triển khai được giữ cố định:
 
 ```text
 Local DB fixture
   ↓
-PostgreSQL repository implementations
+PostgreSQL AccountResolver repository  ← DONE
+  ↓
+PostgreSQL Authorization repository   ← NEXT
   ↓
 Real Google OAuth
   ↓
