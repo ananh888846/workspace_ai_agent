@@ -1,4 +1,8 @@
-# Knowledge V2
+# Workspace AI Agent — KNOWLEDGE V1 / V2.1
+
+## Pipeline
+
+Knowledge Systematization Agent is the first Agent capability. V1 starts with Google, then expands to Facebook, TikTok and Instagram.
 
 ## Pipeline
 
@@ -34,7 +38,7 @@ Qdrant giữ vector và dữ liệu phục vụ similarity retrieval.
 - Google Drive
 - Gmail attachments
 - Facebook data
-- Zalo/Telegram khi provider được triển khai
+- Facebook/Meta, TikTok, Instagram when their provider contracts are approved
 - uploaded documents
 - device-generated documents/images
 
