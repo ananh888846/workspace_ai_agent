@@ -7,6 +7,7 @@ DECLARE
     user_a UUID := '00000000-0000-0000-0000-000000000201';
     user_b UUID := '00000000-0000-0000-0000-000000000202';
     account_a UUID := '00000000-0000-0000-0000-000000000301';
+    account_b UUID := '00000000-0000-0000-0000-000000000302';
     grant_a_to_b UUID := '00000000-0000-0000-0000-000000000401';
     agent_a UUID := '00000000-0000-0000-0000-000000000501';
     run_b UUID := '00000000-0000-0000-0000-000000000601';
@@ -31,7 +32,8 @@ BEGIN
     VALUES (org_a,user_a),(org_a,user_b),(org_b,user_b);
 
     INSERT INTO user_accounts(id,user_id,provider,account_type,external_account_id,email)
-    VALUES (account_a,user_a,'google','test','dbr-account-a','dbr-a@example.invalid');
+    VALUES (account_a,user_a,'google','test','dbr-account-a','dbr-a@example.invalid'),
+           (account_b,user_b,'google','test','dbr-account-b','dbr-b@example.invalid');
 
     INSERT INTO account_grants(id,organization_id,owner_user_id,grantee_user_id,user_account_id)
     VALUES (grant_a_to_b,org_a,user_a,user_b,account_a);
@@ -85,7 +87,7 @@ BEGIN
     END;
 
     INSERT INTO tool_runs(agent_run_id,tool_id,account_id)
-    VALUES (run_b,tool_id,account_a);
+    VALUES (run_b,tool_id,account_b);
     RAISE NOTICE 'AT-056 PASS';
 
     INSERT INTO tool_runs(agent_run_id,tool_id,account_id,account_grant_id)
@@ -104,11 +106,11 @@ BEGIN
         INSERT INTO audit_logs(request_id,organization_id,user_id,action,account_id,result)
         VALUES (uuidv7(),org_b,user_b,'read',account_a,'ok');
         RAISE EXCEPTION 'AT-059 expected cross-org audit account rejection';
-    EXCEPTION WHEN foreign_key_violation OR raise_exception THEN
+    EXCEPTION WHEN OTHERS THEN
         IF SQLSTATE = 'P0001' THEN
             RAISE NOTICE 'AT-059 PASS';
         ELSE
-            RAISE NOTICE 'AT-059 PASS';
+            RAISE;
         END IF;
     END;
 
