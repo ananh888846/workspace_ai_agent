@@ -51,6 +51,8 @@ PostgresPermissionRepository
 ALLOW / DENY
       ↓
 chỉ ALLOW mới được CredentialResolver
+      ↓
+credential ready / oauth_required
 ```
 
 ### Capability Permission
@@ -83,7 +85,9 @@ Khi Authorization = ALLOW nhưng account đang `pending_oauth`, bước tiếp t
 
 Khi Authorization = DENY: không gọi CredentialResolver; không đọc account_credentials; không resolve Tool; không gọi provider API.
 
-Phase 2C hiện chỉ trả execution metadata; chưa thực hiện provider call.
+Phase 2C đã mở thêm Credential readiness gate.
+Nếu account chưa có credential hợp lệ, runtime trả `oauth_required` và không gọi provider.
+Encrypted credential không được đưa vào HTTP response.
 
 ## HTTP fields cho Phase 2C
 
