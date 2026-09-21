@@ -1,0 +1,50 @@
+BEGIN;
+DO $$
+DECLARE
+ org_a UUID := uuidv7(); org_b UUID := uuidv7();
+ user_a UUID := uuidv7(); user_b UUID := uuidv7();
+ account_a UUID; resource_a UUID; device_a UUID; session_a UUID;
+ observation_a UUID; event_a UUID; activity_session_a UUID; activity_a UUID;
+ task_a UUID; conversation_a UUID; document_a UUID; agent_a UUID; agent_b UUID;
+ failed BOOLEAN;
+BEGIN
+ INSERT INTO organizations (id,name,organization_type) VALUES (org_a,'AT-011-033 Org A','test'),(org_b,'AT-011-033 Org B','test');
+ INSERT INTO users (id,name,email) VALUES (user_a,'AT User A','at011033-a@example.test'),(user_b,'AT User B','at011033-b@example.test');
+ INSERT INTO organization_members (organization_id,user_id,member_role) VALUES (org_a,user_a,'owner'),(org_b,user_b,'owner');
+ INSERT INTO user_accounts (id,user_id,provider,account_type,external_account_id) VALUES (uuidv7(),user_a,'google','gmail','at011033-google-a') RETURNING id INTO account_a;
+ INSERT INTO resources (organization_id,owner_user_id,name,resource_type,user_account_id) VALUES (org_a,user_a,'AT Resource A','document',account_a) RETURNING id INTO resource_a;
+ INSERT INTO devices (organization_id,resource_id,device_uuid,device_type,name) VALUES (org_a,resource_a,uuidv7(),'esp32','AT Device A') RETURNING id INTO device_a;
+ INSERT INTO user_sessions (organization_id,user_id,session_token_hash,device_id,expires_at) VALUES (org_a,user_a,'at011033-session-hash',device_a,now()+interval '1 hour') RETURNING id INTO session_a;
+ INSERT INTO observations (organization_id,device_id,observation_type,raw_data,confidence) VALUES (org_a,device_a,'sensor','{"temperature":25}'::jsonb,0.99) RETURNING id INTO observation_a;
+ INSERT INTO events (event_uuid,event_type,organization_id,user_id,device_id,source_type,resource_id,occurred_at,confidence,metadata) VALUES (uuidv7(),'observation.created',org_a,user_a,device_a,'observation',resource_a,now(),0.99,'{}'::jsonb) RETURNING id INTO event_a;
+ INSERT INTO activity_sessions (organization_id,user_id,resource_id,session_type,started_at,status,source_event_id) VALUES (org_a,user_a,resource_a,'test',now(),'completed',event_a) RETURNING id INTO activity_session_a;
+ INSERT INTO activities (organization_id,user_id,activity_type,resource_id,started_at,status,source_event_id,activity_session_id) VALUES (org_a,user_a,'test.activity',resource_a,now(),'completed',event_a,activity_session_a) RETURNING id INTO activity_a;
+ INSERT INTO tasks (organization_id,created_by_user_id,assigned_user_id,title,description,task_type,priority,status,resource_id,source_event_id) VALUES (org_a,user_a,user_a,'AT Task','integration test','test','normal','pending',resource_a,event_a) RETURNING id INTO task_a;
+ INSERT INTO conversations (user_id,session_id,title) VALUES (user_a,session_a,'AT Conversation') RETURNING id INTO conversation_a;
+ INSERT INTO messages (conversation_id,role,content) VALUES (conversation_a,'user','integration test');
+ INSERT INTO memories (user_id,memory_type,content,importance,source_conversation_id) VALUES (user_a,'test','integration memory',0.5,conversation_a);
+ INSERT INTO knowledge_documents (resource_id,title,source_type,source_id,version,checksum) VALUES (resource_a,'AT Knowledge','resource',resource_a,1,'at011033-checksum') RETURNING id INTO document_a;
+ INSERT INTO knowledge_chunks (document_id,chunk_index,content_hash,qdrant_point_id,token_count) VALUES (document_a,0,'at011033-content','at011033-point',10);
+ INSERT INTO agents (organization_id,name,agent_type) VALUES (org_a,'AT Agent','assistant') RETURNING id INTO agent_a;
+ INSERT INTO agent_capabilities (agent_id,capability) VALUES (agent_a,'knowledge.read');
+ INSERT INTO agents (organization_id,name,agent_type) VALUES (org_b,'AT Agent','assistant') RETURNING id INTO agent_b;
+ INSERT INTO tools (name,provider,version) VALUES ('at011033-tool','test','1.0.0');
+
+ IF NOT EXISTS (SELECT 1 FROM resources WHERE id=resource_a AND organization_id=org_a) OR NOT EXISTS (SELECT 1 FROM devices WHERE id=device_a AND organization_id=org_a) THEN RAISE EXCEPTION 'AT-035 FAIL'; END IF;
+ RAISE NOTICE 'AT-035 PASS';
+ IF NOT EXISTS (SELECT 1 FROM observations WHERE id=observation_a AND organization_id=org_a) OR NOT EXISTS (SELECT 1 FROM events WHERE id=event_a AND organization_id=org_a) OR NOT EXISTS (SELECT 1 FROM activity_sessions WHERE id=activity_session_a AND organization_id=org_a) OR NOT EXISTS (SELECT 1 FROM activities WHERE id=activity_a AND organization_id=org_a) OR NOT EXISTS (SELECT 1 FROM tasks WHERE id=task_a AND organization_id=org_a) THEN RAISE EXCEPTION 'AT-036 FAIL'; END IF;
+ RAISE NOTICE 'AT-036 PASS';
+ IF NOT EXISTS (SELECT 1 FROM knowledge_documents d JOIN knowledge_chunks c ON c.document_id=d.id JOIN resources r ON r.id=d.resource_id WHERE d.id=document_a AND r.organization_id=org_a AND c.qdrant_point_id='at011033-point') THEN RAISE EXCEPTION 'AT-037 FAIL'; END IF;
+ RAISE NOTICE 'AT-037 PASS';
+ IF NOT EXISTS (SELECT 1 FROM agents WHERE id=agent_a AND organization_id=org_a) OR NOT EXISTS (SELECT 1 FROM agents WHERE id=agent_b AND organization_id=org_b) THEN RAISE EXCEPTION 'AT-038 FAIL'; END IF;
+ failed:=false; BEGIN INSERT INTO agents (organization_id,name,agent_type) VALUES (org_a,'AT Agent','worker'); EXCEPTION WHEN unique_violation THEN failed:=true; END;
+ IF NOT failed THEN RAISE EXCEPTION 'AT-038 FAIL: duplicate tenant agent name accepted'; END IF;
+ RAISE NOTICE 'AT-038 PASS';
+ failed:=false; BEGIN INSERT INTO devices (organization_id,resource_id,device_uuid,device_type) VALUES (org_b,resource_a,uuidv7(),'esp32'); EXCEPTION WHEN foreign_key_violation THEN failed:=true; END;
+ IF NOT failed THEN RAISE EXCEPTION 'AT-039 FAIL: cross-tenant device/resource reference accepted'; END IF;
+ RAISE NOTICE 'AT-039 PASS';
+ failed:=false; BEGIN INSERT INTO tasks (organization_id,created_by_user_id,assigned_user_id,title,task_type,priority,status,source_event_id) VALUES (org_b,user_b,user_b,'Cross tenant task','test','normal','pending',event_a); EXCEPTION WHEN foreign_key_violation THEN failed:=true; END;
+ IF NOT failed THEN RAISE EXCEPTION 'AT-040 FAIL: cross-tenant task/event reference accepted'; END IF;
+ RAISE NOTICE 'AT-040 PASS';
+END $$;
+ROLLBACK;
