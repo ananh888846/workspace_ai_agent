@@ -1243,26 +1243,26 @@ Resource có provider/external account phải tham chiếu user_account tương 
 001 organizations
 002 users
 003 organization_members
-004 devices
-005 user_sessions
 
-006 user_accounts
-007 account_credentials
+004 user_accounts
+005 account_credentials
 
-008 roles
-009 permissions
-010 user_roles
-011 role_permissions
-012 account_grants
+006 roles
+007 permissions
+008 user_roles
+009 role_permissions
+010 account_grants
 
-013 resources
-014 resource_permissions
+011 resources
+012 resource_permissions
 
-015 data_packages
-016 data_package_versions
-017 data_package_resources
-018 data_package_grants
+013 data_packages
+014 data_package_versions
+015 data_package_resources
+016 data_package_grants
 
+017 devices
+018 user_sessions
 019 device_users
 020 device_capabilities
 
@@ -1285,9 +1285,9 @@ Resource có provider/external account phải tham chiếu user_account tương 
 034 tool_capabilities
 035 agent_runs
 036 tool_runs
-037 agent_messages
-038 agent_tasks
-039 agent_permissions
+037 agent_tasks
+038 agent_permissions
+039 agent_messages
 
 040 automations
 041 automation_triggers
