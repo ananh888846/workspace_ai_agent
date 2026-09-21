@@ -69,7 +69,7 @@ Nếu Agent chạy ngoài Docker, thay hostname bằng endpoint phù hợp.
 
 ## 7. Google OAuth
 
-### 6.1 Cấu trúc file local
+### 7.1 Cấu trúc file local
 
 Không commit các file OAuth thật. Local runtime dùng:
 
@@ -96,13 +96,39 @@ Cấu hình:
 - `GOOGLE_CREDENTIALS_FILE=/app/data/google/credentials.json`
 - `GOOGLE_TOKEN_DIR=/app/data/google`
 
-### 6.2 Boundary
+### 7.2 Boundary
 
 Sau này tạo `.env` từ `.env.example` và điền Client ID/Secret/Redirect URI khi OAuth application cần dùng.
 
 OAuth access/refresh token của từng Google account **không** đi vào `.env`; credential thuộc credential layer và được truy cập qua `CredentialResolver`.
 
 Nếu dùng local OAuth bootstrap, `credentials.json` chỉ là input cho OAuth flow; không được coi nó là credential của một user cụ thể.
+
+### 7.3 Scope consistency và PKCE
+
+Mỗi lần bắt đầu OAuth, ứng dụng tạo một bộ scope cụ thể cho capability đang được cấp quyền. Bộ scope này được lưu trong OAuth state đã mã hóa cùng `code_verifier`.
+
+Callback phải dựng lại `Flow` bằng **chính bộ scope được lưu trong state**, không tự dùng một bộ scope Calendar cố định khác. Cách này bảo đảm authorization request và token exchange dùng cùng contract.
+
+Google có thể trả về thêm các scope đã được người dùng cấp trước đó khi sử dụng `include_granted_scopes=true`. Các scope thực tế do Google trả về được lưu cùng credential trong `account_credentials.scopes`; không tự chỉnh token hoặc scope bằng tay.
+
+PKCE vẫn bắt buộc:
+
+```text
+scope + code_verifier
+        ↓
+OAuth state mã hóa + HMAC
+        ↓
+Google authorization
+        ↓
+callback
+        ↓
+khôi phục scope + code_verifier
+        ↓
+fetch_token()
+```
+
+Không dùng lại callback URL cũ hoặc authorization code đã sử dụng.
 
 ## 8. Nạp cấu hình khi chạy trực tiếp
 
@@ -139,7 +165,6 @@ Calendar E2E
 ```
 
 Không bỏ qua Core authorization để gọi provider API trực tiếp.
-
 
 ## 10. OAuth security secrets
 
