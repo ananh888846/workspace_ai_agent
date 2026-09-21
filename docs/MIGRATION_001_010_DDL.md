@@ -1,6 +1,8 @@
 # Migration 001 → 010 — DDL Design V2.1
 
-> Design only. Chưa phải SQL production và chưa chạy database thật.
+> DDL contract cho Migration 001 → 010. SQL production đã được tạo trong `database/migrations/`.
+>
+> Target runtime: PostgreSQL 18+ để dùng native `uuidv7()`.
 >
 > Source of truth: DATABASE_V2_DETAILED.md, MIGRATION_CONTRACT_V2.md, ERD_V2.md.
 
