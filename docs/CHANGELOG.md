@@ -1,3 +1,21 @@
+## 2026-09-21 09:10:00 +07:00
+
+### Migration 031–040 DDL design
+
+- Thêm [`docs/MIGRATION_031_040_DDL.md`](./MIGRATION_031_040_DDL.md).
+- Thiết kế Agent, Agent Capability, Tool, Tool Capability, Agent Run, Tool Run, Agent Task, Agent Permission, Agent Message và Automation.
+- Bổ sung acceptance tests cho runtime trace, lifecycle, authorization boundary và cross-organization A2A.
+- Chốt implementation gate: Agent hiện là global entity nên cần DB-level Agent ↔ Organization binding trước production SQL cho A2A/Agent Task tenant integrity.
+- Chưa tạo SQL migration production, chưa tạo database thật và chưa thay đổi application/runtime code.
+
+## 2026-09-21 09:08:00 +07:00
+
+### CHANGELOG file-link rule locked
+
+- Chốt Decision 028: mọi file được thêm/thay đổi và được ghi trong CHANGELOG phải có Markdown link trực tiếp tới file trong repository.
+- Từ các entry mới, không ghi tên file dạng plain text nếu có thể gắn link nội bộ.
+- Thêm [`docs/DECISIONS.md`](./DECISIONS.md) Decision 028 để làm nguyên tắc lâu dài.
+
 ## 2026-09-21 09:02:00 +07:00
 
 ### Migration 021–030 DDL design
