@@ -80,3 +80,15 @@ Trước khi code:
 - Bổ sung capability/package context vào audit model.
 - Bổ sung Decision 018 về Database Authorization Integrity.
 - Giữ nguyên trạng thái documentation/design only; chưa tạo migration hoặc application code.
+
+
+## 2026-09-21 08:02:00 +07:00
+
+### Define Source Tree and Core Contracts V2
+
+- Thêm `docs/SOURCE_TREE_V2.md` làm blueprint cây source chính thức.
+- Tách interfaces, application, domain, security, agent, tools, providers và infrastructure.
+- Khóa dependency direction để Domain không phụ thuộc provider/database/framework.
+- Thêm `docs/CORE_CONTRACTS_V2.md` cho AgentContext, Authentication, Authorization, AccountResolver, CredentialResolver, ResourceAccessChecker, DataPackageResolver, CapabilityRegistry, ToolResolver, ProviderAdapter và AuditService.
+- Cập nhật `docs/ROADMAP_V2.md` để Core Contracts là gate trước implementation Phase 1.
+- Chưa tạo application code hoặc migration.
