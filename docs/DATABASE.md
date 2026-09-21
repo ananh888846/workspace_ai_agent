@@ -332,7 +332,11 @@ id, request_id, user_id, device_id, action, resource_type, resource_id, account_
 16. Automation
 17. Audit hardening
 
-## 18. Migration gate
+## 18. Current state
+
+Database V2.1 migrations 001 → 045 và hậu review 046 → 050 đã được verify trên PostgreSQL 18.6. DBR-001 → DBR-007 CLOSED; RV-001 → RV-014 PASS.
+
+## 19. Migration gate
 
 Trước migration phải chốt Architecture V2.1 → Database V2.1 → ERD → FK/UNIQUE/CHECK → INDEX → Migration Order → implementation → Runtime Verification.
 
