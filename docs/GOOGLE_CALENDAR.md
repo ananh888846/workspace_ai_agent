@@ -1,6 +1,6 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **AccountResolver PostgreSQL repository V1 + Phase 2B runtime wiring + Phase 2C PostgreSQL Authorization runtime đã triển khai; Credential PostgreSQL repository và OAuth vẫn PENDING**
+> Trạng thái: **AccountResolver + PostgreSQL Authorization + Credential readiness gate đã triển khai; OAuth/ToolResolver/Google API vẫn PENDING**
 >
 > Calendar chưa được đánh dấu runtime E2E PASS cho đến khi PostgreSQL-backed authorization, OAuth và Google Calendar API verification hoàn tất.
 
@@ -171,6 +171,9 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - Calendar webhook/push sync.
 - End-to-end Google Calendar API runtime verification.
 
+Credential readiness hiện chỉ kiểm tra credential active/chưa hết hạn và không trả encrypted_value.
+Nếu chưa có credential hợp lệ, runtime trả oauth_required và chưa gọi provider.
+
 Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
 
 ## 13. Next runtime gate
@@ -186,9 +189,9 @@ Phase 2B AccountResolver HTTP runtime  ← DONE
   ↓
 PostgreSQL Authorization repository   ← DONE (active + pending_oauth account access)
   ↓
-Real Google OAuth
+CredentialResolver / readiness gate
   ↓
-CredentialResolver
+OAuth nếu credential chưa sẵn sàng
   ↓
 ToolResolver registry
   ↓
