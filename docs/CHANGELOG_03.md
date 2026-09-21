@@ -54,3 +54,13 @@
 - Loại bỏ đoạn Calendar runtime bị lặp trong `app/main.py` sau lần nối luồng Agent.
 - Lỗi runtime tương ứng: `IndentationError: unexpected indent` tại dòng khởi tạo `ExternalAccount`.
 - Chưa thay đổi logic OAuth, AccountResolver, Authorization hoặc CredentialResolver.
+
+
+## 2026-09-21 — Calendar provider runtime gate
+
+- Nối CredentialResolver từ readiness sang credential context nội bộ được tạo từ credential OAuth đã mã hóa trong PostgreSQL.
+- Thêm CalendarToolRegistry để phân giải Google Calendar tool trước khi gọi provider.
+- Nối GoogleCalendarTool → GoogleCalendarAdapter → Google Calendar API v3 cho thao tác đọc danh sách event.
+- Với yêu cầu đọc lịch hiện tại, runtime mặc định đọc các event trong ngày theo múi giờ Asia/Ho_Chi_Minh.
+- HTTP response chỉ trả metadata credential; không trả access token, refresh token hoặc encrypted credential.
+- Chưa đánh dấu Calendar E2E PASS; cần chạy lại request thực tế để xác nhận Google Calendar API trả dữ liệu.
