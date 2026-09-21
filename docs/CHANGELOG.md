@@ -1,3 +1,18 @@
+
+## 2026-09-21 08:14:24 +07:00
+
+### Documentation V2.1 synchronization and architecture cleanup
+
+- Sửa `docs/SOURCE_TREE_V2.md`: loại thư mục capability bị lặp và tách rõ Organization Membership khỏi application Authorization Role.
+- Chuẩn hóa `docs/ROADMAP_V2.md`: loại Phase 1/Phase 8/Phase 9 bị lặp, khóa lại thứ tự Phase 0 → Phase 10 và migration gate.
+- Rút `docs/DATABASE.md` về vai trò overview/domain map; xóa định nghĩa `activities` bị trùng.
+- Khóa `docs/DATABASE_V2_DETAILED.md` là schema source of truth.
+- Đồng bộ `docs/ARCHITECTURE.md` và `docs/CORE_CONTRACTS_V2.md` về tenant membership, application roles và execution boundary.
+- Thêm `docs/ERD_V2.md` cho relationship/authorization flow.
+- Thêm `docs/SYNC_INGESTION.md` cho webhook → sync event → worker → provider fetch → knowledge ingestion → Qdrant.
+- Thêm Decision 019–022 về membership/authorization, schema source of truth, authorized vector retrieval và webhook ingestion boundary.
+- Chỉ thay đổi documentation/architecture contract; chưa tạo migration, database thật hoặc application runtime code.
+
 ## 2026-09-21 — V2.1 documentation synchronization
 
 Đồng bộ các tài liệu còn lệch sau đợt mở rộng Architecture V2.1.
