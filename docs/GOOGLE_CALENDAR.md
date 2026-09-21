@@ -172,12 +172,18 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - End-to-end Google Calendar API runtime verification.
 
 Credential readiness hiện chỉ kiểm tra credential active/chưa hết hạn và không trả encrypted_value.
-Google OAuth callback đổi authorization code thành credential, mã hóa credential bằng Fernet trước khi lưu `account_credentials`, cập nhật account từ `pending_oauth` sang `active` và không trả secret trong HTTP response.
+Google OAuth callback đổi authorization code thành credential, mã hóa credential bằng Fernet trước khi lưu `account_credentials`, cập nhật account từ `pending_oauth` sang `active` và không trả secret trong HTTP response. OAuth sử dụng PKCE; `code_verifier` được tạo tại OAuth start, đưa vào state đã mã hóa/ký và được khôi phục tại callback để hoàn tất token exchange.
 Nếu chưa có credential hợp lệ, runtime trả oauth_required và chưa gọi provider.
 
 Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
 
-## 13. Next runtime gate
+## 13. OAuth PKCE callback hardening
+
+OAuth start tạo `code_verifier` riêng cho từng phiên và gửi `code_challenge` S256 tới Google. `code_verifier` không xuất hiện plaintext trong URL vì state được mã hóa trước khi ký HMAC. Callback chỉ chấp nhận state hợp lệ, chưa quá 10 phút, sau đó dùng đúng verifier để đổi authorization code lấy credential.
+
+Lỗi `invalid_grant: Missing code verifier` đã được xử lý trong commit `0d7f64184b3484afd27afcb30965c69a94d50286`.
+
+## 14. Next runtime gate
 
 Thứ tự triển khai được giữ cố định:
 
