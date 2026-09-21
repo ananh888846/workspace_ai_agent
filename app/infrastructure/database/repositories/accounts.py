@@ -6,10 +6,10 @@ from app.application.core_runtime import ExternalAccount
 
 
 class PostgresAccountRepository:
-    """PostgreSQL implementation of the AccountRepository contract.
+    """Triển khai AccountRepository bằng PostgreSQL.
 
-    This repository reads account metadata only. It never reads
-    account_credentials and never resolves secrets.
+    Repository này chỉ đọc metadata tài khoản. Không đọc
+    account_credentials và không tự phân giải secret.
     """
 
     def __init__(self, connection: Any) -> None:
@@ -36,16 +36,26 @@ class PostgresAccountRepository:
             params.extend([account_hint, account_hint, account_hint])
 
         query = f"""
-            SELECT DISTINCT
-                ua.id,
-                ua.user_id,
-                ua.provider,
-                ua.account_type,
-                ua.external_account_id,
-                ua.display_name,
-                ua.email,
-                ua.status
-            FROM user_accounts AS ua
+            SELECT
+                account_rows.id,
+                account_rows.user_id,
+                account_rows.provider,
+                account_rows.account_type,
+                account_rows.external_account_id,
+                account_rows.display_name,
+                account_rows.email,
+                account_rows.status
+            FROM (
+                SELECT DISTINCT
+                    ua.id,
+                    ua.user_id,
+                    ua.provider,
+                    ua.account_type,
+                    ua.external_account_id,
+                    ua.display_name,
+                    ua.email,
+                    ua.status
+                FROM user_accounts AS ua
             JOIN organization_members AS om_owner
               ON om_owner.organization_id = %s
              AND om_owner.user_id = ua.user_id
@@ -66,12 +76,14 @@ class PostgresAccountRepository:
                  OR ag.id IS NOT NULL
               )
               {hint_clause}
-            ORDER BY ua.display_name NULLS LAST, ua.email NULLS LAST, ua.id::text
+            ) AS account_rows
+            ORDER BY account_rows.display_name NULLS LAST,
+                     account_rows.email NULLS LAST,
+                     account_rows.id::text
         """
 
-        # The first organization/user/provider placeholders above are kept
-        # explicit so the SQL remains easy to audit against the authorization
-        # contract. Rebuild parameters in the exact placeholder order.
+        # Giữ thứ tự placeholder rõ ràng để dễ đối chiếu với authorization contract.
+        # Tạo lại danh sách tham số đúng theo thứ tự xuất hiện trong câu SQL.
         if account_hint:
             params = [organization_id, user_id, provider, user_id, account_hint, account_hint, account_hint]
         else:
