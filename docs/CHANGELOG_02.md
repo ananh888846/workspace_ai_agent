@@ -165,3 +165,13 @@
 - Google OAuth chỉ được đánh dấu `configured` khi có Client ID + Client Secret; chưa yêu cầu OAuth để Agent khởi động.
 - OAuth access/refresh token không được lưu trong `.env`; credential của từng external account vẫn thuộc `account_credentials` và CredentialResolver.
 - Chưa thay đổi Docker Compose vì repository hiện chưa có `docker-compose.yml` được quản lý trên GitHub.
+
+
+## 2026-09-21 — Google OAuth local file layout
+- Chốt thư mục local `data/google/` cho Google OAuth bootstrap.
+- `credentials.json` là OAuth client configuration từ Google Cloud, không phải credential của một user cụ thể.
+- `token.json` là local runtime token nếu OAuth flow sử dụng file token.
+- Cả `credentials.json` và `token.json` đều không được commit.
+- Thêm `GOOGLE_CREDENTIALS_FILE` và `GOOGLE_TOKEN_DIR` vào `.env.example` và `app/config/settings.py`.
+- Cập nhật `docs/CONFIGURATION.md` với mapping local → Docker: `data/google/` → `/app/data/google/`.
+- Chưa chạy OAuth và chưa tạo token thật.
