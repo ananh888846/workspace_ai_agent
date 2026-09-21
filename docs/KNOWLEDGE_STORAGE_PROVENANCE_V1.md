@@ -1,6 +1,6 @@
 # Workspace AI Agent — KNOWLEDGE STORAGE & PROVENANCE V1
 
-> Status: Design locked — 2026-09-21
+> Status: Design locked → Migration 051 baseline verified — 2026-09-21
 >
 > Thiết kế lưu trữ binary asset, provenance và source version cho Knowledge Systematization Agent. Đây là contract nền đã được hiện thực hóa bởi Migration 051.
 
