@@ -134,6 +134,8 @@ Context không phải nguồn cấp quyền.
 
 ## 6. Account và Capability
 
+AccountResolver chỉ resolve account metadata. Account có trạng thái `pending_oauth` vẫn có thể được resolve để đi tiếp tới Authorization; trạng thái này không có nghĩa là đã có credential hợp lệ và không được dùng để bypass CredentialResolver.
+
 ~~~text
 Capability
  ├── requires_account=false → Tool
@@ -228,7 +230,7 @@ Operation nhạy cảm phải truy được request_id, user, session/device, ca
 - Khi sửa file Python có comment/docstring tiếng Anh, ưu tiên chuyển phần ghi chú liên quan sang tiếng Việt trong cùng thay đổi.
 - Quy tắc này áp dụng cho code mới và các phần code được chỉnh sửa về sau.
 
-## 13. Quy tắc thay đổi
+## 14. Quy tắc thay đổi
 
 Khi phát sinh yêu cầu mới:
 1. cập nhật Decision Log;
@@ -237,7 +239,7 @@ Khi phát sinh yêu cầu mới:
 4. ghi Changelog;
 5. rồi mới triển khai code.
 
-## 14. Trạng thái
+## 15. Trạng thái
 
 Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, device-resource binding, activity session, task/work order, agent-to-agent communication và anomaly detection.
 
