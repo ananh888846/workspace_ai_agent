@@ -233,3 +233,10 @@ Tenant/security acceptance:
 - [x] No production SQL, database, provider call or runtime code is introduced.
 
 Kết luận: Migration 041 → 045 hoàn tất DDL design contract cho Automation, Anomaly/Evidence và Audit. Sau đây có thể chuyển sang bước review toàn bộ Migration 001 → 045, chốt các implementation gates còn mở, rồi mới viết SQL production.
+
+
+---
+
+# Migration Review Lock — 2026-09-21 09:35 +07:00
+
+Migration 041–042 chốt organization_id bắt buộc và composite FK tới Automation cùng tenant. Migration 044 chốt Evidence bằng bảy nullable source FK và CHECK đúng một source, thay cho polymorphic source_type/source_id. Evidence source phải cùng organization với anomaly. Evidence gate đã đóng.
