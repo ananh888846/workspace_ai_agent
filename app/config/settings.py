@@ -1,7 +1,7 @@
-"""Central application configuration.
+"""Cấu hình trung tâm của ứng dụng.
 
-Reads environment variables only. Secrets must stay outside Git.
-Per-user/provider OAuth credentials remain behind CredentialResolver.
+Đọc biến môi trường. Secret phải nằm ngoài Git.
+Credential OAuth theo từng người dùng/provider vẫn nằm sau CredentialResolver.
 """
 
 from __future__ import annotations
@@ -13,11 +13,11 @@ from pathlib import Path
 
 
 def _load_local_dotenv() -> None:
-    """Load a local .env file without overriding explicit process variables.
+    """Đọc file .env cục bộ nhưng không ghi đè biến môi trường đã có.
 
-    The application is often run directly with Uvicorn during local development.
-    Docker Compose injects environment variables itself, so this loader only fills
-    values that are not already present in the process environment.
+    Khi phát triển local, ứng dụng thường được chạy trực tiếp bằng Uvicorn.
+    Docker Compose tự truyền biến môi trường, vì vậy hàm này chỉ bổ sung
+    các biến chưa tồn tại trong process hiện tại.
     """
     env_file = Path(__file__).resolve().parents[2] / ".env"
     if not env_file.is_file():
