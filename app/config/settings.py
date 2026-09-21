@@ -35,6 +35,8 @@ class Settings:
     file_storage_driver: str = _env("FILE_STORAGE_DRIVER", "local")
     file_storage_path: str = _env("FILE_STORAGE_PATH", "./data/storage")
 
+    google_credentials_file: str = _env("GOOGLE_CREDENTIALS_FILE", "./data/google/credentials.json")
+    google_token_dir: str = _env("GOOGLE_TOKEN_DIR", "./data/google")
     google_client_id: str = _env("GOOGLE_CLIENT_ID")
     google_client_secret: str = _env("GOOGLE_CLIENT_SECRET")
     google_redirect_uri: str = _env(
