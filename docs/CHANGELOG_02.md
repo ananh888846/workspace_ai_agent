@@ -289,3 +289,18 @@
 - Sửa HTTP runtime giữ lại `account_state` thật của account metadata để không biến `pending_oauth` thành `active`.
 - Bổ sung kiểm thử core credential boundary và PostgreSQL credential readiness repository.
 - Không tạo Migration 052.
+
+
+## 2026-09-21 — Google Calendar OAuth V1 implementation
+
+- Thêm [`app/infrastructure/oauth/google.py`](../app/infrastructure/oauth/google.py) cho Google OAuth start/callback.
+- Thêm [`app/infrastructure/oauth/__init__.py`](../app/infrastructure/oauth/__init__.py) làm OAuth package boundary.
+- OAuth state chứa account/user/organization context, được ký HMAC và hết hạn sau 10 phút.
+- Authorization code được đổi thành Google credential; credential được mã hóa bằng Fernet trước khi lưu vào [`account_credentials`](../docs/DATABASE_V2_DETAILED.md).
+- Sau callback hợp lệ, account Google được cập nhật từ `pending_oauth` sang `active`.
+- Thêm dependency Google OAuth/API và cấu hình [`.env.example`](../.env.example), [`app/config/settings.py`](../app/config/settings.py).
+- Nối [`app/main.py`](../app/main.py) với `/auth/google/start` và `/auth/google/callback`.
+- Đồng bộ [`docs/GOOGLE_CALENDAR.md`](./GOOGLE_CALENDAR.md), [`docs/API_PHASE2.md`](./API_PHASE2.md), [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md), [`docs/CONFIGURATION.md`](./CONFIGURATION.md) và [`docs/DECISIONS.md`](./DECISIONS.md).
+- Không tạo Migration 052.
+- Không lưu token plaintext trong repository và không trả secret qua HTTP.
+- ToolResolver và Google Calendar CRUD E2E vẫn là gate tiếp theo.
