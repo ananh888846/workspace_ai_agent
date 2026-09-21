@@ -220,3 +220,16 @@ Resource identity được chia thành account-backed và local/tenant. Account-
 **Date:** 2026-09-21
 
 DBR-001 → DBR-007 được chuyển thành migration hậu V2.1: 046 Event/Activity user tenant integrity; 047 Conversation owner integrity; 048 Tool Run execution account context; 049 Audit Log account authorization context; 050 Resource identity semantics. Không sửa ngược 001 → 045. Acceptance PostgreSQL 18.6 và runtime catalog verification là gate trước CLOSED.
+
+
+## Decision 043 — Database V2.1 Post-Implementation Review CLOSED
+**Status:** Accepted  
+**Date:** 2026-09-21  
+
+DBR-001 → DBR-007 đã được giải quyết bằng migration hậu V2.1 046 → 050 và được verify thực tế trên PostgreSQL 18.6.
+
+- Acceptance **AT-053 → AT-065: 13/13 PASS**; transaction kết thúc bằng `ROLLBACK`.
+- Runtime catalog verification **RV-001 → RV-014: 14/14 PASS**; transaction kết thúc bằng `ROLLBACK`.
+- Không sửa ngược Migration 001 → 045.
+- Database V2.1 Post-Implementation Review Gate được **CLOSED**.
+- Migration 046 → 050 là phần closure của DBR-001 → DBR-007 và không được chạy lại trên database đã áp dụng.
