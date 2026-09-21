@@ -39,6 +39,12 @@ Docker local dùng:
 
 Đây là credential phát triển local, không dùng production.
 
+Khi chạy Agent trực tiếp trên Windows bằng Uvicorn, PostgreSQL Docker được truy cập qua host port:
+
+`postgresql://workspace:workspace_dev_password@127.0.0.1:5433/workspace_ai_agent`
+
+`.env` local phải dùng endpoint phù hợp với runtime đang chạy. Không dùng hostname `workspace-ai-agent-postgres:5432` từ process Windows ngoài Docker network.
+
 ## 5. Docker Compose infrastructure
 
 `docker-compose.yml` hiện quản lý PostgreSQL 18 và Qdrant. Agent application container chưa được thêm vào Compose ở bước này vì source tree hiện chưa có `app/main.py`/Dockerfile runtime hoàn chỉnh.
@@ -98,7 +104,19 @@ OAuth access/refresh token của từng Google account **không** đi vào `.env
 
 Nếu dùng local OAuth bootstrap, `credentials.json` chỉ là input cho OAuth flow; không được coi nó là credential của một user cụ thể.
 
-## 8. Thứ tự triển khai
+## 8. Nạp cấu hình khi chạy trực tiếp
+
+`app/config/settings.py` tự đọc `.env` tại root project khi process chưa có biến môi trường tương ứng.
+
+Thứ tự ưu tiên:
+
+1. Environment variables đã được process/runtime cung cấp.
+2. `.env` local tại root project, chỉ bổ sung biến còn thiếu.
+3. Default an toàn trong `Settings`.
+
+Docker Compose vẫn có thể inject environment variables trực tiếp; các biến đã có trong process sẽ không bị `.env` ghi đè.
+
+## 9. Thứ tự triển khai
 
 ```
 .env.example
