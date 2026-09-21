@@ -1,6 +1,8 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **Provider adapter V1 + API client boundary implemented**
+> Trạng thái: **Provider adapter V1 + API client boundary + local DB fixture implemented**
+>
+> Calendar chưa được đánh dấu runtime E2E PASS cho đến khi PostgreSQL-backed authorization, OAuth và Google Calendar API verification hoàn tất.
 
 ## 1. Capability
 
@@ -61,7 +63,54 @@ Runtime Calendar cần `google-api-python-client`. Dependency này sẽ được
 
 Không tạo Migration 052 cho Event CRUD. V2.1 đã có account/credential/resource/authorization/audit contracts.
 
-## 8. Safety
+Calendar không được tự tạo bảng domain riêng chỉ vì có CRUD.
+
+## 8. Local PostgreSQL test fixture
+
+Fixture:
+
+`scripts/calendar/bootstrap_test_data.sql`
+
+được thiết kế để tạo **metadata/authorization fixture**, không tạo OAuth credential.
+
+Fixture tạo:
+
+- Organization: `Local Calendar Test`
+- User: `calendar-test@local.invalid`
+- Membership: `owner`
+- Permissions: `calendar.read`, `calendar.write`
+- Role: `calendar_test`
+- Google account metadata ở trạng thái `pending_oauth`
+
+Fixture **không** tạo:
+
+- `account_credentials`
+- access token
+- refresh token
+- secret/key
+- fake Calendar resource
+
+Google account fixture dùng `local-calendar-oauth-pending` làm external ID cục bộ. Khi OAuth thật hoàn tất, account metadata phải được cập nhật qua flow ứng dụng; không dán token vào SQL fixture.
+
+### Chạy fixture
+
+Sau khi `migrations 001-051` đã được áp dụng:
+
+```powershell
+Get-Content .\scripts\calendar\bootstrap_test_data.sql |
+  docker exec -i workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent
+```
+
+Có thể kiểm tra lại:
+
+```powershell
+docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent -c "SELECT email,status FROM users WHERE email='calendar-test@local.invalid';"
+docker exec workspace-ai-agent-postgres psql -U workspace -d workspace_ai_agent -c "SELECT provider,account_type,external_account_id,status FROM user_accounts WHERE external_account_id='local-calendar-oauth-pending';"
+```
+
+Nếu fixture đã tồn tại, chạy lại vẫn không tạo duplicate tenant/user/account/role mapping.
+
+## 9. Safety
 
 Update/delete phải xác định chính xác event.
 
@@ -71,7 +120,7 @@ Update/delete phải xác định chính xác event.
 
 Không tự chọn event để update/delete khi có nhiều candidate.
 
-## 9. Runtime implementation status
+## 10. Runtime implementation status
 
 ### Đã triển khai
 
@@ -79,7 +128,9 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - Google Calendar API client boundary: `app/providers/google/calendar/client.py`.
 - Application orchestration boundary: `app/application/calendar.py`.
 - Google Calendar tool boundary: `app/tools/calendar.py`.
-- Contract test xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
+- Core authorization runtime boundary: `app/application/core_runtime.py`.
+- Local PostgreSQL Calendar fixture: `scripts/calendar/bootstrap_test_data.sql`.
+- Contract tests xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
 
 ### Chưa triển khai
 
@@ -90,3 +141,25 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 - End-to-end Google Calendar API runtime verification.
 
 Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
+
+## 11. Next runtime gate
+
+Thứ tự triển khai được giữ cố định:
+
+```text
+Local DB fixture
+  ↓
+PostgreSQL repository implementations
+  ↓
+Real Google OAuth
+  ↓
+CredentialResolver
+  ↓
+ToolResolver registry
+  ↓
+Google Calendar API
+  ↓
+E2E CRUD verification
+```
+
+Không bỏ qua bước authorization/credential để gọi Google API trực tiếp.
