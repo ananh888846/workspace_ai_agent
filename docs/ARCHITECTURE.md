@@ -89,6 +89,8 @@ Authorization
  ↓
 Resolve Credential
  ↓
+OAuth nếu credential chưa sẵn sàng
+ ↓
 Resolve Tool
  ↓
 Execute
@@ -239,7 +241,11 @@ Khi phát sinh yêu cầu mới:
 4. ghi Changelog;
 5. rồi mới triển khai code.
 
-## 15. Trạng thái
+## 15. Google OAuth boundary
+
+Google OAuth thuộc infrastructure/application integration boundary. OAuth state phải gắn với account, user và organization, được ký và có thời hạn. Authorization code chỉ được đổi thành credential trong callback; credential phải được mã hóa trước khi lưu `account_credentials`. Không lưu token plaintext, không đưa secret vào AgentContext/prompt/audit/HTTP response. Sau khi OAuth hoàn tất, runtime quay lại CredentialResolver để kiểm tra readiness trước ToolResolver.
+
+## 16. Trạng thái
 
 Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, device-resource binding, activity session, task/work order, agent-to-agent communication và anomaly detection.
 
