@@ -7,12 +7,15 @@ from app.application.core_runtime import (
     AccountResolver,
     AccountSelectionRequiredError,
     AgentContext,
+    AuthorizationDecision,
     AuthorizationService,
+    CredentialResolver,
     ExternalAccount,
 )
 from app.infrastructure.database.connection import database_connection
 from app.infrastructure.database.repositories.accounts import PostgresAccountRepository
 from app.infrastructure.database.repositories.permissions import PostgresPermissionRepository
+from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
 
 
 def build_chat_response(request: ChatRequest) -> ChatResponse:
@@ -67,6 +70,7 @@ def _account_result(account: ExternalAccount) -> dict:
         "external_account_id": account.external_account_id,
         "display_name": account.display_name,
         "email": account.email,
+        "account_state": account.status,
         "provider_called": False,
     }
 
@@ -97,5 +101,51 @@ def authorize_request(
         "status": "allow" if decision.allowed else "deny",
         "code": decision.code,
         "reason": decision.reason,
+        "provider_called": False,
+    }
+
+
+def resolve_google_credential(
+    *, account: ExternalAccount, authorization: dict
+) -> dict:
+    """Kiểm tra credential sau khi Authorization đã cho phép."""
+
+    if authorization.get("status") != "allow":
+        return {
+            "status": "not_evaluated",
+            "provider_called": False,
+        }
+
+    with database_connection() as connection:
+        resolver = CredentialResolver(
+            PostgresCredentialRepository(connection)
+        )
+        decision = AuthorizationDecision(
+            allowed=True,
+            reason="authorized",
+            code="allow",
+        )
+        result = resolver.resolve(
+            decision=decision,
+            account=account,
+        )
+
+    if result.status == "ready":
+        return {
+            "status": "ready",
+            "credential_type": result.credential_type,
+            "expires_at": (
+                result.expires_at.isoformat()
+                if result.expires_at is not None
+                else None
+            ),
+            "scopes": result.scopes,
+            "provider_called": False,
+        }
+
+    return {
+        "status": "oauth_required",
+        "code": "oauth_required",
+        "reason": "credential_not_ready",
         "provider_called": False,
     }
