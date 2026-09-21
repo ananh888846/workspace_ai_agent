@@ -9,7 +9,7 @@ Event là sự kiện có ý nghĩa hệ thống.
 Activity là hoạt động đã được tổng hợp/ghi nhận theo domain.
 
 ```text
-Observation → Event → Activity
+Observation → Event → Activity Session → Activity
 ```
 
 ## Ví dụ về nhà
@@ -51,10 +51,15 @@ Khi cần đo một phiên sử dụng, dùng Activity Session để giữ sessi
 
 Ví dụ bathroom:
 
-`person_detected → door_open → entered → inside → door_open → exited → Activity Session`
+`person_detected → door_open → entered → inside → door_open → exited → Activity Session → Activity`
 
 Duration-based classification chỉ là inference có detection_method, không phải medical fact.
 
 ## Task đối soát
 
 Task/Work Order biểu diễn công việc được giao; Activity Session/Activity biểu diễn những gì hệ thống ghi nhận. Hai nguồn được so sánh bởi Anomaly Detection Agent để tìm mismatch, không tự kết luận fraud.
+
+
+## V2.1 Tenant / Task invariant
+
+Event, Activity Session và Activity thuộc Organization scope. Task/Work Order là declared/assigned intent; Activity Session/Activity là recorded/observed result. Đối soát hai nguồn để phát hiện mismatch; không tự kết luận fraud.
