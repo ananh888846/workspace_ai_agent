@@ -129,6 +129,10 @@ Tenant/workspace boundary cho Family, Homestay, Smart Home và domain tương la
 | created_at | TIMESTAMPTZ | NO | now() | INDEX |
 | updated_at | TIMESTAMPTZ | NO | now() | |
 
+## 4.3 Organization scope rule
+
+`organization_id` chỉ được thêm vào domain table khi domain đó thực sự thuộc tenant boundary. V2 hiện khóa tenant scope cho `resources` và `devices`; không tự động thêm organization_id vào mọi bảng để tránh biến organization thành permission bypass. Organization membership không thay thế capability/account/resource authorization.
+
 ## 4.2 organization_members
 
 | Column | Type | Null | Default | Key |
@@ -146,7 +150,7 @@ Primary key: (organization_id, user_id). Membership không thay thế capability
 
 # 5. DOMAIN 01 — Identity
 
-## 4.1 users
+## 5.1 users
 
 Mục đích: identity trung tâm.
 
@@ -174,7 +178,7 @@ Relationships:
 - users 1:N resources
 - users 1:N data_packages
 
-## 4.2 user_sessions
+## 5.2 user_sessions
 
 Mục đích: authenticated session.
 
@@ -196,7 +200,7 @@ Không lưu session token plaintext.
 
 ---
 
-# 5. DOMAIN 02 — External Accounts
+ # 6. DOMAIN 02 — External Accounts
 
 ## 5.1 user_accounts
 
@@ -221,6 +225,10 @@ Ví dụ một User có nhiều Google account, Facebook account, Zalo account h
 Base unique:
 
 UNIQUE(provider, external_account_id)
+
+Constraint bổ sung phục vụ ownership integrity:
+
+UNIQUE(id, user_id)
 
 Nếu provider có namespace riêng, constraint được mở rộng trong provider contract.
 
@@ -259,7 +267,7 @@ Security:
 
 ---
 
-# 6. DOMAIN 03 — Authorization
+ # 7. DOMAIN 03 — Authorization
 
 ## 6.1 roles
 
@@ -307,7 +315,24 @@ Primary key:
 
 (user_id, role_id)
 
-## 6.4 account_grants
+
+## 6.4 role_permissions
+
+Mapping chính thức giữa Role và Permission. Role không tự động có mọi permission.
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| role_id | UUID | NO | — | PK, FK |
+| permission_id | UUID | NO | — | PK, FK |
+| created_at | TIMESTAMPTZ | NO | now() | |
+
+Primary key:
+
+(role_id, permission_id)
+
+Role chỉ có capability permission được map rõ ràng tại bảng này.
+
+## 6.5 account_grants
 
 Cho phép một User sử dụng external account của User khác.
 
@@ -326,6 +351,7 @@ Cho phép một User sử dụng external account của User khác.
 
 Business constraints:
 
+- `(user_account_id, owner_user_id)` phải được enforce bằng composite FK tới `user_accounts(id, user_id)`; không chỉ kiểm tra ở application.
 - owner_user_id phải là owner thực tế của user_account_id.
 - grantee_user_id là User được cấp quyền.
 - Với account-backed resource, resources.user_account_id phải trỏ đúng external account cung cấp resource.
@@ -339,7 +365,7 @@ Capability Permission AND Account Grant = Account Access
 
 ---
 
-# 7. DOMAIN 04 — Resources
+ # 8. DOMAIN 04 — Resources
 
 ## 7.1 resources
 
@@ -365,6 +391,8 @@ Unique:
 
 UNIQUE(provider, user_account_id, resource_type, external_id)
 
+Nếu `user_account_id` khác NULL, provider của resource phải khớp provider của user_account.
+
 ## 7.2 resource_permissions
 
 Quyền trên resource cụ thể.
@@ -387,7 +415,7 @@ Resource permission không tự tạo capability permission.
 
 ---
 
-# 8. DOMAIN 05 — Data Package
+ # 9. DOMAIN 05 — Data Package
 
 ## 8.1 data_packages
 
@@ -453,7 +481,7 @@ Package grant không bypass capability, account hoặc resource authorization.
 
 ---
 
-# 9. DOMAIN 06 — Devices
+ # 10. DOMAIN 06 — Devices
 
 ## 9.1 devices
 
@@ -501,7 +529,7 @@ UNIQUE(device_id, capability)
 
 ---
 
-# 10. DOMAIN 07 — Observation / Event / Activity
+ # 11. DOMAIN 07 — Observation / Event / Activity
 
 ## 10.1 observations
 
@@ -554,7 +582,7 @@ AI inference không mặc định là fact.
 
 ---
 
-# 11. DOMAIN 08 — Conversation
+ # 12. DOMAIN 08 — Conversation
 
 ## 11.1 conversations
 
@@ -584,7 +612,7 @@ Message là conversation history, không tự động trở thành memory.
 
 ---
 
-# 12. DOMAIN 09 — Memory
+ # 13. DOMAIN 09 — Memory
 
 ## 12.1 memories
 
@@ -604,7 +632,7 @@ Memory không thay thế Knowledge.
 
 ---
 
-# 13. DOMAIN 10 — Knowledge
+ # 14. DOMAIN 10 — Knowledge
 
 ## 13.1 knowledge_documents
 
@@ -649,7 +677,7 @@ Retrieval phải chạy trong authorization context.
 
 ---
 
-# 14. DOMAIN 11 — Agents / Tools / Runs
+ # 15. DOMAIN 11 — Agents / Tools / Runs
 
 ## 14.1 agents
 
@@ -738,7 +766,7 @@ Không lưu credential trong tool_runs.
 
 ---
 
-# 15. DOMAIN 12 — Automation
+ # 16. DOMAIN 12 — Automation
 
 ## 15.1 automations
 
@@ -773,7 +801,7 @@ Automation action vẫn phải đi qua Authorization/Tool boundary khi thực th
 
 ---
 
-# 16. DOMAIN 13 — Audit
+ # 17. DOMAIN 13 — Audit
 
 ## 16.1 audit_logs
 
@@ -801,7 +829,7 @@ Không ghi access token, refresh token, API key, password, private key hoặc de
 
 ---
 
-# 17. Authorization database model
+ # 18. Authorization database model
 
 Mô hình:
 
@@ -830,7 +858,7 @@ Thiếu hoặc DENY một điều kiện bắt buộc thì protected provider/to
 
 ---
 
-# 18. Relationship map
+ # 19. Relationship map
 
 Identity:
 
@@ -878,7 +906,7 @@ Qdrant
 
 ---
 
-# 19. Index strategy
+ # 20. Index strategy
 
 Identity:
 
@@ -949,11 +977,11 @@ Không tạo quá nhiều index trước khi có query thực tế.
 
 ---
 
-# 20. Integrity constraints
+ # 21. Integrity constraints
 
 ## Account ownership
 
-account_grants.owner_user_id phải khớp owner của user_account_id.
+`account_grants(user_account_id, owner_user_id)` phải có composite FK tới `user_accounts(id, user_id)` để database tự enforce owner đúng account.
 
 ## Resource ownership
 
@@ -987,61 +1015,63 @@ Resource có provider/external account phải tham chiếu user_account tương 
 
 ---
 
-# 21. Migration order
+ # 22. Migration order
 
-001 users
-002 devices
-003 user_sessions
+001 organizations
+002 organization_members
+003 users
+004 devices
+005 user_sessions
 
-004 user_accounts
-005 account_credentials
+006 user_accounts
+007 account_credentials
 
-006 roles
-007 permissions
-008 user_roles
-009 role_permissions
-010 account_grants
+008 roles
+009 permissions
+010 user_roles
+011 role_permissions
+012 account_grants
 
-011 resources
-012 resource_permissions
+013 resources
+014 resource_permissions
 
-013 data_packages
-014 data_package_versions
-015 data_package_resources
-016 data_package_grants
+015 data_packages
+016 data_package_versions
+017 data_package_resources
+018 data_package_grants
 
-017 device_users
-018 device_capabilities
+019 device_users
+020 device_capabilities
 
-018 observations
-019 events
-020 activities
+021 observations
+022 events
+023 activities
 
-021 conversations
-022 messages
-023 memories
+024 conversations
+025 messages
+026 memories
 
-024 knowledge_documents
-025 knowledge_chunks
+027 knowledge_documents
+028 knowledge_chunks
 
-026 agents
-027 agent_capabilities
-028 tools
-029 tool_capabilities
-030 agent_runs
-031 tool_runs
+029 agents
+030 agent_capabilities
+031 tools
+032 tool_capabilities
+033 agent_runs
+034 tool_runs
 
-032 automations
-033 automation_triggers
-034 automation_actions
+035 automations
+036 automation_triggers
+037 automation_actions
 
-035 audit_logs
+038 audit_logs
 
 Đây là logical rollout order. Tên migration thực tế sẽ theo framework được chọn sau khi source architecture được chốt.
 
 ---
 
-# 22. Transaction boundaries
+ # 23. Transaction boundaries
 
 Các operation quan trọng phải transactionally consistent.
 
@@ -1066,7 +1096,7 @@ Provider API call không nên nằm trong DB transaction dài nếu provider kh�
 
 ---
 
-# 23. Credential access boundary
+ # 24. Credential access boundary
 
 Đúng:
 
@@ -1096,7 +1126,7 @@ Authorization
 
 ---
 
-# 24. Knowledge authorization
+ # 25. Knowledge authorization
 
 Đúng:
 
@@ -1122,7 +1152,7 @@ SQL vẫn là source of truth cho ownership/access policy.
 
 ---
 
-# 25. Audit requirements
+ # 26. Audit requirements
 
 Protected operation nên có tối thiểu:
 
@@ -1145,7 +1175,7 @@ Không lưu secret.
 
 ---
 
-# 26. Performance strategy
+ # 27. Performance strategy
 
 Không denormalize toàn bộ schema trước khi có benchmark.
 
@@ -1164,7 +1194,7 @@ Các bảng lớn trong tương lai như messages, observations, events, audit_l
 
 ---
 
-# 27. Backup / restore
+ # 28. Backup / restore
 
 Production database phải có:
 
@@ -1179,7 +1209,7 @@ Backup database không thay thế key management.
 
 ---
 
-# 28. Database security boundary
+ # 29. Database security boundary
 
 Không commit vào Git:
 
@@ -1196,7 +1226,7 @@ Credential storage phải được giới hạn quyền truy cập ở database/
 
 ---
 
-# 29. Core Database vs Domain Extensions
+ # 30. Core Database vs Domain Extensions
 
 Không tạo trước:
 
@@ -1225,7 +1255,7 @@ Runtime verification
 
 ---
 
-# 30. ERD logical summary
+ # 31. ERD logical summary
 
                          users
                            │
@@ -1285,7 +1315,7 @@ data_package_versions
 
 ---
 
-# 31. Database V2 acceptance checklist
+ # 32. Database V2 acceptance checklist
 
 Schema chỉ ready for implementation khi:
 
@@ -1296,6 +1326,7 @@ Schema chỉ ready for implementation khi:
 - [ ] Credential boundary được khóa.
 - [ ] Role/permission model được khóa.
 - [ ] Role-to-permission mapping được khóa.
+- [ ] Organization tenant boundary và scope rules được khóa.
 - [ ] Account grant model được khóa.
 - [ ] Resource authorization được khóa.
 - [ ] Data Package versioning được khóa.
@@ -1314,7 +1345,7 @@ Schema chỉ ready for implementation khi:
 
 ---
 
-# 32. Runtime verification bắt buộc
+ # 33. Runtime verification bắt buộc
 
 Database implementation không hoàn thành chỉ vì migration chạy thành công.
 
@@ -1385,11 +1416,13 @@ Role không có permission tương ứng phải bị DENY.
 
 ---
 
-# 33. Chốt trạng thái
+ # 34. Chốt trạng thái
 
 DATABASE_V2_DETAILED.md là schema design blueprint V2.1, chưa phải implementation.
 
 Schema V2 đã được review nội bộ theo các dependency và authorization invariants; các điểm bắt buộc gồm role-to-permission mapping, resource-to-account binding và migration FK order.
+
+Schema V2.1 chốt thêm: `role_permissions`, composite ownership FK cho `account_grants`, resource/provider-account consistency, organization scope và migration numbering không trùng.
 
 Trình tự tiếp theo:
 
