@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 from app.api.schemas import ChatRequest, ChatResponse
 from app.application.core_runtime import (
@@ -16,6 +18,7 @@ from app.infrastructure.database.connection import database_connection
 from app.infrastructure.database.repositories.accounts import PostgresAccountRepository
 from app.infrastructure.database.repositories.permissions import PostgresPermissionRepository
 from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
+from app.tools.registry import CalendarToolRegistry
 
 
 def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | None]:
@@ -166,4 +169,47 @@ def resolve_google_credential(
         "code": "oauth_required",
         "reason": "credential_not_ready",
         "provider_called": False,
+    }
+
+
+def execute_google_calendar_read(*, account: ExternalAccount, credential_resolution: object) -> dict:
+    """Gọi Calendar read qua ToolResolver sau khi credential đã sẵn sàng."""
+    credential_context = getattr(credential_resolution, "credential_context", None)
+    if credential_context is None:
+        raise RuntimeError("google_credential_context_missing")
+
+    now = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
+    time_min = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    time_max = time_min + timedelta(days=1)
+    tool = CalendarToolRegistry().resolve(
+        capability="calendar.read",
+        provider=account.provider,
+        action="list_events",
+    )
+    events = tool.execute(
+        "list_events",
+        credential_context=credential_context,
+        calendar_id=account.external_account_id,
+        time_min=time_min.isoformat(),
+        time_max=time_max.isoformat(),
+        max_results=50,
+    )
+    return {
+        "status": "ok",
+        "action": "list_events",
+        "calendar_id": account.external_account_id,
+        "events": [
+            {
+                "id": event.id,
+                "summary": event.summary,
+                "description": event.description,
+                "location": event.location,
+                "start": event.start,
+                "end": event.end,
+                "status": event.status,
+                "html_link": event.html_link,
+            }
+            for event in events
+        ],
+        "provider_called": True,
     }
