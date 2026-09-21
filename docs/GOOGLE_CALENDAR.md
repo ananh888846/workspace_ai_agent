@@ -1,313 +1,82 @@
-# Google Calendar V1 — Capability / Tool Contract
+# Google Calendar — Event CRUD V1
 
-> Trạng thái: **Design locked — chuẩn bị implementation runtime**  
-> Provider: Google  
-> Capability: `calendar.read`, `calendar.write`  
-> Scope: Calendar events CRUD; chưa bao gồm Calendar ACL/settings management.
+> Trạng thái: **Provider adapter V1 + API client boundary implemented**
 
-## 1. Mục tiêu
+## 1. Capability
 
-Cho phép Agent thực hiện các thao tác với Google Calendar thông qua cùng execution boundary của Workspace AI Agent:
+- `calendar.read`: list/get event.
+- `calendar.write`: create/update/delete event.
 
-- đọc danh sách/sự kiện;
-- đọc một sự kiện;
-- tạo sự kiện;
-- sửa sự kiện;
-- xóa sự kiện.
+Google Calendar là account-backed capability. Một User có thể có nhiều Google account.
 
-Agent/LLM không gọi Google Calendar API trực tiếp.
+## 2. Credential boundary
 
-## 2. Execution boundary
+Google Calendar client nhận **credential context đã được CredentialResolver cấp sau Authorization = ALLOW**.
+
+Client không tìm account, chọn account, kiểm tra permission, đọc secret store, lưu token hoặc ghi credential vào log/audit.
 
 ```text
-User Request
-  ↓
-Authentication
-  ↓
-OrganizationContext
-  ↓
-AgentContext
-  ↓
-Route / Capability
-  ↓
 AccountResolver
   ↓
-Authorization
-  ├── calendar.read  (đọc)
-  └── calendar.write (tạo/sửa/xóa)
-  ↓
+AuthorizationService
+  ↓ ALLOW
 CredentialResolver
   ↓
-ToolResolver
+Google Calendar Client
   ↓
-Google Calendar Tool
-  ↓
-Google Provider Adapter
+GoogleCalendarAdapter
   ↓
 Google Calendar API
 ```
 
-Nếu Authorization = DENY:
+Nếu Authorization = DENY thì CredentialResolver và Google Calendar API không được gọi.
 
-- không resolve credential;
-- không gọi Calendar Tool;
-- không gọi Google API;
-- audit theo policy.
+## 3. OAuth scopes
 
-## 3. Account
+- Read: `https://www.googleapis.com/auth/calendar.readonly`
+- Write: `https://www.googleapis.com/auth/calendar`
 
-Google Calendar là account-backed capability.
+Nếu Google account trước đây chỉ được cấp Drive scope, khi bật Calendar capability có thể cần re-authorization để cấp thêm Calendar scope. Không sửa token trực tiếp.
 
-Một User có thể có nhiều Google account. Request phải:
+## 4. Multiple accounts
 
-1. dùng account hint nếu người dùng chỉ rõ;
-2. dùng default-account policy nếu đã cấu hình;
-3. nếu có nhiều account và không xác định được account, trả `account_selection_required`.
+Account selection thuộc AccountResolver:
 
-LLM không được tự chọn account chỉ vì tên/email xuất hiện trong dữ liệu không đủ để chứng minh quyền.
+1. Request có account hint → resolve đúng Google account.
+2. Có default account → dùng default theo policy.
+3. Có nhiều account nhưng không xác định được → `account_selection_required`.
+4. Không để LLM tự chọn account chỉ từ tên/email trong câu.
 
-## 4. Resource model
+## 5. Provider client
 
-Calendar event được biểu diễn bằng resource mapping provider-neutral.
+`app/providers/google/calendar/client.py` nhận credential context, khởi tạo Google Calendar API v3 service và tạo `GoogleCalendarAdapter`.
 
-Khuyến nghị:
+Google SDK được import lazy để provider dependency không trở thành dependency bắt buộc của domain/application.
 
-- `resource_type = google_calendar` cho calendar;
-- `resource_type = google_calendar_event` cho event;
-- `provider = google`;
-- `external_id` là Google Calendar/Calendar Event ID;
-- resource account-backed gắn với `user_account_id`.
+## 6. Runtime dependency
 
-Resource hierarchy:
+Runtime Calendar cần `google-api-python-client`. Dependency này sẽ được thêm vào dependency manifest/container image khi bắt đầu runtime Google integration.
 
-```text
-Google Account
-  └── Google Calendar
-       └── Calendar Event
-```
+## 7. Database
 
-Không tạo bảng `google_calendar_events` riêng trong Core Database V2.1 chỉ để chứa provider-specific data.
+Không tạo Migration 052 cho Event CRUD. V2.1 đã có account/credential/resource/authorization/audit contracts.
 
-Provider-specific fields nằm trong provider adapter / metadata theo contract.
+## 8. Safety
 
-## 5. Capability và action
+Update/delete phải xác định chính xác event.
 
-### Read
+- 0 candidate → `resource_not_found`
+- 1 candidate → có thể tiếp tục authorization/tool
+- >1 candidate → yêu cầu user chọn/xác nhận
 
-Capability: `calendar.read`
+Không tự chọn event để update/delete khi có nhiều candidate.
 
-Actions:
+## 9. Chưa làm
 
-- `list_events`
-- `get_event`
-
-### Write
-
-Capability: `calendar.write`
-
-Actions:
-
-- `create_event`
-- `update_event`
-- `delete_event`
-
-`calendar.write` là capability mutation hiện tại. Không tạo thêm permission database chỉ để tách create/update/delete ở V1; action vẫn phải được ghi vào Agent/Tool/Audit trace.
-
-## 6. Input contract
-
-### List
-
-Tối thiểu:
-
-- `calendar_id` (default `primary` nếu policy cho phép);
-- `time_min`;
-- `time_max`;
-- `query` optional;
-- `max_results` optional;
-- `account_hint` optional.
-
-### Get
-
-- `calendar_id`;
-- `event_id`;
-- `account_hint` optional.
-
-### Create
-
-- `calendar_id`;
-- `summary`;
-- `start`;
-- `end`;
-- optional: description, location, attendees, reminders, timezone, recurrence;
-- `account_hint` optional.
-
-### Update
-
-Bắt buộc:
-
-- `calendar_id`;
-- `event_id`.
-
-Các field thay đổi được truyền theo update/patch contract.
-
-Agent phải xác định rõ event mục tiêu trước khi update. Không update chỉ dựa trên tên sự kiện nếu có nhiều candidate.
-
-### Delete
-
-Bắt buộc:
-
-- `calendar_id`;
-- `event_id`.
-
-Nếu request ngôn ngữ tự nhiên chỉ mô tả tên/thời gian mà có nhiều event phù hợp, phải yêu cầu xác nhận/chọn event trước khi delete.
-
-## 7. Safety cho mutation
-
-Delete là destructive operation.
-
-Flow:
-
-```text
-User request
-  ↓
-Resolve candidate events
-  ↓
-Nếu duy nhất một event rõ ràng → tiếp tục
-Nếu nhiều event → yêu cầu chọn/xác nhận
-  ↓
-Authorization calendar.write
-  ↓
-Credential
-  ↓
-Delete
-  ↓
-Audit
-```
-
-Không suy diễn event mục tiêu từ fuzzy match khi có nhiều candidate.
-
-Update cũng phải tránh sửa nhầm event. Nếu có nhiều candidate, không tự chọn.
-
-## 8. Provider mapping
-
-Google Calendar adapter chịu trách nhiệm:
-
-- map account → Google credential context;
-- map resource → Calendar ID/Event ID;
-- map provider request/response → provider-neutral DTO;
-- xử lý Google API errors, retry/rate-limit policy;
-- không tự authorize;
-- không tự lấy credential.
-
-Core/Application không import Google SDK trực tiếp.
-
-## 9. Idempotency / retry
-
-Create event có nguy cơ tạo duplicate khi retry.
-
-V1 phải hỗ trợ execution idempotency ở application/tool-run boundary trước khi triển khai retry tự động.
-
-Delete:
-
-- event không tồn tại có thể được chuẩn hóa thành `resource_not_found` hoặc provider-specific not-found mapping theo error contract;
-- không retry vô hạn.
-
-Update:
-
-- ưu tiên patch/update có target event rõ ràng;
-- retry chỉ khi provider policy cho phép.
-
-## 10. Audit
-
-Mọi mutation phải trace được tối thiểu:
-
-```text
-request_id
-organization_id
-user_id
-account_id
-resource_id
-calendar_id
-event_id
-capability
-action
-result
-timestamp
-```
-
-Không ghi OAuth token, refresh token hoặc credential vào audit.
-
-## 11. Runtime acceptance
-
-### Read
-
-- authorized owner → Google API được gọi;
-- delegated account có grant → ALLOW;
-- unauthorized account/resource → DENY;
-- DENY → credential không được resolve.
-
-### Create
-
-- valid input + calendar.write → tạo đúng calendar;
-- missing permission → DENY;
-- account mismatch → DENY;
-- retry không tạo duplicate theo idempotency contract.
-
-### Update
-
-- đúng event + calendar.write → cập nhật đúng event;
-- nhiều candidate → yêu cầu chọn/xác nhận;
-- unauthorized event → DENY;
-- provider failure không ghi audit thành success.
-
-### Delete
-
-- đúng event + calendar.write → xóa đúng event;
-- nhiều candidate → không tự xóa;
-- unauthorized event → DENY;
-- DENY không gọi Google API.
-
-### Multi-account
-
-- User có Google Account A/B;
-- request chỉ rõ A → dùng A;
-- request không rõ và default tồn tại → dùng default;
-- request không rõ và nhiều account không có default → `account_selection_required`.
-
-## 12. V1 boundary
-
-V1 tập trung **Calendar Event CRUD**.
-
-Chưa triển khai trong capability này:
-
-- tạo/xóa calendar;
-- Calendar ACL/sharing management;
-- Calendar settings;
-- conference/Meet lifecycle riêng;
-- push notification/webhook;
-- recurring-event exception management nâng cao;
-- batch mutation.
-
-Các phần trên sẽ được mở bằng Decision/contract riêng khi cần.
-
-## 13. Database decision
-
-**Không cần Migration 052 chỉ để hỗ trợ Event CRUD.**
-
-Schema V2.1 hiện có `user_accounts`, `account_credentials`, `account_grants`, `resources`, `resource_permissions`, audit/tool-run context và composite tenant constraints đủ làm boundary cho Google Calendar.
-
-Calendar-specific state không được tạo thành bảng Core riêng nếu chưa có yêu cầu domain cần persistence ngoài resource mapping.
-
-## 14. Implementation order
-
-1. Google Calendar provider client/adapter.
-2. Calendar resource mapper.
-3. Calendar tool definitions.
-4. `calendar.read` tools.
-5. `calendar.write` create/update/delete.
-6. Authorization integration.
-7. Audit/tool-run trace.
-8. Unit + authorization tests.
-9. Runtime Google test với account thật.
-10. Chốt gate trước khi mở Calendar webhook/sync.
-
+- AccountResolver runtime implementation.
+- CredentialResolver runtime implementation.
+- Calendar tool registry.
+- `calendar.read` application use-case.
+- `calendar.write` application use-case.
+- OAuth consent/re-authorization UI.
+- Calendar webhook/push sync.
