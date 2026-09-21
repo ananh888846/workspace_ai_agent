@@ -64,3 +64,11 @@
 - Với yêu cầu đọc lịch hiện tại, runtime mặc định đọc các event trong ngày theo múi giờ Asia/Ho_Chi_Minh.
 - HTTP response chỉ trả metadata credential; không trả access token, refresh token hoặc encrypted credential.
 - Chưa đánh dấu Calendar E2E PASS; cần chạy lại request thực tế để xác nhận Google Calendar API trả dữ liệu.
+
+
+## 2026-09-21 — Chuẩn hóa timezone của Google OAuth credential
+
+- Chuẩn hóa `expires_at` từ PostgreSQL sang datetime có timezone UTC trước khi tạo Google `Credentials`.
+- Sửa lỗi runtime `can't compare offset-naive and offset-aware datetimes` khi Google Auth kiểm tra thời hạn credential.
+- Không thay đổi token, scope hoặc thiết kế mã hóa credential.
+- Chưa đánh dấu Calendar E2E PASS; cần chạy lại request đọc lịch sau khi pull code.
