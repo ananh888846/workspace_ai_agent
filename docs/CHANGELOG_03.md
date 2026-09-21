@@ -90,3 +90,11 @@
 - Thời gian nhận từ người dùng phải được chuẩn hóa về UTC trước khi ghi database.
 - Provider có thể dùng timezone riêng theo API contract nhưng không làm thay đổi chuẩn UTC của database.
 - Sửa `POST /api/v1/agent/chat` trả JSON với khai báo `application/json; charset=utf-8` để client Windows/PowerShell đọc đúng tiếng Việt.
+
+
+## 2026-09-21 — Tạo utility thời gian dùng chung
+
+- Thêm `app/core/datetime.py` làm biên chuẩn hóa ngày giờ dùng chung cho toàn hệ thống.
+- Cung cấp `utc_now()`, `to_utc()` và `to_vietnam_time()`.
+- `to_utc()` và `to_vietnam_time()` từ chối datetime không có timezone để tránh lặp lại lỗi naive/aware.
+- Calendar và các domain mới về sau phải dùng utility này thay vì tự xử lý timezone riêng.
