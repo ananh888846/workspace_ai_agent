@@ -1,10 +1,19 @@
-# Workspace AI Agent — DATABASE V2
+# Workspace AI Agent — DATABASE V2.1
 
 > Blueprint database chính thức. Chưa tạo migration hoặc bảng thật.
 
 ## 1. Principles
 
+- `organizations` là tenant/business boundary; user có thể thuộc nhiều organization.
+- Resource thuộc organization và hỗ trợ parent/child hierarchy.
+- Device thuộc organization và có thể bind vào resource.
+- Activity Session biểu diễn một khoảng hoạt động có start/end.
+- Task/Work Order dùng để đối soát Activity/Activity Session với công việc được giao.
+- Agent-to-Agent communication phải có permission và trace; message không tự cấp quyền.
+- Anomaly là kết quả dựa trên evidence, không phải kết luận gian lận.
+
 - users là identity trung tâm.
+- Organization isolation là tenant boundary cho mọi dữ liệu domain có scope organization.
 - user_accounts là external account chuẩn.
 - Credential tách khỏi account metadata.
 - Ownership tách khỏi access.
@@ -50,6 +59,31 @@ status
 created_at
 updated_at
 ~~~
+
+### organizations
+~~~text
+id
+name
+organization_type
+status
+created_at
+updated_at
+~~~
+
+### organization_members
+~~~text
+id
+organization_id
+user_id
+role_id
+status
+starts_at
+expires_at
+created_at
+updated_at
+~~~
+
+User có thể thuộc nhiều organization. Membership không tự động cấp quyền lên mọi account/resource.
 
 ### user_sessions
 ~~~text
@@ -126,6 +160,8 @@ scope xác định phạm vi grant; không mặc định cấp toàn bộ quyề
 ### resources
 ~~~text
 id
+organization_id
+parent_resource_id
 resource_type
 provider
 external_id
@@ -136,6 +172,8 @@ metadata
 created_at
 updated_at
 ~~~
+
+`parent_resource_id` phải cùng organization khi được sử dụng.
 
 ### resource_permissions
 id, resource_id, user_id, action, effect, created_at, expires_at
@@ -157,7 +195,9 @@ id, package_version_id, user_id, permission, starts_at, expires_at, created_at, 
 ## 7. Devices
 
 ### devices
-id, device_uuid, device_type, name, status, firmware_version, created_at, updated_at, last_seen_at
+id, device_uuid, organization_id, resource_id, device_type, name, status, firmware_version, created_at, updated_at, last_seen_at
+
+`resource_id` nullable khi device chưa bind resource cụ thể.
 
 ### device_users
 device_id, user_id, relationship, status
@@ -165,22 +205,35 @@ device_id, user_id, relationship, status
 ### device_capabilities
 id, device_id, capability, enabled, config
 
-## 8. Observation / Event / Activity
+## 8. Observation / Event / Activity Session / Activity
 
 ### observations
 id, device_id, observation_type, raw_data, confidence, created_at
 
 ### events
-id, event_uuid, event_type, user_id, device_id, source_type, source_id, occurred_at, confidence, status, metadata, created_at
+id, event_uuid, event_type, organization_id, user_id, device_id, resource_id, source_type, source_id, occurred_at, confidence, status, metadata, created_at
+
+### activity_sessions
+id, organization_id, user_id, resource_id, session_type, started_at, ended_at, duration_seconds, status, confidence, source_event_id, metadata, created_at, updated_at
+
+### activities
+id, organization_id, user_id, activity_type, resource_id, started_at, ended_at, status, confidence, source_event_id, activity_session_id, metadata, created_at
 
 ### activities
 id, user_id, activity_type, started_at, ended_at, status, confidence, source_event_id, metadata, created_at
 
 ~~~text
-Observation → Event → Activity
+Observation → Event → Activity Session → Activity
 ~~~
 
-## 9. Conversation / Memory
+## 10. Tasks / Work Orders
+
+### tasks
+id, organization_id, assigned_user_id, resource_id, task_type, status, scheduled_at, started_at, completed_at, metadata, created_at, updated_at
+
+Task/Work Order không thay thế raw observation hoặc event.
+
+## 11. Conversation / Memory
 
 ### conversations
 id, user_id, session_id, title, status, created_at, updated_at
@@ -191,7 +244,7 @@ id, conversation_id, role, content, model, tokens, created_at
 ### memories
 id, user_id, memory_type, content, importance, source_conversation_id, status, created_at, updated_at
 
-## 10. Knowledge
+## 12. Knowledge
 
 ### knowledge_documents
 id, resource_id, title, source_type, source_id, version, checksum, status, created_at, updated_at
@@ -201,7 +254,7 @@ id, document_id, chunk_index, content_hash, qdrant_point_id, token_count, create
 
 Qdrant giữ vector; SQL giữ metadata/access/mapping.
 
-## 11. Agents / Tools / Runs
+## 13. Agents / Tools / Runs / Agent-to-Agent
 
 ### agents
 id, name, agent_type, description, status, config, created_at, updated_at
@@ -221,7 +274,28 @@ id, request_id, user_id, agent_id, conversation_id, started_at, finished_at, sta
 ### tool_runs
 id, agent_run_id, tool_id, account_id, started_at, finished_at, status, error
 
-## 12. Automation
+### agent_messages
+id, organization_id, sender_agent_id, receiver_agent_id, agent_task_id, message_type, payload, status, created_at, processed_at
+
+### agent_tasks
+id, organization_id, parent_agent_task_id, request_id, created_by_agent_id, assigned_agent_id, capability, action, target_resource_id, status, started_at, finished_at, result_metadata, created_at, updated_at
+
+### agent_permissions
+id, organization_id, agent_id, grantee_agent_id, capability, action, resource_scope, effect, starts_at, expires_at, created_at
+
+Agent message/task không tự cấp quyền; action vẫn qua authorization/capability/tool boundary.
+
+## 14. Anomaly Detection
+
+### anomalies
+id, organization_id, resource_id, user_id, anomaly_type, severity, status, detected_at, confidence, detection_method, summary, metadata, created_at, updated_at
+
+### anomaly_evidence
+id, anomaly_id, evidence_type, source_type, source_id, observed_at, weight, metadata, created_at
+
+Anomaly phải có evidence truy ngược được về event/activity/task/device/resource khi có thể.
+
+## 15. Automation
 
 ### automations
 id, owner_user_id, name, status, created_at, updated_at
@@ -232,25 +306,33 @@ id, automation_id, event_type, conditions
 ### automation_actions
 id, automation_id, action_type, config
 
-## 13. Audit
+## 16. Audit
 
 ### audit_logs
 id, request_id, user_id, device_id, action, resource_type, resource_id, account_id, result, ip_address, user_agent, created_at, metadata
 
-## 14. Rollout order
+## 17. Rollout order
 
-1. Identity
+1. Identity + Organization
 2. External accounts
 3. Authorization
-4. Resources
+4. Resources + hierarchy
 5. Data Packages
-6. Devices
-7. Observation/Event/Activity
-8. Conversations/Messages
-9. Memory
-10. Knowledge metadata + Qdrant mapping
-11. Agents/Tools/Runs
-12. Automation
-13. Audit hardening
+6. Devices + organization/resource binding
+7. Observation/Event
+8. Activity Sessions + Activities
+9. Tasks / Work Orders
+10. Conversations/Messages
+11. Memory
+12. Knowledge metadata + Qdrant mapping
+13. Agents/Tools/Runs
+14. Agent-to-Agent communication
+15. Anomaly + Evidence
+16. Automation
+17. Audit hardening
+
+## 18. Migration gate
+
+Trước migration phải chốt Architecture V2.1 → Database V2.1 → ERD → FK/UNIQUE/CHECK → INDEX → Migration Order → implementation → Runtime Verification.
 
 Domain-specific tables như medication, prescription, social posts và advanced home automation chỉ thêm khi capability được duyệt.
