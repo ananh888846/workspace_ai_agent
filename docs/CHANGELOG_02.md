@@ -304,3 +304,12 @@
 - Không tạo Migration 052.
 - Không lưu token plaintext trong repository và không trả secret qua HTTP.
 - ToolResolver và Google Calendar CRUD E2E vẫn là gate tiếp theo.
+
+
+## 2026-09-21 — Google OAuth authorization hardening
+
+- Google OAuth start không còn chỉ kiểm tra header; endpoint phải resolve account qua [`app/api/chat.py`](../app/api/chat.py) và pass Authorization trước khi tạo consent URL.
+- OAuth start nhận `capability=calendar.read|calendar.write` và chỉ yêu cầu scope tương ứng.
+- Chuẩn hóa newline trong [`app/main.py`](../app/main.py), [`.env.example`](../.env.example) và [`requirements.txt`](../requirements.txt) sau khi thêm OAuth integration.
+- Bổ sung secret cấu hình [`GOOGLE_OAUTH_STATE_SECRET`](../.env.example) và [`GOOGLE_CREDENTIAL_ENCRYPTION_KEY`](../.env.example).
+- Không tạo Migration 052.
