@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from app.application.core_runtime import CredentialResolution
+
 from app.application.core_runtime import (
     AccountResolver,
     AccountSelectionRequiredError,
@@ -45,10 +47,7 @@ class FakeCredentials:
 
     def resolve_authorized_credential(self, **kwargs):
         self.calls += 1
-        return __import__(
-            "app.application.core_runtime",
-            fromlist=["CredentialResolution"],
-        ).CredentialResolution(
+        return CredentialResolution(
             status="ready",
             credential_type="test",
         )
