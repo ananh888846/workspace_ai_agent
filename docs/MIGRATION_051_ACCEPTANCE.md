@@ -77,4 +77,14 @@ WHERE conrelid IN (
 ORDER BY conname;
 ```
 
-**Important:** nếu chưa có PostgreSQL runtime kết nối tới repository, trạng thái chỉ là **SQL prepared / verification pending**, không được ghi là PASS.
+**Runtime result (2026-09-21): PASS.** Database sạch đã chạy migrations 001–050, sau đó Migration 051 và acceptance_051.sql. Acceptance trả về AT-051-01..11 PASS và ROLLBACK. Migration 051 acceptance gate đã đóng.
+
+
+## Runtime verification result — 2026-09-21
+
+- PostgreSQL database được reset về trạng thái sạch trước khi chạy lại migrations.
+- Migrations 001–050: **PASS**, tạo 45 bảng baseline.
+- Migration 051: **PASS**.
+- Acceptance AT-051-01..11: **PASS**.
+- Transaction test kết thúc bằng `ROLLBACK`, không giữ fixture.
+- Migration 051 acceptance gate: **CLOSED**.
