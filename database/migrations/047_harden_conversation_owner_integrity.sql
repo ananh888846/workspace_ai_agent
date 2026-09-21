@@ -1,5 +1,18 @@
 BEGIN;
 
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM agent_runs ar
+        JOIN conversations c ON c.id = ar.conversation_id
+        WHERE ar.conversation_id IS NOT NULL
+          AND ar.user_id <> c.user_id
+    ) THEN
+        RAISE EXCEPTION 'migration 047 blocked: agent_runs contains cross-user conversation references';
+    END IF;
+END $$;
+
 ALTER TABLE conversations
     ADD CONSTRAINT uq_conversations_id_user
     UNIQUE (id, user_id);
