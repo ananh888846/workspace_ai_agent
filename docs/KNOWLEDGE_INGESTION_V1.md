@@ -2,7 +2,7 @@
 
 > Status: Design locked — 2026-09-21
 
-Đây là contract cho pipeline đưa dữ liệu bên ngoài vào Knowledge Systematization Agent. V1 triển khai Google trước; Facebook/Meta, TikTok và Instagram dùng cùng contract khi provider capability được mở.
+Đây là contract cho pipeline đưa dữ liệu bên ngoài vào Knowledge Systematization Agent. V1 triển khai Google Drive trước; Gmail, Facebook/Meta, Instagram, TikTok, Zalo, file upload và public URL dùng cùng contract khi provider capability/authorization được mở.
 
 ## 1. Mục tiêu
 Knowledge Ingestion không phải Agent Core. Nó là pipeline nền để biến dữ liệu nguồn thành knowledge có version, provenance, asset storage, authorization context và vector index.
