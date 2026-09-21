@@ -358,6 +358,7 @@ Cho phép một User sử dụng external account của User khác.
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
 | owner_user_id | UUID | NO | — | FK, INDEX |
 | grantee_user_id | UUID | NO | — | FK, INDEX |
 | user_account_id | UUID | NO | — | FK, INDEX |
@@ -397,7 +398,9 @@ Ví dụ Google Drive file, Google Calendar, Home Assistant entity hoặc Facebo
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| organization_id | UUID | NO | — | FK, INDEX |\n| parent_resource_id | UUID | YES | NULL | FK, INDEX |\n| resource_type | VARCHAR(100) | NO | — | INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |
+| parent_resource_id | UUID | YES | NULL | FK, INDEX |
+| resource_type | VARCHAR(100) | NO | — | INDEX |
 | provider | VARCHAR(64) | NO | — | INDEX |
 | external_id | VARCHAR(255) | NO | — | INDEX |
 | user_account_id | UUID | YES | NULL | FK, INDEX |
@@ -410,7 +413,8 @@ Ví dụ Google Drive file, Google Calendar, Home Assistant entity hoặc Facebo
 
 Unique:
 
-UNIQUE(provider, user_account_id, resource_type, external_id)\nUNIQUE(id, organization_id)
+UNIQUE(provider, user_account_id, resource_type, external_id)
+UNIQUE(id, organization_id)
 
 Nếu `user_account_id` khác NULL, provider của resource phải khớp provider của user_account.
 
@@ -443,6 +447,7 @@ Resource permission không tự tạo capability permission.
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
 | owner_user_id | UUID | NO | — | FK, INDEX |
 | name | VARCHAR(255) | NO | — | |
 | description | TEXT | YES | NULL | |
@@ -458,7 +463,8 @@ Package phải versioned. Package và mọi package child đều thuộc cùng o
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| organization_id | UUID | NO | — | FK, INDEX |\n| data_package_id | UUID | NO | — | FK, INDEX |
+| organization_id | UUID | NO | — | FK, INDEX |
+| data_package_id | UUID | NO | — | FK, INDEX |
 | version | INTEGER | NO | — | |
 | status | VARCHAR(32) | NO | draft | INDEX |
 | created_by | UUID | NO | — | FK |
@@ -467,12 +473,14 @@ Package phải versioned. Package và mọi package child đều thuộc cùng o
 Unique:
 
 UNIQUE(data_package_id, version)
+UNIQUE(id, organization_id)
 
 ## 8.3 data_package_resources
 
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
 | package_version_id | UUID | NO | — | FK, INDEX |
 | resource_id | UUID | NO | — | FK, INDEX |
 | access_mode | VARCHAR(32) | NO | read | |
@@ -480,12 +488,14 @@ UNIQUE(data_package_id, version)
 Unique:
 
 UNIQUE(package_version_id, resource_id)
+UNIQUE(id, organization_id)
 
 ## 8.4 data_package_grants
 
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
+| organization_id | UUID | NO | — | FK, INDEX |
 | package_version_id | UUID | NO | — | FK, INDEX |
 | user_id | UUID | NO | — | FK, INDEX |
 | permission | VARCHAR(100) | NO | — | |
@@ -497,8 +507,16 @@ UNIQUE(package_version_id, resource_id)
 Unique:
 
 UNIQUE(package_version_id, user_id, permission)
+UNIQUE(id, organization_id)
 
-Package grant không bypass capability, account hoặc resource authorization.\n\nTenant integrity:\n\n- `data_package_versions.organization_id` = package organization.\n- `data_package_resources.organization_id` = version/resource organization.\n- `data_package_grants.organization_id` = version organization và user phải là member của organization.\n- Package không được chứa resource ngoài organization.
+Package grant không bypass capability, account hoặc resource authorization.
+
+Tenant integrity:
+
+- `data_package_versions.organization_id` = package organization.
+- `data_package_resources.organization_id` = version/resource organization.
+- `data_package_grants.organization_id` = version organization và user phải là member của organization.
+- Package không được chứa resource ngoài organization.
 
 ---
 
@@ -509,7 +527,9 @@ Package grant không bypass capability, account hoặc resource authorization.\n
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| organization_id | UUID | NO | — | FK, INDEX |\n| resource_id | UUID | YES | NULL | FK, INDEX |\n| device_uuid | UUID | NO | — | UNIQUE |
+| organization_id | UUID | NO | — | FK, INDEX |
+| resource_id | UUID | YES | NULL | FK, INDEX |
+| device_uuid | UUID | NO | — | UNIQUE |
 | device_type | VARCHAR(64) | NO | — | INDEX |
 | name | VARCHAR(255) | YES | NULL | |
 | status | VARCHAR(32) | NO | active | INDEX |
@@ -518,7 +538,12 @@ Package grant không bypass capability, account hoặc resource authorization.\n
 | updated_at | TIMESTAMPTZ | NO | now() | |
 | last_seen_at | TIMESTAMPTZ | YES | NULL | INDEX |
 
-Tenant integrity:\n\n- `devices.organization_id` is NOT NULL.\n- Nếu `resource_id` khác NULL, resource phải cùng organization.\n\nDevice credential nếu cần phải được thiết kế như security domain riêng.
+Tenant integrity:
+
+- `devices.organization_id` is NOT NULL.
+- Nếu `resource_id` khác NULL, resource phải cùng organization.
+
+Device credential nếu cần phải được thiết kế như security domain riêng.
 
 ## 9.2 device_users
 
