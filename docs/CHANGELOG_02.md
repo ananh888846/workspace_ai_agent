@@ -90,3 +90,13 @@
 - Acceptance `AT-051-01..11`: **PASS** với transaction `ROLLBACK`.
 - Đồng bộ trạng thái đầu tài liệu cho storage/provenance, source contract và pipeline để không còn mâu thuẫn với runtime gate đã đóng.
 - Quyết định chốt: **không sửa migrations 001–050**; bước tiếp theo là Knowledge Ingestion V1 runtime integration, bắt đầu Google Drive happy path.
+
+
+## 2026-09-21 — Google Calendar Event CRUD contract locked
+
+- Thêm [docs/GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md) làm contract cho Google Calendar Event CRUD.
+- Chốt `calendar.read` cho đọc và `calendar.write` cho tạo/sửa/xóa.
+- Chốt Google Calendar là account-backed capability, hỗ trợ multi-account và delegation qua authorization hiện có.
+- Chốt update/delete phải xác định event mục tiêu; nhiều candidate không được tự chọn.
+- Chốt không tạo Migration 052 chỉ cho Calendar Event CRUD; sử dụng resource/account/authorization/audit model V2.1 hiện tại.
+- Bước tiếp theo: implementation provider adapter → tools → authorization → tests → runtime verification.
