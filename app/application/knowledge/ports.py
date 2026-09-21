@@ -1,0 +1,40 @@
+from typing import Protocol
+
+from app.domain.knowledge.source import KnowledgeSourceItem
+
+
+class AuthorizationPort(Protocol):
+    def authorize_ingestion(
+        self,
+        *,
+        organization_id: str,
+        user_account_id: str | None,
+        provider: str,
+        resource_type: str,
+        external_id: str,
+    ) -> bool: ...
+
+
+class KnowledgeRepository(Protocol):
+    def find_source(self, item: KnowledgeSourceItem): ...
+    def create_source(self, item: KnowledgeSourceItem): ...
+    def current_checksum(self, source_id: str) -> str | None: ...
+    def create_document_version(self, source_id: str, item: KnowledgeSourceItem): ...
+    def mark_unchanged(self, source_id: str): ...
+
+
+class StoragePort(Protocol):
+    def put(self, asset, content: bytes) -> str: ...
+
+
+class ChunkerPort(Protocol):
+    def chunk(self, content: str) -> list[str]: ...
+
+
+class EmbeddingPort(Protocol):
+    def embed(self, chunks: list[str]) -> list[list[float]]: ...
+
+
+class VectorIndexPort(Protocol):
+    def upsert(self, chunks, vectors) -> None: ...
+    def reconcile(self, document_version_id: str) -> None: ...
