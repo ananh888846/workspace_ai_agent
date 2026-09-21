@@ -1,6 +1,6 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **AccountResolver PostgreSQL repository V1 + Phase 2B runtime wiring đã triển khai; Authorization/Credential PostgreSQL repositories và OAuth vẫn PENDING**
+> Trạng thái: **AccountResolver PostgreSQL repository V1 + Phase 2B runtime wiring + Phase 2C PostgreSQL Authorization runtime đã triển khai; Credential PostgreSQL repository và OAuth vẫn PENDING**
 >
 > Calendar chưa được đánh dấu runtime E2E PASS cho đến khi PostgreSQL-backed authorization, OAuth và Google Calendar API verification hoàn tất.
 
@@ -139,6 +139,9 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 
 ### Đã triển khai
 
+- PostgreSQL PermissionRepository + AuthorizationService runtime: capability/account/resource authorization gate.
+- Phase 2C HTTP runtime: capability → PostgreSQL authorization decision; DENY không đi tới credential/provider.
+
 - Provider adapter V1: `app/providers/google/calendar/adapter.py`.
 - Google Calendar API client boundary: `app/providers/google/calendar/client.py`.
 - Application orchestration boundary: `app/application/calendar.py`.
@@ -152,7 +155,7 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 
 ### Chưa triển khai
 
-- PostgreSQL-backed PermissionRepository / AuthorizationService.
+- PostgreSQL-backed CredentialRepository / CredentialResolver.
 - PostgreSQL-backed CredentialRepository / CredentialResolver.
 - Core ToolResolver registry implementation.
 - OAuth consent/re-authorization UI.
@@ -172,7 +175,7 @@ PostgreSQL AccountResolver repository  ← DONE
   ↓
 Phase 2B AccountResolver HTTP runtime  ← DONE
   ↓
-PostgreSQL Authorization repository   ← NEXT
+PostgreSQL Authorization repository   ← DONE
   ↓
 Real Google OAuth
   ↓
