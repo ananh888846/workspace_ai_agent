@@ -792,3 +792,13 @@ Migration 011 → 020 đã được verify trên PostgreSQL 18.6.
 - Transaction test: **ROLLBACK**
 - Tenant/resource/session/device integrity gate: **CLOSED**
 - Gate tiếp theo: Migration 021 → 030.
+
+
+# Migration 021 → 030 Contract Lock — 2026-09-21
+
+- Observation tenant scope và composite device FK đã được khóa.
+- Event/Activity Session/Activity tenant references phải được DB enforce bằng composite FK/equivalent constraint.
+- Task/Work Order exact column contract đã được khóa.
+- Conversation/Memory không tự thêm organization scope ngoài source-of-truth contract.
+- Knowledge retrieval authorization phải được quyết định bằng SQL ownership/access metadata trước/trong Qdrant retrieval.
+- Acceptance AT-021 → AT-030 phải PASS trước Migration 031 → 040.
