@@ -1,8 +1,8 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **AccountResolver + PostgreSQL Authorization + Credential readiness + Google OAuth flow đã triển khai; ToolResolver/Google API E2E vẫn PENDING**
+> Trạng thái: **Calendar Read V1 — CLOSED / E2E PASS**
 >
-> Calendar chưa được đánh dấu runtime E2E PASS cho đến khi PostgreSQL-backed authorization, OAuth và Google Calendar API verification hoàn tất.
+> AccountResolver → Authorization → CredentialResolver → ToolResolver → Google Calendar API đã được runtime verification thành công.
 
 ## 1. Capability
 
@@ -172,9 +172,8 @@ Không tự chọn event để update/delete khi có nhiều candidate.
 
 ### Chưa triển khai
 
-- Core ToolResolver registry implementation.
 - Calendar webhook/push sync.
-- End-to-end Google Calendar API runtime verification.
+- Calendar Write V1 (create/update/delete).
 
 Credential readiness hiện kiểm tra credential active/chưa hết hạn và không trả `encrypted_value`.
 
@@ -226,30 +225,44 @@ và việc callback dựng một bộ scope khác với authorization request.
 
 State có thời hạn tối đa 10 phút. Không sử dụng lại OAuth URL/callback cũ sau khi đã hoàn tất hoặc hết hạn.
 
-## 14. Next runtime gate
+## 14. Calendar Read V1 — Verification Gate CLOSED
 
-Thứ tự triển khai được giữ cố định:
+Luồng runtime đã được kiểm chứng thực tế:
 
 ```text
-Local DB fixture
+POST /api/v1/agent/chat
   ↓
-PostgreSQL AccountResolver repository  ← DONE (active + pending_oauth metadata)
+Calendar classification
   ↓
-Phase 2B AccountResolver HTTP runtime  ← DONE
+AccountResolver
   ↓
-PostgreSQL Authorization repository   ← DONE (active + pending_oauth account access)
+AuthorizationService
   ↓
-CredentialResolver / readiness gate
+CredentialResolver
   ↓
-OAuth PKCE start/callback              ← DONE
+CalendarToolRegistry
   ↓
-Credential lưu mã hóa                  ← DONE
+GoogleCalendarTool
   ↓
-ToolResolver registry
+GoogleCalendarAdapter
   ↓
-Google Calendar API
+Google Calendar API v3
   ↓
-E2E CRUD verification
+2 event thực tế được trả về
 ```
+
+Acceptance thực tế đã xác nhận:
+
+- `calendar.read` được phân loại đúng.
+- Account Google được resolve đúng.
+- Authorization trả `allow`.
+- Credential trả `ready`.
+- Provider thực sự được gọi (`provider_called=true`).
+- Google Calendar API trả event thực tế.
+- Tiếng Việt trong HTTP response hiển thị đúng UTF-8.
+- Khung ngày đọc theo `Asia/Ho_Chi_Minh` hoạt động đúng.
+- Chuẩn UTC của database không bị thay đổi bởi provider boundary.
+
+**Calendar Read V1 được CLOSED.**
 
 Không bỏ qua bước authorization/credential để gọi Google API trực tiếp.
