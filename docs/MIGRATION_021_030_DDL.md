@@ -385,3 +385,10 @@ Runtime authorization tests:
 - [x] No production SQL, database, provider call or runtime code is introduced.
 
 Kết luận: Migration 021 → 030 đã được thiết kế ở mức DDL contract. Trước SQL implementation, Task schema phải được chốt đúng theo source-of-truth hiện hành; không tự mở rộng schema trong bước SQL.
+
+
+---
+
+# Migration Review Lock — 2026-09-21 09:35 +07:00
+
+Migration 021 thêm organization_id cho observations. Migration 025 khóa explicit Task/Work Order columns: id, organization_id, parent_task_id, created_by_user_id, assigned_user_id, title, description, task_type, priority, status, resource_id, source_event_id, due_at, started_at, completed_at, metadata, created_at, updated_at. Parent/resource/source-event phải cùng tenant; completed_at không được sớm hơn started_at. Task schema gate đã đóng.
