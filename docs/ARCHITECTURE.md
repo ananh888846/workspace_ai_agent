@@ -42,7 +42,7 @@ Agent có thể giao task/message cho Agent khác nhưng không bypass AgentCont
 ### 2.7 Anomaly Detection
 Anomaly là kết quả phát hiện sai lệch từ facts/events/activities/tasks; không mặc định là kết luận "fraud".
 
-### 2.9 Execution boundary
+### 2.8 Execution boundary
 
 ```text
 LLM / Agent
@@ -58,7 +58,7 @@ Provider
 
 Không có đường đi `LLM → Tool` hoặc `LLM → Credential`.
 
-### 2.8 Nguyên tắc V2.1
+### 2.9 Nguyên tắc V2.1
 - Organization là tenant boundary; không dùng User làm tenant thay thế.
 - Resource hierarchy không bypass authorization.
 - Device không đại diện cho User.
@@ -100,7 +100,7 @@ Response
 
 AccountResolver trước Authorization chỉ được xác định candidate account/metadata. Không lấy secret trước ALLOW.
 
-## 3. Authorization
+## 4. Authorization
 
 Operation protected chỉ được ALLOW khi mọi điều kiện bắt buộc đạt:
 
@@ -115,7 +115,7 @@ ALLOW
 
 Thiếu hoặc DENY một điều kiện bắt buộc thì không gọi provider/tool.
 
-## 4. AgentContext
+## 5. AgentContext
 
 ~~~text
 request_id
@@ -132,7 +132,7 @@ metadata
 
 Context không phải nguồn cấp quyền.
 
-## 5. Account và Capability
+## 6. Account và Capability
 
 ~~~text
 Capability
@@ -148,9 +148,9 @@ Capability
 
 Nếu có nhiều account cùng provider mà request không chỉ rõ account, dùng policy default hoặc yêu cầu user chọn. Không để LLM tự đoán.
 
-## 6. Data Package
+## 7. Data Package
 
-Data Package là access definition, không phải credential và không bắt buộc là bản sao dữ liệu.
+Data Package là access definition, không phải credential và không bắt buộc là bản sao dữ liệu. Trong V2.1, Package là tenant-scoped; package, version, resource membership và grant không được vượt organization boundary.
 
 ~~~text
 Data Package
@@ -164,7 +164,7 @@ Data Package
 
 Resource authorization vẫn có hiệu lực.
 
-## 7. Provider
+## 8. Provider
 
 ~~~text
 Capability
@@ -178,7 +178,7 @@ External API
 
 Google là provider đầu tiên. Facebook/Meta, Zalo, Telegram, Home Assistant và provider khác triển khai sau Core.
 
-## 8. Device / Event
+## 9. Device / Event
 
 ~~~text
 Device
@@ -194,7 +194,7 @@ Activity
 
 AI inference không mặc định là fact.
 
-## 9. Knowledge
+## 10. Knowledge
 
 ~~~text
 Source
@@ -212,15 +212,15 @@ Qdrant
 
 SQL giữ metadata, ownership, access, version/checksum và mapping. Retrieval phải chạy trong authorization context.
 
-## 10. LangChain / CrewAI
+## 11. LangChain / CrewAI
 
 LangChain cung cấp LLM, retrieval, tool và agent primitives. CrewAI cung cấp multi-agent/task/workflow orchestration. Authorization vẫn thuộc Application Layer.
 
-## 11. Audit
+## 12. Audit
 
 Operation nhạy cảm phải truy được request_id, user, session/device, capability/action, account, resource/package, tool, result và thời gian.
 
-## 12. Quy tắc thay đổi
+## 13. Quy tắc thay đổi
 
 Khi phát sinh yêu cầu mới:
 1. cập nhật Decision Log;
