@@ -297,3 +297,20 @@ Trước khi code:
 - Chốt Anomaly Evidence bằng explicit source FK trong [docs/MIGRATION_041_045_DDL.md](./MIGRATION_041_045_DDL.md).
 - Chốt Automation tenant scope.
 - Kết luận: Migration 001→045 đủ design contract để chuyển sang production SQL; chưa tạo SQL/database/runtime.
+
+## 2026-09-21 09:45:00 +07:00
+
+### Production SQL Migration 001→010
+
+- Thêm [database/migrations/001_create_organizations.sql](../database/migrations/001_create_organizations.sql).
+- Thêm [database/migrations/002_create_users.sql](../database/migrations/002_create_users.sql).
+- Thêm [database/migrations/003_create_organization_members.sql](../database/migrations/003_create_organization_members.sql).
+- Thêm [database/migrations/004_create_user_accounts.sql](../database/migrations/004_create_user_accounts.sql).
+- Thêm [database/migrations/005_create_account_credentials.sql](../database/migrations/005_create_account_credentials.sql).
+- Thêm [database/migrations/006_create_roles.sql](../database/migrations/006_create_roles.sql).
+- Thêm [database/migrations/007_create_permissions.sql](../database/migrations/007_create_permissions.sql).
+- Thêm [database/migrations/008_create_user_roles.sql](../database/migrations/008_create_user_roles.sql).
+- Thêm [database/migrations/009_create_role_permissions.sql](../database/migrations/009_create_role_permissions.sql).
+- Thêm [database/migrations/010_create_account_grants.sql](../database/migrations/010_create_account_grants.sql).
+- Đã triển khai PK/FK/composite tenant FK/UNIQUE/CHECK/index theo thiết kế 001→010.
+- Chưa chạy trên PostgreSQL thật trong bước này; bước kế tiếp là clean PostgreSQL acceptance test AT-001→AT-008.
