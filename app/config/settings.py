@@ -9,6 +9,37 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
+
+
+def _load_local_dotenv() -> None:
+    """Load a local .env file without overriding explicit process variables.
+
+    The application is often run directly with Uvicorn during local development.
+    Docker Compose injects environment variables itself, so this loader only fills
+    values that are not already present in the process environment.
+    """
+    env_file = Path(__file__).resolve().parents[2] / ".env"
+    if not env_file.is_file():
+        return
+
+    for raw_line in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        name, value = line.split("=", 1)
+        name = name.strip()
+        value = value.strip()
+        if not name or name in os.environ:
+            continue
+
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        os.environ[name] = value
+
+
+_load_local_dotenv()
 
 
 def _env(name: str, default: str = "") -> str:
