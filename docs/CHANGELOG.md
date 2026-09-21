@@ -180,3 +180,15 @@ Trước khi code:
 - Đồng bộ `SOURCE_TREE_V2.md` để mọi V2.1 domain có vị trí rõ trong application/domain/test boundary.
 - Đồng bộ `RUNTIME.md` với database integrity gate và tenant isolation.
 - Không tạo migration, không tạo bảng thật và không thay đổi application runtime code.
+
+
+## 2026-09-21 — Final V2.1 docs audit
+
+### Synchronized
+
+- Authorization tenant boundary, Agent-to-Agent authorization và anomaly semantics.
+- Event flow: Observation → Event → Activity Session → Activity.
+- Device organization/resource binding.
+- Decision Log bổ sung các quyết định V2.1 về tenant, Task/Activity, Agent-to-Agent và evidence-based anomaly.
+- Database migration numbering và logical relationship summary được kiểm tra lại.
+- Không tạo migration hoặc thay đổi application/runtime implementation.
