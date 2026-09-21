@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import timezone
 from typing import Any
 
 from cryptography.fernet import Fernet
@@ -55,6 +56,10 @@ class PostgresCredentialRepository:
             payload = json.loads(
                 Fernet(key.encode("ascii")).decrypt(row[1]).decode("utf-8")
             )
+            expires_at = row[2]
+            if expires_at is not None and expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
             credentials = Credentials(
                 token=payload.get("token"),
                 refresh_token=payload.get("refresh_token"),
@@ -62,7 +67,7 @@ class PostgresCredentialRepository:
                 client_id=payload.get("client_id"),
                 client_secret=payload.get("client_secret"),
                 scopes=row[3] or [],
-                expiry=row[2],
+                expiry=expires_at,
             )
         except Exception as exc:
             raise RuntimeError("google_credential_decrypt_failed") from exc
@@ -70,7 +75,7 @@ class PostgresCredentialRepository:
         return CredentialResolution(
             status="ready",
             credential_type=str(row[0]),
-            expires_at=row[2],
+            expires_at=expires_at,
             scopes=row[3],
             credential_context=GoogleCredentialContext(credentials=credentials),
         )
