@@ -114,3 +114,16 @@ Trước khi code:
 ### Important
 
 Đây vẫn là documentation/design phase. Chưa tạo migration, chưa tạo database thật và chưa thay đổi application runtime code.
+
+
+## 2026-09-21 08:05:00 +07:00
+
+### Database V2 Schema Review — Locked
+
+- Bổ sung bảng `role_permissions` vào schema chính thức.
+- Enforce ownership của `account_grants` bằng composite FK `(user_account_id, owner_user_id)`.
+- Bổ sung kiểm tra nhất quán provider giữa `resources` và `user_accounts`.
+- Chốt organization scope: hiện áp dụng rõ cho resources/devices, không dùng membership để bypass authorization.
+- Sửa migration order để không trùng số và tôn trọng FK dependencies.
+- Cập nhật acceptance checklist và trạng thái schema.
+- Chưa tạo migration hoặc application code.
