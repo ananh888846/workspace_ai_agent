@@ -13,6 +13,7 @@ from app.api.chat import (
 )
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount\nfrom app.infrastructure.oauth.google import GoogleOAuthService
+from app.config.settings import get_settings
 
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase2c")
 
@@ -30,17 +31,52 @@ class AgentChatRequest(BaseModel):
 @app.get("/auth/google/start")
 def google_oauth_start(
     account_id: str,
+    capability: str = "calendar.read",
     x_user_id: str | None = Header(default=None),
     x_organization_id: str | None = Header(default=None),
 ) -> RedirectResponse:
-    """Tạo URL Google OAuth sau khi kiểm tra context runtime tối thiểu."""
+    """Tạo URL Google OAuth sau khi kiểm tra AccountResolver và Authorization."""
     if not x_user_id or not x_organization_id:
         raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required")
+    if capability not in {"calendar.read", "calendar.write"}:
+        raise HTTPException(status_code=400, detail="unsupported_calendar_capability")
+    account = resolve_google_account(
+        user_id=x_user_id,
+        organization_id=x_organization_id,
+        account_hint=account_id,
+    )
+    if account.get("status") != "resolved":
+        raise HTTPException(status_code=404, detail=account.get("status", "account_not_found"))
+    external_account = ExternalAccount(
+        id=account["account_id"],
+        user_id=x_user_id,
+        provider=account["provider"],
+        account_type="oauth",
+        external_account_id=account["external_account_id"],
+        display_name=account["display_name"],
+        email=account["email"],
+        status=account.get("account_state", "active"),
+    )
+    authorization = authorize_request(
+        user_id=x_user_id,
+        organization_id=x_organization_id,
+        capability=capability,
+        action="read" if capability == "calendar.read" else "write",
+        account=external_account,
+    )
+    if authorization.get("status") != "allow":
+        raise HTTPException(status_code=403, detail=authorization.get("reason", "authorization_denied"))
+    scopes = (
+        [get_settings().google_calendar_read_scope]
+        if capability == "calendar.read"
+        else [get_settings().google_calendar_write_scope]
+    )
     try:
         url = GoogleOAuthService().authorization_url(
-            account_id=account_id,
+            account_id=account["account_id"],
             user_id=x_user_id,
             organization_id=x_organization_id,
+            scopes=scopes,
         )
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
