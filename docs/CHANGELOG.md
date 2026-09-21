@@ -1,3 +1,12 @@
+## 2026-09-21 17:00:00 +07:00 — Migration 021 → 030 pre-SQL review lock
+
+- Review lại [docs/MIGRATION_021_030_DDL.md](./MIGRATION_021_030_DDL.md) trước khi tạo production SQL.
+- Sửa/khóa tenant integrity cho Observation → Event → Activity Session → Activity bằng organization context và composite FK.
+- Khóa exact Task/Work Order column list theo V2.1 source of truth.
+- Giữ Conversation/Memory theo user ownership; không thêm organization scope ngoài contract.
+- Giữ SQL là source of truth cho Knowledge authorization; Qdrant chỉ là retrieval store.
+- Chưa tạo production SQL hoặc database cho 021 → 030.
+
 ## 2026-09-21 10:20:00 +07:00 — Fix acceptance AT-020 fixture
 
 - Lần chạy acceptance 011 → 020 đầu tiên dừng tại **AT-020** do fixture của test dùng `device_a` cùng organization với session, nên điều kiện cross-organization không thể xảy ra.
