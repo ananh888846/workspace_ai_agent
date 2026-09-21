@@ -1018,8 +1018,8 @@ Resource có provider/external account phải tham chiếu user_account tương 
  # 22. Migration order
 
 001 organizations
-002 organization_members
-003 users
+002 users
+003 organization_members
 004 devices
 005 user_sessions
 
@@ -1422,7 +1422,7 @@ DATABASE_V2_DETAILED.md là schema design blueprint V2.1, chưa phải implement
 
 Schema V2 đã được review nội bộ theo các dependency và authorization invariants; các điểm bắt buộc gồm role-to-permission mapping, resource-to-account binding và migration FK order.
 
-Schema V2.1 chốt thêm: `role_permissions`, composite ownership FK cho `account_grants`, resource/provider-account consistency, organization scope và migration numbering không trùng.
+Schema V2.1 chốt thêm: `role_permissions`, composite ownership FK cho `account_grants`, resource/provider-account consistency, organization scope và migration numbering không trùng. Migration order được kiểm tra theo dependency FK, đặc biệt `users` phải được tạo trước `organization_members`.
 
 Trình tự tiếp theo:
 
