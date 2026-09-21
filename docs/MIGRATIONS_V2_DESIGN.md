@@ -1,6 +1,6 @@
 # MIGRATIONS_V2_DESIGN.md
 
-> Trạng thái: SQL migration 001 → 010 đã được tạo; chưa chạy trên PostgreSQL sạch.
+ > Trạng thái: SQL migration 001 → 010 đã được tạo và đã verify trên PostgreSQL 18.6 sạch; AT-001 → AT-008 đều PASS.
 > Target PostgreSQL: 18+ (native `uuidv7()`).
 > Ngày: 2026-09-21
 
@@ -91,18 +91,30 @@ Automation/Anomaly/Audit: 040 → 045.
 - [ ] ON DELETE đúng contract.
 - [ ] UNIQUE/CHECK/INDEX đúng contract.
 - [ ] Cross-organization reference bị database từ chối.
-- [ ] PostgreSQL clean migration pass.
+- [x] PostgreSQL clean migration pass cho 001 → 010.
+- [x] Acceptance test AT-001 → AT-008 pass cho 001 → 010.
 - [ ] Schema diff = 0 ngoài thay đổi đã khóa.
 
 ## 7. Quy trình tiếp theo
 1. Review và khóa tài liệu này.
-2. Viết SQL migration 001 → 045.
-3. Chạy trên PostgreSQL sạch.
-4. Chạy acceptance tests.
-5. Sau khi pass mới tích hợp runtime.
+2. SQL migration 001 → 010 đã triển khai và verify PASS.
+3. Thiết kế/triển khai SQL migration 011 → 020.
+4. Chạy 011 → 020 trên PostgreSQL sạch hoặc database reset từ đầu theo gate tương ứng.
+5. Chạy acceptance tests 011 → 020.
+6. Sau khi pass mới mở rộng sang 021 → 030.
 
 ---
 
 # Migration Review Lock — 2026-09-21 09:35 +07:00
 
 Thiết kế 001→045 đủ điều kiện chuyển sang production SQL sau khi áp dụng các lock: Agent tenant scope, Task schema, Evidence source FKs và Automation tenant scope.
+
+
+---
+
+# Verification Update — 2026-09-21 08:30:00 +07:00
+
+- Migration 001 → 010: **PASS trên PostgreSQL 18.6**.
+- Acceptance AT-001 → AT-008: **PASS**.
+- Database sạch trước migration; acceptance test dùng transaction và **ROLLBACK**.
+- Gate 001 → 010 đã đóng.
