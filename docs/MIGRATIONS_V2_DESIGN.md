@@ -99,3 +99,9 @@ Automation/Anomaly/Audit: 040 → 045.
 3. Chạy trên PostgreSQL sạch.
 4. Chạy acceptance tests.
 5. Sau khi pass mới tích hợp runtime.
+
+---
+
+# Migration Review Lock — 2026-09-21 09:35 +07:00
+
+Thiết kế 001→045 đủ điều kiện chuyển sang production SQL sau khi áp dụng các lock: Agent tenant scope, Task schema, Evidence source FKs và Automation tenant scope.
