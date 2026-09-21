@@ -49,3 +49,20 @@ Trước khi code:
 - Bổ sung Runtime Contract và runtime gate.
 - Bổ sung Security V2 cho credential, logging, data isolation và webhook.
 - Chưa tạo application code hoặc database migration.
+
+
+## 2026-09-21 07:40:00 +07:00
+
+### Add Database V2 Detailed schema blueprint
+
+- Thêm `docs/DATABASE_V2_DETAILED.md`.
+- Chi tiết PostgreSQL conventions: UUID/UUIDv7, UTC/TIMESTAMPTZ, FK, UNIQUE, INDEX, JSONB và delete policy.
+- Định nghĩa chi tiết column/type/default/nullability cho 13 domain database.
+- Bổ sung authorization constraints giữa User, Account, Resource và Data Package.
+- Bổ sung relationship map và ERD logic.
+- Bổ sung index strategy và integrity constraints.
+- Bổ sung transaction boundary, credential access boundary và Knowledge authorization.
+- Bổ sung migration order 001–035.
+- Bổ sung backup/security requirements.
+- Bổ sung acceptance checklist và runtime verification cases.
+- Chưa tạo migration hoặc database thật.
