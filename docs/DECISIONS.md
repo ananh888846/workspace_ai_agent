@@ -182,3 +182,14 @@ Production SQL 034 → 045 đã được tạo theo schema/tenant review lock. M
 **Date:** 2026-09-21
 
 Migration 034 → 045 đã được verify trên PostgreSQL 18.6 bằng acceptance test với `ON_ERROR_STOP=1`. AT-041 → AT-052 đều PASS (12/12), transaction kết thúc bằng ROLLBACK. Gate Migration 034 → 045 được coi là đã verify và đóng. Bộ migration 001 → 045 đã hoàn tất production SQL và các acceptance gate tương ứng hiện có.
+
+
+## Decision 038 — Database V2.1 Post-Implementation Review Gate
+**Status:** Accepted  
+**Date:** 2026-09-21
+
+Post-Implementation Review của Migration 001 → 045 đã được thực hiện trên source SQL và contract trên GitHub. Các acceptance gate hiện có vẫn PASS, nhưng static review phát hiện DBR-001 → DBR-007 liên quan tenant/user ownership, execution-account context và resource identity semantics.
+
+Chưa coi Database V2.1 là hoàn toàn CLOSED về tenant-integrity cho đến khi các finding được chốt, migration hậu V2.1 được tạo nếu cần, acceptance bổ sung PASS và runtime catalog verification hoàn tất.
+
+Chi tiết nằm trong [docs/DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md](./DATABASE_V2_1_POST_IMPLEMENTATION_REVIEW.md).
