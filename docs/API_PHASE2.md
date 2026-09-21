@@ -63,7 +63,11 @@ Role không có permission tương ứng phải bị DENY.
 
 ### Account Access
 
-Account phải thuộc User hoặc có account_grants hợp lệ; owner/grantee và account phải nằm trong cùng Organization; grant phải active, chưa bị revoke và còn hiệu lực theo thời gian. Account `pending_oauth` vẫn được AccountResolver resolve ở tầng metadata; credential/OAuth mới quyết định account đã sẵn sàng gọi provider hay chưa.
+Account phải thuộc User hoặc có account_grants hợp lệ; owner/grantee và account phải nằm trong cùng Organization; grant phải active, chưa bị revoke và còn hiệu lực theo thời gian.
+
+Đối với account do chính User sở hữu, trạng thái `active` hoặc `pending_oauth` đều có thể được Authorization chấp nhận. `pending_oauth` chỉ có nghĩa account chưa sẵn sàng về credential; nó không làm mất quyền truy cập account metadata.
+
+Đối với account được delegate, `account_grants` vẫn phải active, đúng Organization, đúng grantee và còn hiệu lực. Trạng thái account `active` hoặc `pending_oauth` đều không thay thế điều kiện grant. Account `pending_oauth` vẫn được AccountResolver resolve ở tầng metadata; credential/OAuth mới quyết định account đã sẵn sàng gọi provider hay chưa.
 
 PostgresPermissionRepository không đọc account_credentials.
 
@@ -72,6 +76,8 @@ PostgresPermissionRepository không đọc account_credentials.
 Nếu target_resource có mặt, AuthorizationService yêu cầu resource_permissions: resource cùng Organization; user là active member; action khớp; effect=allow; permission chưa hết hạn.
 
 Thiếu resource permission → resource_access_denied.
+
+Khi Authorization = ALLOW nhưng account đang `pending_oauth`, bước tiếp theo vẫn là CredentialResolver/OAuth readiness gate. Không được chuyển trạng thái account thành `active` giả và không được gọi provider trực tiếp.
 
 ### DENY boundary
 
