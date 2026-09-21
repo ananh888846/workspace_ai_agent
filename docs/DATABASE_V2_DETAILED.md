@@ -25,6 +25,10 @@ Database V2 phải đáp ứng:
 - Agent, Tool và Run phải có trace.
 - Có thể thêm Google, Meta/Facebook, Zalo, Telegram, Home Assistant mà không phá Core.
 - Không tạo trước domain tables nếu capability tương ứng chưa được duyệt.
+- Organization là tenant boundary cho các domain scoped.
+- Resource có parent/child hierarchy.
+- Device có organization/resource binding nhưng độc lập với User.
+- V2.1 bổ sung Activity Session, Task/Work Order, Agent-to-Agent communication và Anomaly.
 
 ---
 
@@ -109,7 +113,38 @@ Không cascade tùy tiện trên business history hoặc audit.
 
 ---
 
-# 4. DOMAIN 01 — Identity
+# 4. DOMAIN 00 — Organization / Tenant
+
+## 4.1 organizations
+
+Tenant/workspace boundary cho Family, Homestay, Smart Home và domain tương lai.
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| id | UUID | NO | UUIDv7 | PK |
+| name | VARCHAR(255) | NO | — | |
+| organization_type | VARCHAR(64) | NO | — | INDEX |
+| status | VARCHAR(32) | NO | active | INDEX |
+| metadata | JSONB | NO | {} | |
+| created_at | TIMESTAMPTZ | NO | now() | INDEX |
+| updated_at | TIMESTAMPTZ | NO | now() | |
+
+## 4.2 organization_members
+
+| Column | Type | Null | Default | Key |
+|---|---|---:|---|---|
+| organization_id | UUID | NO | — | PK, FK |
+| user_id | UUID | NO | — | PK, FK |
+| member_role | VARCHAR(64) | NO | member | INDEX |
+| status | VARCHAR(32) | NO | active | INDEX |
+| joined_at | TIMESTAMPTZ | NO | now() | |
+| created_at | TIMESTAMPTZ | NO | now() | |
+
+Primary key: (organization_id, user_id). Membership không thay thế capability/resource authorization.
+
+---
+
+# 5. DOMAIN 01 — Identity
 
 ## 4.1 users
 
@@ -315,7 +350,7 @@ Ví dụ Google Drive file, Google Calendar, Home Assistant entity hoặc Facebo
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| resource_type | VARCHAR(100) | NO | — | INDEX |
+| organization_id | UUID | YES | NULL | FK, INDEX |\n| parent_resource_id | UUID | YES | NULL | FK, INDEX |\n| resource_type | VARCHAR(100) | NO | — | INDEX |
 | provider | VARCHAR(64) | NO | — | INDEX |
 | external_id | VARCHAR(255) | NO | — | INDEX |
 | user_account_id | UUID | YES | NULL | FK, INDEX |
@@ -425,7 +460,7 @@ Package grant không bypass capability, account hoặc resource authorization.
 | Column | Type | Null | Default | Key |
 |---|---|---:|---|---|
 | id | UUID | NO | UUIDv7 | PK |
-| device_uuid | UUID | NO | — | UNIQUE |
+| organization_id | UUID | YES | NULL | FK, INDEX |\n| resource_id | UUID | YES | NULL | FK, INDEX |\n| device_uuid | UUID | NO | — | UNIQUE |
 | device_type | VARCHAR(64) | NO | — | INDEX |
 | name | VARCHAR(255) | YES | NULL | |
 | status | VARCHAR(32) | NO | active | INDEX |
@@ -1352,7 +1387,7 @@ Role không có permission tương ứng phải bị DENY.
 
 # 33. Chốt trạng thái
 
-DATABASE_V2_DETAILED.md là schema design blueprint, chưa phải implementation.
+DATABASE_V2_DETAILED.md là schema design blueprint V2.1, chưa phải implementation.
 
 Schema V2 đã được review nội bộ theo các dependency và authorization invariants; các điểm bắt buộc gồm role-to-permission mapping, resource-to-account binding và migration FK order.
 
