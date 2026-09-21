@@ -39,3 +39,12 @@
 - Authorization request vẫn lưu đúng bộ scope của phiên trong state và callback vẫn dùng chính bộ scope đó.
 - Không thay đổi `credentials.json`; file này tiếp tục chỉ chứa cấu hình OAuth client.
 - Commit: `b57d7ec3a2b23337a12d0269a493be744eb89771`.
+
+## 2026-09-21 — Agent chat phân loại Calendar V1
+
+- Sửa `app/api/chat.py` để `POST /api/v1/agent/chat` không còn dừng mặc định ở `intent=not_classified` khi message có ý định Calendar.
+- Thêm bộ phân loại Calendar V1 cho các yêu cầu đọc lịch và nhóm thao tác tạo/sửa/xóa lịch.
+- Khi intent Calendar được nhận diện, runtime tự chuyển sang `AccountResolver` ngay cả khi request không truyền `account_hint`.
+- Sau khi resolve account, runtime tiếp tục `AuthorizationService` rồi `CredentialResolver` theo đúng thứ tự bảo vệ.
+- Request không nhận diện được intent vẫn chỉ trả về contract metadata và không gọi account/provider.
+- Chưa đánh dấu Google Calendar provider E2E PASS; bước gọi Google Calendar API vẫn là gate tiếp theo.
