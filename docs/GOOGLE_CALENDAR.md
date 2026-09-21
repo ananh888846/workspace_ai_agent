@@ -71,12 +71,23 @@ Update/delete phải xác định chính xác event.
 
 Không tự chọn event để update/delete khi có nhiều candidate.
 
-## 9. Chưa làm
+## 9. Runtime implementation status
+
+### Đã triển khai
+
+- Provider adapter V1: `app/providers/google/calendar/adapter.py`.
+- Google Calendar API client boundary: `app/providers/google/calendar/client.py`.
+- Application orchestration boundary: `app/application/calendar.py`.
+- Google Calendar tool boundary: `app/tools/calendar.py`.
+- Contract test xác nhận Authorization DENY không gọi CredentialResolver và ToolResolver.
+
+### Chưa triển khai
 
 - AccountResolver runtime implementation.
 - CredentialResolver runtime implementation.
-- Calendar tool registry.
-- `calendar.read` application use-case.
-- `calendar.write` application use-case.
+- Core ToolResolver registry implementation.
 - OAuth consent/re-authorization UI.
 - Calendar webhook/push sync.
+- End-to-end Google Calendar API runtime verification.
+
+Application service hiện chỉ định nghĩa orchestration contract và có thể chạy với dependency implementations được inject. Chưa được phép tự tạo credential/account implementation giả để bypass Core authorization.
