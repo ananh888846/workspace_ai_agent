@@ -51,7 +51,7 @@ BEGIN
     VALUES (run_b,uuidv7(),org_a,user_b,agent_a,conversation_b);
 
     INSERT INTO resources(id,organization_id,resource_type,provider,external_id,user_account_id,owner_user_id,name)
-    VALUES (resource_a,org_a,'file','google_drive','dbr-file-a',account_a,user_a,'DBR account resource');
+    VALUES (resource_a,org_a,'file','google','dbr-file-a',account_a,user_a,'DBR account resource');
 
     INSERT INTO events(id,event_uuid,event_type,organization_id,user_id,source_type,occurred_at)
     VALUES (event_a,uuidv7(),'test',org_a,user_a,'test',now());
@@ -131,7 +131,7 @@ BEGIN
 
     BEGIN
         INSERT INTO resources(id,organization_id,resource_type,provider,external_id,user_account_id,owner_user_id,name)
-        VALUES (uuidv7(),org_a,'file','google_drive','dbr-file-a',account_a,user_a,'Duplicate account resource');
+        VALUES (uuidv7(),org_a,'file','google','dbr-file-a',account_a,user_a,'Duplicate account resource');
         RAISE EXCEPTION 'AT-063 expected account-backed resource duplicate rejection';
     EXCEPTION WHEN unique_violation THEN
         RAISE NOTICE 'AT-063 PASS';
