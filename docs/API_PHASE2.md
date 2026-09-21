@@ -63,7 +63,7 @@ Role không có permission tương ứng phải bị DENY.
 
 ### Account Access
 
-Account phải active; thuộc User hoặc có account_grants hợp lệ; owner/grantee và account phải nằm trong cùng Organization; grant phải active, chưa bị revoke và còn hiệu lực theo thời gian.
+Account phải thuộc User hoặc có account_grants hợp lệ; owner/grantee và account phải nằm trong cùng Organization; grant phải active, chưa bị revoke và còn hiệu lực theo thời gian. Account `pending_oauth` vẫn được AccountResolver resolve ở tầng metadata; credential/OAuth mới quyết định account đã sẵn sàng gọi provider hay chưa.
 
 PostgresPermissionRepository không đọc account_credentials.
 
