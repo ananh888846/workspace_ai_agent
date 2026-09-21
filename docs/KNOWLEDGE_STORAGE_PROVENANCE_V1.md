@@ -2,7 +2,7 @@
 
 > Status: Design locked — 2026-09-21
 >
-> Thiết kế lưu trữ binary asset, provenance và source version cho Knowledge Systematization Agent. Đây là contract trước Migration 051.
+> Thiết kế lưu trữ binary asset, provenance và source version cho Knowledge Systematization Agent. Đây là contract nền đã được hiện thực hóa bởi Migration 051.
 
 ## 1. Mục tiêu
 
@@ -126,4 +126,4 @@ File access phải đi qua authorization context phù hợp.
 
 Migration 051 phải giải quyết tối thiểu: source/provenance; source URL + canonical URL; document/version; source revision/checksum; asset metadata + storage reference; document-version ↔ asset; document/version ↔ source provenance; unique/index cho idempotency và reconciliation.
 
-Chưa triển khai migration cho đến khi schema review 051 hoàn tất.
+Migration 051 đã được triển khai và runtime verification/acceptance đã PASS. Contract này là baseline cho ingestion runtime.
