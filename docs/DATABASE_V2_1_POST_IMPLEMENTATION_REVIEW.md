@@ -198,4 +198,4 @@ Khi thực hiện runtime verification, cần kiểm tra tối thiểu:
 - không có bảng/constraint/index ngoài contract ngoài những thay đổi được ghi nhận;
 - migration application order đúng 001 → 045.
 
-**Review gate:** OPEN cho đến khi DBR-001 → DBR-007 được chốt.
+**Review gate: CLOSED.** DBR-001 → DBR-007 đã được giải quyết bằng Migration 046 → 050.
