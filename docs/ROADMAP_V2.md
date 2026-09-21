@@ -9,6 +9,24 @@
 - Chốt Data Package.
 - Chưa code business logic.
 
+## Phase 1 — Foundation / Core Contracts
+
+Trước implementation, tạo source tree theo `docs/SOURCE_TREE_V2.md` và khóa interface theo `docs/CORE_CONTRACTS_V2.md`.
+
+- source tree
+- dependency direction
+- AgentContext
+- AuthenticationService
+- AuthorizationService
+- AccountResolver
+- CredentialResolver
+- ResourceAccessChecker
+- DataPackageResolver
+- CapabilityRegistry
+- ToolResolver
+- ProviderAdapter
+- AuditService
+
 ## Phase 1 — Foundation
 
 - identity
