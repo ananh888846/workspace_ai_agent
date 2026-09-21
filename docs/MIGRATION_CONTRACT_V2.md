@@ -813,3 +813,18 @@ Migration 011 → 033 integration acceptance đã được verify trên PostgreS
 - Cross-tenant task/event: **REJECT**
 - Transaction: **ROLLBACK**
 - **Integration gate 011 → 033: CLOSED**
+
+
+---
+
+# Post-V2.1 DBR Amendment — 2026-09-21
+
+DBR-001 → DBR-007 đã được chốt bằng Decision 039 → 042 và triển khai thành migration 046 → 050.
+
+- 046: composite user membership FK cho Event/Activity Session/Activity.
+- 047: Conversation `UNIQUE(id,user_id)` và Agent Run → Conversation composite FK.
+- 048: Tool Run ghi execution `organization_id,user_id`; account là owned hoặc delegated qua active `account_grant_id` và trigger.
+- 049: Audit Log ghi `account_grant_id` khi account được delegated; account context phải gắn với organization/user.
+- 050: Resource identity dùng partial unique indexes cho account-backed và local resource.
+
+Acceptance gate 046 → 050 phải PASS trên PostgreSQL 18.6 trước khi Database V2.1 được CLOSED.
