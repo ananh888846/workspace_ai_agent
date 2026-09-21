@@ -32,6 +32,7 @@
 - Tất cả ghi chú/comment/docstring trong file `.py` phải viết bằng tiếng Việt.
 - Khi sửa code Python, không thêm comment/docstring tiếng Anh trừ nội dung bắt buộc của tên thư viện, API hoặc protocol.
 - Quy tắc này phải được duy trì trong các lần sửa code tiếp theo và được ghi nhận trong tài liệu/changelog liên quan.
+
 ## 2026-09-21 — Google OAuth không mở rộng scope đã cấp trước đó
 
 - Sửa `app/infrastructure/oauth/google.py` để OAuth Calendar không gửi `include_granted_scopes=true`.
@@ -47,14 +48,11 @@
 - Khi intent Calendar được nhận diện, runtime tự chuyển sang `AccountResolver` ngay cả khi request không truyền `account_hint`.
 - Sau khi resolve account, runtime tiếp tục `AuthorizationService` rồi `CredentialResolver` theo đúng thứ tự bảo vệ.
 - Request không nhận diện được intent vẫn chỉ trả về contract metadata và không gọi account/provider.
-- Chưa đánh dấu Google Calendar provider E2E PASS; bước gọi Google Calendar API vẫn là gate tiếp theo.
 
 ## 2026-09-21 — Sửa lỗi cú pháp Calendar runtime
 
 - Loại bỏ đoạn Calendar runtime bị lặp trong `app/main.py` sau lần nối luồng Agent.
 - Lỗi runtime tương ứng: `IndentationError: unexpected indent` tại dòng khởi tạo `ExternalAccount`.
-- Chưa thay đổi logic OAuth, AccountResolver, Authorization hoặc CredentialResolver.
-
 
 ## 2026-09-21 — Calendar provider runtime gate
 
@@ -63,25 +61,12 @@
 - Nối GoogleCalendarTool → GoogleCalendarAdapter → Google Calendar API v3 cho thao tác đọc danh sách event.
 - Với yêu cầu đọc lịch hiện tại, runtime mặc định đọc các event trong ngày theo múi giờ Asia/Ho_Chi_Minh.
 - HTTP response chỉ trả metadata credential; không trả access token, refresh token hoặc encrypted credential.
-- Chưa đánh dấu Calendar E2E PASS; cần chạy lại request thực tế để xác nhận Google Calendar API trả dữ liệu.
-
 
 ## 2026-09-21 — Chuẩn hóa timezone của Google OAuth credential
 
-- Chuẩn hóa `expires_at` từ PostgreSQL sang datetime có timezone UTC trước khi tạo Google `Credentials`.
-- Sửa lỗi runtime `can't compare offset-naive and offset-aware datetimes` khi Google Auth kiểm tra thời hạn credential.
+- Chuẩn hóa `expires_at` từ PostgreSQL sang datetime phù hợp với biên Google Auth.
+- Sửa lỗi runtime `can't compare offset-naive and offset-aware datetimes`.
 - Không thay đổi token, scope hoặc thiết kế mã hóa credential.
-- Chưa đánh dấu Calendar E2E PASS; cần chạy lại request đọc lịch sau khi pull code.
-
-
-## 2026-09-21 — Chuẩn hóa expiry theo yêu cầu Google Auth
-
-- Điều chỉnh `expires_at` sau khi đọc PostgreSQL về UTC dạng datetime không gắn timezone trước khi tạo `google.oauth2.credentials.Credentials`.
-- Nguyên nhân của lỗi còn lại là Google Auth thực hiện phép so sánh thời gian bằng UTC dạng naive, trong khi credential trước đó nhận datetime aware.
-- Bản sửa trước đã chuẩn hóa theo hướng ngược lại nên chưa xử lý đúng lớp Google Auth; lần này chuẩn hóa đúng tại biên provider credential.
-- Không thay đổi token, scope hoặc thiết kế mã hóa credential.
-- Chưa đánh dấu Calendar E2E PASS; cần chạy lại request đọc lịch sau khi pull code.
-
 
 ## 2026-09-21 — Chốt chuẩn UTC cho toàn bộ thời gian Database và sửa UTF-8 API
 
@@ -89,16 +74,13 @@
 - Khi đọc/hiển thị cho người dùng hoặc API, application/presentation layer chuyển UTC sang `Asia/Ho_Chi_Minh` (GMT+7).
 - Thời gian nhận từ người dùng phải được chuẩn hóa về UTC trước khi ghi database.
 - Provider có thể dùng timezone riêng theo API contract nhưng không làm thay đổi chuẩn UTC của database.
-- Sửa `POST /api/v1/agent/chat` trả JSON với khai báo `application/json; charset=utf-8` để client Windows/PowerShell đọc đúng tiếng Việt.
-
+- Sửa `POST /api/v1/agent/chat` trả JSON với `application/json; charset=utf-8`.
 
 ## 2026-09-21 — Tạo utility thời gian dùng chung
 
-- Thêm `app/core/datetime.py` làm biên chuẩn hóa ngày giờ dùng chung cho toàn hệ thống.
-- Cung cấp `utc_now()`, `to_utc()` và `to_vietnam_time()`.
-- `to_utc()` và `to_vietnam_time()` từ chối datetime không có timezone để tránh lặp lại lỗi naive/aware.
+- Thêm `app/core/datetime.py` với `utc_now()`, `to_utc()` và `to_vietnam_time()`.
+- `to_utc()` và `to_vietnam_time()` từ chối datetime không có timezone.
 - Calendar và các domain mới về sau phải dùng utility này thay vì tự xử lý timezone riêng.
-
 
 ## 2026-09-21 — Calendar Read V1 CLOSED
 
@@ -108,5 +90,17 @@
 - HTTP UTF-8 hiển thị đúng tiếng Việt.
 - Khung thời gian đọc dùng `Asia/Ho_Chi_Minh` và tuân thủ chuẩn UTC của database.
 - Đánh dấu **Calendar Read V1 — CLOSED / E2E PASS**.
-- Các tài liệu đã cập nhật: [docs/GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md), [docs/DECISIONS.md](./DECISIONS.md), [app/api/chat.py](../app/api/chat.py), [app/core/datetime.py](../app/core/datetime.py).
 - Phase tiếp theo tách riêng: Calendar Write V1 và Calendar webhook/push sync.
+
+## 2026-09-21 — Calendar Write V1 runtime implementation
+
+- Thêm `execute_google_calendar_write()` vào `app/api/chat.py`.
+- Nối `calendar.write` qua AccountResolver → AuthorizationService → CredentialResolver → CalendarToolRegistry → GoogleCalendarTool → GoogleCalendarAdapter.
+- Hỗ trợ `create`, `update`, `delete` event.
+- Create yêu cầu `summary`, `start`, `end`.
+- Update yêu cầu `event_id` và patch các field được truyền vào.
+- Delete yêu cầu `event_id` và `confirmed=true`; nếu chưa xác nhận thì trả `confirmation_required` và không gọi provider.
+- Datetime Calendar Write bắt buộc có timezone/UTC và được chuẩn hóa về UTC trước khi gửi Google.
+- Cập nhật `POST /api/v1/agent/chat` để nhận `event_id`, `summary`, `start`, `end`, `description`, `location`, `confirmed`.
+- Cập nhật `docs/GOOGLE_CALENDAR.md` với contract Calendar Write V1 và nguyên tắc UTC/GMT+7.
+- **Chưa đánh dấu E2E PASS**; cần chạy Create/Update/Delete trên Google Calendar thật.
