@@ -142,6 +142,7 @@ user_id, role_id
 ### account_grants
 ~~~text
 id
+organization_id
 owner_user_id
 grantee_user_id
 user_account_id
@@ -153,7 +154,7 @@ created_at
 revoked_at
 ~~~
 
-scope xác định phạm vi grant; không mặc định cấp toàn bộ quyền owner.
+scope xác định phạm vi grant; không mặc định cấp toàn bộ quyền owner. `account_grants` là tenant-scoped và owner/grantee phải thuộc cùng organization.
 
 ## 5. Resources
 
@@ -173,7 +174,7 @@ created_at
 updated_at
 ~~~
 
-`parent_resource_id` phải cùng organization khi được sử dụng.
+`organization_id` là bắt buộc. `parent_resource_id` phải cùng organization khi được sử dụng.
 
 ### resource_permissions
 id, resource_id, user_id, action, effect, created_at, expires_at
@@ -181,23 +182,24 @@ id, resource_id, user_id, action, effect, created_at, expires_at
 ## 6. Data Package
 
 ### data_packages
-id, owner_user_id, name, description, package_type, status, created_at, updated_at
+id, organization_id, owner_user_id, name, description, package_type, status, created_at, updated_at
 
 ### data_package_versions
-id, data_package_id, version, status, created_at, created_by
+id, organization_id, data_package_id, version, status, created_at, created_by
 
 ### data_package_resources
-id, package_version_id, resource_id, access_mode
+id, organization_id, package_version_id, resource_id, access_mode
 
 ### data_package_grants
-id, package_version_id, user_id, permission, starts_at, expires_at, created_at, revoked_at
+id, organization_id, package_version_id, user_id, permission, starts_at, expires_at, created_at, revoked_at
 
+Package, version, package-resource và package-grant phải cùng organization; package không được chứa resource ngoài tenant.
 ## 7. Devices
 
 ### devices
 id, device_uuid, organization_id, resource_id, device_type, name, status, firmware_version, created_at, updated_at, last_seen_at
 
-`resource_id` nullable khi device chưa bind resource cụ thể.
+`organization_id` là bắt buộc. `resource_id` nullable khi device chưa bind resource cụ thể.
 
 ### device_users
 device_id, user_id, relationship, status
