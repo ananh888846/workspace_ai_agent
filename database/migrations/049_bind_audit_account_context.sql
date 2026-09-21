@@ -3,6 +3,25 @@ BEGIN;
 ALTER TABLE audit_logs
     ADD COLUMN account_grant_id UUID;
 
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM audit_logs al
+        LEFT JOIN user_accounts ua
+          ON ua.id = al.account_id
+         AND ua.user_id = al.user_id
+        WHERE al.account_id IS NOT NULL
+          AND (
+              al.organization_id IS NULL
+              OR al.user_id IS NULL
+              OR ua.id IS NULL
+          )
+    ) THEN
+        RAISE EXCEPTION 'migration 049 blocked: existing audit_logs contain account context without valid direct ownership; delegated history requires explicit account_grant_id backfill';
+    END IF;
+END $$;
+
 ALTER TABLE audit_logs
     ADD CONSTRAINT fk_audit_logs_account_grant
     FOREIGN KEY (account_grant_id, organization_id)
@@ -11,10 +30,7 @@ ALTER TABLE audit_logs
 
 ALTER TABLE audit_logs
     ADD CONSTRAINT ck_audit_logs_account_context
-    CHECK (
-        account_id IS NULL
-        OR user_id IS NOT NULL
-    );
+    CHECK (account_id IS NULL OR user_id IS NOT NULL);
 
 CREATE OR REPLACE FUNCTION validate_audit_log_account_context()
 RETURNS trigger
@@ -33,10 +49,8 @@ BEGIN
     END IF;
 
     IF NEW.account_grant_id IS NULL THEN
-        PERFORM 1
-          FROM user_accounts
-         WHERE id = NEW.account_id
-           AND user_id = NEW.user_id;
+        PERFORM 1 FROM user_accounts
+         WHERE id = NEW.account_id AND user_id = NEW.user_id;
 
         IF NOT FOUND THEN
             RAISE EXCEPTION 'audit account is not owned by audit user';
