@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from uuid import uuid4
-from zoneinfo import ZoneInfo
-
 from app.api.schemas import ChatRequest, ChatResponse
+from app.core.datetime import to_vietnam_time, utc_now
 from app.application.core_runtime import (
     AccountResolver,
     AccountSelectionRequiredError,
@@ -178,7 +177,7 @@ def execute_google_calendar_read(*, account: ExternalAccount, credential_resolut
     if credential_context is None:
         raise RuntimeError("google_credential_context_missing")
 
-    now = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
+    now = to_vietnam_time(utc_now())
     time_min = now.replace(hour=0, minute=0, second=0, microsecond=0)
     time_max = time_min + timedelta(days=1)
     tool = CalendarToolRegistry().resolve(
