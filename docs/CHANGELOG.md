@@ -1,3 +1,13 @@
+## 2026-09-21 10:00:00 +07:00 — Migration 011 → 020 pre-SQL integrity correction
+
+- Reviewed [docs/MIGRATION_011_020_DDL.md](./MIGRATION_011_020_DDL.md) before production SQL generation.
+- Locked user_sessions.organization_id plus composite tenant FKs for user/device binding.
+- Locked tenant-scoped device_users with composite FKs to devices and organization_members.
+- Locked resources(user_account_id, owner_user_id) → user_accounts(id, user_id) for account ownership integrity.
+- Locked database-level provider/account compatibility for account-backed resources.
+- Updated [docs/MIGRATION_CONTRACT_V2.md](./MIGRATION_CONTRACT_V2.md) and [docs/DATABASE_V2_DETAILED.md](./DATABASE_V2_DETAILED.md).
+- Gate: review correction complete; SQL 011 → 020 may now be generated from the corrected contract.
+
 
 ## 2026-09-21 08:30:00 +07:00 — Migration 001 → 010 verified on PostgreSQL 18.6
 
