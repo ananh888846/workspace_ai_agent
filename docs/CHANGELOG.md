@@ -66,3 +66,17 @@ Trước khi code:
 - Bổ sung backup/security requirements.
 - Bổ sung acceptance checklist và runtime verification cases.
 - Chưa tạo migration hoặc database thật.
+
+
+## 2026-09-21 07:54:00 +07:00
+
+### Review and lock Database V2 authorization integrity
+
+- Bổ sung `role_permissions` để role thực sự ánh xạ tới capability permission.
+- Bổ sung liên kết `resources.user_account_id` cho resource thuộc external account.
+- Siết unique/index cho resource theo provider + account + type + external ID.
+- Làm rõ ràng buộc owner của Account Grant và resource/account binding.
+- Sửa migration order để các FK dependency hợp lệ, đặc biệt `user_sessions.device_id`.
+- Bổ sung capability/package context vào audit model.
+- Bổ sung Decision 018 về Database Authorization Integrity.
+- Giữ nguyên trạng thái documentation/design only; chưa tạo migration hoặc application code.
