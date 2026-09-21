@@ -748,3 +748,10 @@ Contract này khóa:
 ~~~
 
 Sau khi contract được duyệt, bước tiếp theo mới là tạo migration files 001 → 045.
+
+
+---
+
+# Migration Review Lock — 2026-09-21 09:35 +07:00
+
+Final lock: Agent tenant scope, Task schema, Anomaly Evidence explicit source FKs và Automation tenant scope đã được chốt. Không còn implementation gate nào trong bốn điểm này trước production SQL.
