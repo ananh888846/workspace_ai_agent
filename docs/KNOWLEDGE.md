@@ -1,7 +1,7 @@
 # Workspace AI Agent — KNOWLEDGE V1 / V2.1
 
 ## 1. Mục tiêu
-Knowledge Systematization Agent là capability đầu tiên. V1 bắt đầu với Google, sau đó mở rộng Facebook/Meta, TikTok và Instagram khi provider contracts/capabilities được phê duyệt.
+Knowledge Systematization Agent là capability đầu tiên. V1 triển khai Google Drive trước; kiến trúc provider-neutral để mở rộng Gmail, Facebook/Meta, Instagram, TikTok, Zalo, file upload, public URL và provider tương lai khi capability/authorization được phê duyệt.
 Knowledge không chỉ là text. Hệ thống quản lý source, document/version, binary asset và vector index.
 
 ## 2. Pipeline
@@ -13,7 +13,7 @@ File Storage giữ videos, images, documents, audio, thumbnails/derived files. V
 Qdrant giữ embeddings và retrieval metadata tối thiểu. Qdrant không phải source of truth và không phải permission store.
 
 ## 4. Sources dự kiến
-Google Drive; Gmail attachments; Facebook/Meta data; TikTok; Instagram; uploaded documents; device-generated documents/images.
+Google Drive; Gmail; Facebook/Meta; Instagram; TikTok; Zalo; file upload; public URL; device-generated documents/images và các provider tương lai.
 
 ## 5. Source URL và provenance
 Giữ URL nguồn ban đầu và canonical URL nếu resolve được.
@@ -50,3 +50,7 @@ Knowledge search phải chạy trong authorization context. Khi cần, Agent tru
 - KNOWLEDGE_STORAGE_PROVENANCE_V1.md
 
 Migration 051 phải được review dựa trên toàn bộ các contract này trước khi implementation.
+
+## 11. Migration 051 gate
+
+Migration 051 đã được runtime verification trên PostgreSQL và acceptance AT-051-01..11 đã PASS. Schema Knowledge V1 hiện là baseline để triển khai ingestion runtime.
