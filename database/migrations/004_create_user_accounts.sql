@@ -1,7 +1,7 @@
 BEGIN;
 
 CREATE TABLE user_accounts (
-  id UUID PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuidv7(),
   user_id UUID NOT NULL,
   provider VARCHAR(64) NOT NULL,
   account_type VARCHAR(64) NOT NULL,
