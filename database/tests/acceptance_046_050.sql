@@ -86,17 +86,17 @@ BEGIN
         RAISE NOTICE 'AT-055 PASS';
     END;
 
-    INSERT INTO tool_runs(agent_run_id,tool_id,account_id)
-    VALUES (run_b,tool_id,account_b);
+    INSERT INTO tool_runs(agent_run_id,tool_id,organization_id,user_id,account_id)
+    VALUES (run_b,tool_id,org_a,user_b,account_b);
     RAISE NOTICE 'AT-056 PASS';
 
-    INSERT INTO tool_runs(agent_run_id,tool_id,account_id,account_grant_id)
-    VALUES (run_b,tool_id,account_a,grant_a_to_b);
+    INSERT INTO tool_runs(agent_run_id,tool_id,organization_id,user_id,account_id,account_grant_id)
+    VALUES (run_b,tool_id,org_a,user_b,account_a,grant_a_to_b);
     RAISE NOTICE 'AT-057 PASS';
 
     BEGIN
-        INSERT INTO tool_runs(agent_run_id,tool_id,account_id,account_grant_id)
-        VALUES (run_b,tool_id,account_a,'00000000-0000-0000-0000-000000009999');
+        INSERT INTO tool_runs(agent_run_id,tool_id,organization_id,user_id,account_id,account_grant_id)
+        VALUES (run_b,tool_id,org_a,user_b,account_a,'00000000-0000-0000-0000-000000009999');
         RAISE EXCEPTION 'AT-058 expected invalid tool account grant rejection';
     EXCEPTION WHEN foreign_key_violation THEN
         RAISE NOTICE 'AT-058 PASS';
