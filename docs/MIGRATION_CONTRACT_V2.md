@@ -95,6 +95,7 @@ account_grants(organization_id, owner_user_id) → organization_members(organiza
 account_grants(organization_id, grantee_user_id) → organization_members(organization_id, user_id)
 account_grants(user_account_id, owner_user_id) → user_accounts(id, user_id)
 resources(parent_resource_id, organization_id) → resources(id, organization_id)
+resources(user_account_id, owner_user_id) → user_accounts(id, user_id)
 data_packages(organization_id, owner_user_id) → organization_members(organization_id, user_id)
 data_package_versions(data_package_id, organization_id) → data_packages(id, organization_id)
 data_package_resources(package_version_id, organization_id) → data_package_versions(id, organization_id)
@@ -102,6 +103,10 @@ data_package_resources(resource_id, organization_id) → resources(id, organizat
 data_package_grants(package_version_id, organization_id) → data_package_versions(id, organization_id)
 data_package_grants(organization_id, user_id) → organization_members(organization_id, user_id)
 devices(resource_id, organization_id) → resources(id, organization_id)
+user_sessions(organization_id, user_id) → organization_members(organization_id, user_id)
+user_sessions(device_id, organization_id) → devices(id, organization_id)
+device_users(device_id, organization_id) → devices(id, organization_id)
+device_users(organization_id, user_id) → organization_members(organization_id, user_id)
 ~~~
 
 Các target table phải có UNIQUE(id, organization_id) hoặc composite key tương đương.
@@ -762,3 +767,11 @@ Final lock: Agent tenant scope, Task schema, Anomaly Evidence explicit source FK
 # Verification Update — 2026-09-21 08:30:00 +07:00
 
 Migration 001 → 010 đã được verify thực tế trên PostgreSQL 18.6. Acceptance AT-001 → AT-008 đều PASS; test data được ROLLBACK. Contract gate 001 → 010 đã đóng.
+
+---
+
+# Migration 011 → 020 Pre-SQL Review Correction — 2026-09-21 10:00:00 +07:00
+
+- user_sessions is tenant-scoped with organization_id and composite FKs to organization membership and device.
+- device_users is tenant-scoped and cannot bind a device/user across organizations.
+- resources account ownership is enforced by composite FK; provider/account compatibility must be enforced at database level, not application-only.
