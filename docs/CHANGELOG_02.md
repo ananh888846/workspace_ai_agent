@@ -277,3 +277,15 @@
 - Bổ sung unit test xác nhận `pending_oauth` được chấp nhận ở account access và không truy cập `account_credentials`.
 - Đồng bộ `docs/API_PHASE2.md` và `docs/GOOGLE_CALENDAR.md`.
 - Không tạo Migration 052, không tạo credential giả và không bypass Authorization.
+
+
+## 2026-09-21 — Phase 2D Credential readiness gate cho Google Calendar
+
+- Thêm `PostgresCredentialRepository` để kiểm tra credential active, chưa hết hạn của `user_accounts`.
+- Credential repository chỉ được gọi sau Authorization = ALLOW.
+- Không chọn hoặc trả `encrypted_value`; HTTP response chỉ trả readiness metadata.
+- Account `pending_oauth` vẫn được resolve ở AccountResolver/Authorization và khi chưa có credential sẽ trả `oauth_required`.
+- Giữ nguyên boundary: chưa có OAuth thật, chưa gọi Google Calendar API và chưa tạo credential giả.
+- Sửa HTTP runtime giữ lại `account_state` thật của account metadata để không biến `pending_oauth` thành `active`.
+- Bổ sung kiểm thử core credential boundary và PostgreSQL credential readiness repository.
+- Không tạo Migration 052.
