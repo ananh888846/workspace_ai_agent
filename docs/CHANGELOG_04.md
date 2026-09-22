@@ -310,3 +310,35 @@ Kết quả verification local của chủ project phát hiện **5 test failure
 ### Git commit
 
 - `0f2e6a22e39bc53e5c11f5c8d5b5f1f652a671c4` — fix credential repository indentation regression.
+
+
+## 2026-09-22 — Runtime Architecture V2.2 Phase 2: Capability Routing
+
+Đã triển khai Phase 2 sau khi Phase 1 đạt **92 passed** toàn bộ test suite.
+
+- [app/agent_runtime/runtime.py](../app/agent_runtime/runtime.py)
+  - chuyển AgentRuntimeDependencies.execute thành route_handlers;
+  - thêm route vào Super-Graph state;
+  - thêm node route_request;
+  - thêm conditional edges tới handler theo capability;
+  - fallback default để giữ compatibility;
+  - không có route/default thì trả unsupported_action với provider_called=false.
+- [app/main.py](../app/main.py)
+  - đăng ký calendar.read và calendar.write vào Super-Graph;
+  - giữ Calendar execution hiện tại làm regression baseline;
+  - giữ default compatibility handler.
+- [tests/unit/agent_runtime/test_runtime.py](../tests/unit/agent_runtime/test_runtime.py)
+  - kiểm tra capability route;
+  - kiểm tra default route;
+  - kiểm tra unsupported route;
+  - tiếp tục kiểm tra secret boundary.
+- [docs/AGENT_RUNTIME_V2_2.md](./AGENT_RUNTIME_V2_2.md)
+  - ghi nhận thiết kế và verification gate Phase 2.
+- [docs/ARCHITECTURE.md](./ARCHITECTURE.md)
+  - cập nhật runtime flow Phase 2.
+- [docs/DECISIONS.md](./DECISIONS.md)
+  - thêm Decision 046 về capability routing.
+
+Không thay đổi database schema, migration, Docker Compose hoặc OAuth scope.
+
+**Verification:** chưa ghi nhận PASS trong entry này; cần chạy targeted và full regression sau khi pull.
