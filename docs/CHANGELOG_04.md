@@ -477,3 +477,14 @@ Chi tiết:
 **Commit:** `a8b242e09417413930b316a1a1f11f914f24aefe` — `fix Calendar Handler credential resolver test boundary`
 
 **Trạng thái:** chờ verification local targeted + full regression; chưa đóng Phase 3.
+
+## 2026-09-22 — Phase 3 CLOSED / VERIFIED
+
+Verification cuối:
+- targeted Calendar Handler + Agent Runtime: **6 passed**;
+- full regression: **97 passed, 0 failed, 2 warnings**;
+- OAuth-required boundary PASS sau khi sửa test mock đúng `app.application.capabilities.calendar.CredentialResolver`.
+
+Phase 3 hoàn tất. Không có DB migration, OAuth scope hoặc Docker topology thay đổi trong phase này.
+
+**Next phase:** E2E natural-language Agent tests với Google Calendar thật, theo đúng flow Runtime → LangGraph → CalendarHandler → Account → Authorization → Credential → Calendar Tool → Google Calendar.
