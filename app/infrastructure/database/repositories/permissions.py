@@ -32,11 +32,7 @@ class PostgresPermissionRepository:
         with self._connection.cursor() as cursor:
             cursor.execute(query, [user_id, resource, action])
             row = cursor.fetchone()
-        if not bool(row and row[0]):
-            return False
-        if access_mode != "grant":
-            return True
-        return capability in ((grant_scope or {}).get("capabilities") or [])
+        return bool(row and row[0])
 
     def has_account_access(
         self,
@@ -93,7 +89,11 @@ class PostgresPermissionRepository:
                 ],
             )
             row = cursor.fetchone()
-        return bool(row and row[0])
+        if not bool(row and row[0]):
+            return False
+        if access_mode != "grant":
+            return True
+        return capability in ((grant_scope or {}).get("capabilities") or [])
 
     def has_resource_access(
         self,
