@@ -4,6 +4,24 @@
 >
 > Quy tắc: changelog chỉ ghi trạng thái đã được triển khai/kiểm tra; không ghi `PASS` nếu chưa có runtime verification.
 
+## 2026-09-23 — Runtime verification: Calendar Natural Language Date/Time V1 PASS
+
+- Đã runtime verification trên môi trường local Windows với Python 3.14.7 và pytest 8.4.2.
+- Chạy `python -m pytest tests/services/test_calendar_datetime.py -v`.
+- Kết quả: **9/9 tests PASSED**, thời gian chạy 0.06 giây.
+- Đã xác nhận các nhóm xử lý:
+  - ngày mai lúc 9 giờ;
+  - thứ sáu tuần sau lúc 14:30;
+  - thời gian tương đối `2 tiếng nữa`;
+  - buổi chiều `2h chiều`;
+  - ngày cụ thể `24/09/2026 lúc 08:30`;
+  - giờ dạng `HH:MM`;
+  - giờ dạng `HHhMM`;
+  - từ chối reference datetime không có timezone;
+  - từ chối biểu thức ngày giờ rỗng.
+- **Calendar Natural Language Date/Time V1 — TEST PASS.**
+- Đây là unit/service-level verification; chưa phải E2E tích hợp parser vào Calendar CRUD request flow.
+
 ## 2026-09-22 — Sửa Calendar Natural Language Date/Time V1: nhận dạng giờ có dấu hai chấm
 
 - Sửa [`app/services/calendar_datetime.py`](../app/services/calendar_datetime.py): parser nhận dạng các dạng giờ `HH:MM` và `HHhMM`, đồng thời tiếp tục hỗ trợ giờ đơn như `9h` hoặc `9 giờ` sau bước normalize.
