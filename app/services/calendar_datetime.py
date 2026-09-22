@@ -8,32 +8,13 @@ from zoneinfo import ZoneInfo
 VIETNAM_TIMEZONE = ZoneInfo("Asia/Ho_Chi_Minh")
 
 _WEEKDAY_NAMES = {
-    "thu 2": 0,
-    "thứ 2": 0,
-    "thu hai": 0,
-    "thứ hai": 0,
-    "thu 3": 1,
-    "thứ 3": 1,
-    "thu ba": 1,
-    "thứ ba": 1,
-    "thu 4": 2,
-    "thứ 4": 2,
-    "thu tu": 2,
-    "thứ tư": 2,
-    "thu 5": 3,
-    "thứ 5": 3,
-    "thu nam": 3,
-    "thứ năm": 3,
-    "thu 6": 4,
-    "thứ 6": 4,
-    "thu sau": 4,
-    "thứ sáu": 4,
-    "thu 7": 5,
-    "thứ 7": 5,
-    "thu bay": 5,
-    "thứ bảy": 5,
-    "chu nhat": 6,
-    "chủ nhật": 6,
+    "thu 2": 0, "thứ 2": 0, "thu hai": 0, "thứ hai": 0,
+    "thu 3": 1, "thứ 3": 1, "thu ba": 1, "thứ ba": 1,
+    "thu 4": 2, "thứ 4": 2, "thu tu": 2, "thứ tư": 2,
+    "thu 5": 3, "thứ 5": 3, "thu nam": 3, "thứ năm": 3,
+    "thu 6": 4, "thứ 6": 4, "thu sau": 4, "thứ sáu": 4,
+    "thu 7": 5, "thứ 7": 5, "thu bay": 5, "thứ bảy": 5,
+    "chu nhat": 6, "chủ nhật": 6,
 }
 
 _TIME_PARTS = {
@@ -124,9 +105,7 @@ class CalendarDateTimeParser:
 
         for name, weekday in sorted(_WEEKDAY_NAMES.items(), key=lambda item: -len(item[0])):
             if name in text:
-                weeks = 0
-                if "tuần sau" in text or "tuan sau" in text:
-                    weeks = 1
+                weeks = 1 if "tuần sau" in text or "tuan sau" in text else 0
                 return self._next_weekday(reference_date, weekday, weeks=weeks)
 
         explicit = re.search(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b", text)
@@ -149,16 +128,22 @@ class CalendarDateTimeParser:
         return reference_date + timedelta(days=days_ahead)
 
     def _parse_time(self, text: str) -> time | None:
+        # Chỉ coi số là giờ khi có dấu ':' hoặc ký hiệu 'h', tránh nhầm ngày 24/09/2026 thành giờ 24.
         match = re.search(
-            r"\b(\d{1,2})(?:(?::|h)\s*(\d{2}))?\s*(?:h\s*)?(sáng|trưa|chiều|tối)?\b",
+            r"\b(?:(\d{1,2}):(\d{2})\b|(\d{1,2})h\s*(\d{2})?\b)\s*(sáng|trưa|chiều|tối)?",
             text,
         )
         if not match:
             return None
 
-        hour = int(match.group(1))
-        minute = int(match.group(2) or 0)
-        period = match.group(3)
+        if match.group(1) is not None:
+            hour = int(match.group(1))
+            minute = int(match.group(2))
+        else:
+            hour = int(match.group(3))
+            minute = int(match.group(4) or 0)
+
+        period = match.group(5)
 
         if period == "chiều" and hour < 12:
             hour += 12
