@@ -138,3 +138,11 @@
 - Nếu credential đã hết hạn nhưng không còn `refresh_token`, mới trả `oauth_required`.
 - Không thay đổi encrypted credential, OAuth scope hoặc database schema.
 - Chưa đánh dấu Calendar Write E2E PASS; cần chạy lại request Create UTF-8 sau khi restart server.
+
+
+## 2026-09-22 — Chuẩn hóa timezone response Calendar Write
+
+- Sửa response Calendar Write để chuyển `start` và `end` từ UTC của Google Calendar sang `Asia/Ho_Chi_Minh` / GMT+7.
+- Response đặt `timeZone=Asia/Ho_Chi_Minh` để `dateTime` và timezone metadata nhất quán.
+- Không thay đổi nguyên tắc database lưu UTC hoặc payload gửi Google Calendar.
+- Cần test lại Create với event mới; không dùng lại event đã tạo trước khi sửa.
