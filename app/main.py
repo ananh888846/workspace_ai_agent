@@ -12,6 +12,7 @@ from app.api.chat import (
     build_chat_response,
     classify_chat_request,
     execute_google_calendar_read,
+    execute_google_calendar_free_busy,
     execute_google_calendar_write,
     resolve_google_account,
     resolve_google_credential,
@@ -138,6 +139,8 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     try:
         if capability == "calendar.read" and action == "read":
             body["calendar"] = execute_google_calendar_read(account=account, credential_resolution=credential_result)
+        elif capability == "calendar.read" and action == "free_busy":
+            body["calendar"] = execute_google_calendar_free_busy(account=account, credential_resolution=credential_result, start=payload.start, end=payload.end)
         elif capability == "calendar.write" and action in {"create", "update", "delete"}:
             natural_start = _natural_language_calendar_start(payload.message, payload.start)
             body["execution"]["natural_language_datetime"] = {
