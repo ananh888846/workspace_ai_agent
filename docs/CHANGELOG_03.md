@@ -1,3 +1,18 @@
+
+## 2026-09-22 — Calendar Free/Busy + Conflict Detection V1 CLOSED / E2E PASS
+
+- Runtime E2E hoàn tất với Google Calendar thật trên account `ananh888846@gmail.com`.
+- Create event test `TEST FreeBusy V1`: **PASS**, event `10krafu0fd8629bb41hpantv9o`, `14:00–15:00` GMT+7.
+- FreeBusy `13:00–16:00`: **PASS / conflict**, Google trả busy `14:00–15:00`.
+- FreeBusy `14:30–15:30`: **PASS / conflict**.
+- Boundary `15:00–16:00`: **PASS / free**; khoảng bắt đầu đúng lúc busy kết thúc không bị coi là overlap.
+- Delete event test: **PASS**, Google Calendar xóa thành công event `10krafu0fd8629bb41hpantv9o`.
+- Runtime đi qua AccountResolver → AuthorizationService → CredentialResolver → CalendarToolRegistry → GoogleCalendarTool → GoogleCalendarAdapter → Google Calendar API `freeBusy.query` → CalendarConflictDetector.
+- Xác nhận `provider_called=true`, timezone `Asia/Ho_Chi_Minh`, OAuth scope hiện tại không đổi và không cần migration database.
+- ConflictDetector unit tests trước E2E: **5/5 PASSED**.
+- Cập nhật [`docs/GOOGLE_CALENDAR.md`](./GOOGLE_CALENDAR.md), [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) và [`docs/DECISIONS.md`](./DECISIONS.md).
+- Event test đã được xóa sau verification; không để lại dữ liệu test trên Google Calendar.
+
 ## 2026-09-22 — E2E đóng Calendar Natural Language Date/Time V1
 
 - Runtime verification hoàn tất với Google Calendar thật trên account `ananh888846@gmail.com`.
