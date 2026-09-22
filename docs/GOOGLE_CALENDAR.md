@@ -419,3 +419,45 @@ Event E2E đã được xóa sau khi hoàn tất verification, không để lạ
 8. Provider Google Calendar API — **PASS**.
 
 **Calendar Natural Language Date/Time V1 — CLOSED / E2E PASS.**
+
+
+## 12. Free/Busy và Conflict Detection V1 — ĐANG TRIỂN KHAI
+
+Free/Busy V1 dùng capability calendar.read với action free_busy, không tạo permission mới.
+
+Luồng runtime:
+
+AccountResolver
+  ↓
+AuthorizationService(calendar.read)
+  ↓ ALLOW
+CredentialResolver
+  ↓ READY
+CalendarToolRegistry
+  ↓
+GoogleCalendarTool
+  ↓
+GoogleCalendarAdapter
+  ↓
+Google Calendar API freeBusy.query
+  ↓
+CalendarConflictDetector
+
+Ranh giới:
+- GoogleCalendarAdapter chỉ chuyển đổi request/response của provider.
+- CalendarConflictDetector chỉ xử lý các khoảng busy đã nhận, không gọi Google API.
+- Free/Busy V1 không dùng LangGraph trong service.
+- Free/Busy V1 không dùng Pydantic.
+- Datetime nội bộ tiếp tục timezone-aware; provider boundary dùng UTC.
+- OAuth scope hiện tại được giữ nguyên.
+- Chưa tạo migration database.
+
+API provider được ưu tiên là Google Calendar API và client library chính thức của Google; không thêm thư viện bên thứ ba chỉ để thay thế capability đã có trong SDK chính thức.
+
+### Trạng thái
+
+- Thiết kế: **ĐÃ CHỐT**
+- Code service/adapter/tool: **ĐÃ TẠO**
+- Unit tests: **ĐÃ TẠO, CHƯA RUNTIME VERIFY**
+- Google Calendar E2E: **CHƯA THỰC HIỆN**
+- Chưa được đánh dấu CLOSED/PASS cho tới khi runtime verification thật hoàn tất.
