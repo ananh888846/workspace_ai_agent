@@ -146,3 +146,17 @@
 - Response đặt `timeZone=Asia/Ho_Chi_Minh` để `dateTime` và timezone metadata nhất quán.
 - Không thay đổi nguyên tắc database lưu UTC hoặc payload gửi Google Calendar.
 - Cần test lại Create với event mới; không dùng lại event đã tạo trước khi sửa.
+
+
+## 2026-09-22 — Calendar Write V1 CLOSED / E2E PASS
+
+- Đã kiểm chứng thực tế Calendar Write V1 với Google Calendar thật qua `POST /api/v1/agent/chat`.
+- Create event — **PASS**: tạo event `p85pvng0r6fmnacg8bfm8lhesg` thành công.
+- Update event — **PASS**: cập nhật đúng event theo `event_id`, bao gồm nội dung tiếng Việt và thời gian GMT+7.
+- Delete chưa xác nhận — **PASS**: trả `confirmation_required` và `provider_called=false`, không gọi Google Calendar.
+- Delete có `confirmed=true` — **PASS**: Google Calendar được gọi và xóa đúng event `p85pvng0r6fmnacg8bfm8lhesg`.
+- AccountResolver, Authorization, CredentialResolver và provider boundary đều hoạt động đúng trong các E2E Write.
+- Response `start/end` nhất quán với `Asia/Ho_Chi_Minh` / GMT+7; chuẩn UTC nội bộ không thay đổi.
+- UTF-8 tiếng Việt được kiểm chứng qua Create/Update.
+- Đóng acceptance **Calendar Write V1 — CLOSED / E2E PASS**.
+- Provider error/rollback acceptance và Calendar webhook/push sync vẫn để phase sau; chưa đánh dấu PASS.
