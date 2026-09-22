@@ -189,3 +189,10 @@ Verification local sau regression compatibility fix còn **1 failure / 96 passed
 - không dispatch Calendar execution/provider.
 
 **Trạng thái:** chờ chạy lại targeted + full regression. Không chuyển Phase 4 cho tới khi full suite PASS.
+
+
+## 2026-09-22 — Hardening lần 2: cô lập credential provider_called cho oauth_required
+
+Local verification sau commit trước vẫn còn 1 failure: `oauth_required` trả `execution.credential.provider_called = true` dù handler đã dừng trước provider. Đã gia cố bằng cách tạo dict credential mới khi nhánh pre-provider kết thúc, tránh mọi alias/reference có thể làm thay đổi cờ `provider_called` sau phép gán.
+
+**Trạng thái:** chờ verification local lại. Chưa đóng Phase 3.
