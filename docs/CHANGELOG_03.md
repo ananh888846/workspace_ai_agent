@@ -128,3 +128,13 @@
 - Chỉ khôi phục các chuỗi có dấu hiệu mojibake phổ biến; chuỗi Unicode tiếng Việt bình thường được giữ nguyên.
 - Mục tiêu là tránh trường hợp client Windows/PowerShell làm sai encoding trước khi text đi vào Google Calendar.
 - Chưa đánh dấu Calendar Write E2E PASS; cần tạo event tiếng Việt thật và kiểm tra trực tiếp trên Google Calendar.
+
+
+## 2026-09-22 — Sửa CredentialResolver cho OAuth credential có thể refresh
+
+- Xác định nguyên nhân Calendar Write trả `oauth_required` dù account có credential `active`: truy vấn credential trước đây loại bỏ mọi row có `expires_at` đã qua.
+- Sửa `PostgresCredentialRepository` để vẫn lấy credential `status=active` khi access token đã hết hạn.
+- Nếu credential còn `refresh_token`, trả `ready` để Google Auth có thể refresh access token khi provider được gọi.
+- Nếu credential đã hết hạn nhưng không còn `refresh_token`, mới trả `oauth_required`.
+- Không thay đổi encrypted credential, OAuth scope hoặc database schema.
+- Chưa đánh dấu Calendar Write E2E PASS; cần chạy lại request Create UTF-8 sau khi restart server.
