@@ -12,6 +12,7 @@ from app.infrastructure.database.repositories.permissions import PostgresPermiss
 from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
 from app.tools.registry import CalendarToolRegistry
 from app.services.calendar_free_busy import BusyPeriod, CalendarConflictDetector
+from app.graphs.scheduling import SchedulingGraphDependencies, run_scheduling_graph
 
 
 def _repair_mojibake(value: str | None) -> str | None:
@@ -38,6 +39,12 @@ def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | 
     write_words = ("tạo lịch", "tạo cuộc hẹn", "đặt lịch", "thêm lịch", "thêm cuộc hẹn", "sửa lịch", "sửa cuộc hẹn", "cập nhật lịch", "xóa lịch", "xóa cuộc hẹn", "xoá lịch", "xoá cuộc hẹn", "huỷ lịch", "hủy lịch")
     if not any(word in text for word in read_words):
         return "not_classified", None, None
+    scheduling_words = (
+        "tìm thời gian", "tìm giờ", "tìm lịch", "xếp lịch", "sắp xếp lịch",
+        "lịch trống", "khung giờ", "slot", "thời gian phù hợp",
+    )
+    if any(word in text for word in scheduling_words) and not any(word in text for word in write_words):
+        return "calendar", "calendar.read", "schedule"
     free_busy_words = ("rảnh", "bận", "trống", "free busy", "free/busy", "availability")
     if any(word in text for word in free_busy_words) and not any(word in text for word in write_words):
         return "calendar", "calendar.read", "free_busy"
@@ -180,6 +187,105 @@ def execute_google_calendar_write(*, account: ExternalAccount, credential_resolu
         result = tool.execute("update_event", credential_context=credential_context, calendar_id=account.external_account_id, event_id=event_id, event=event)
     return {"status": "ok", "action": provider_action, "event": _event_to_response(result), "provider_called": True}
 
+
+
+
+
+def execute_google_calendar_scheduling(
+    *,
+    account: ExternalAccount,
+    credential_resolution: object,
+    search_start: str | None,
+    search_end: str | None,
+    duration_minutes: int,
+    max_results: int = 5,
+) -> dict:
+    """Tìm slot rảnh qua Scheduling Graph sau Authorization và credential resolution."""
+    credential_context = getattr(credential_resolution, "credential_context", None)
+    if credential_context is None:
+        raise RuntimeError("google_credential_context_missing")
+    if not search_start or not search_end:
+        return {
+            "status": "validation_error",
+            "error": "search_start_search_end_required",
+            "provider_called": False,
+        }
+    try:
+        requested_start = _parse_client_datetime(search_start)
+        requested_end = _parse_client_datetime(search_end)
+    except (TypeError, ValueError):
+        return {
+            "status": "validation_error",
+            "error": "datetime_must_be_iso8601_with_timezone",
+            "provider_called": False,
+        }
+    if duration_minutes <= 0:
+        return {
+            "status": "validation_error",
+            "error": "duration_minutes_must_be_positive",
+            "provider_called": False,
+        }
+    if requested_end <= requested_start:
+        return {
+            "status": "validation_error",
+            "error": "search_end_must_be_after_search_start",
+            "provider_called": False,
+        }
+
+    def resolve_calendar(state: dict) -> list[str]:
+        return [account.external_account_id]
+
+    def get_free_busy(state: dict, calendar_ids: list[str]) -> list[BusyPeriod]:
+        tool = CalendarToolRegistry().resolve(
+            capability="calendar.read",
+            provider=account.provider,
+            action="free_busy",
+        )
+        provider_data = tool.execute(
+            "free_busy",
+            credential_context=credential_context,
+            calendar_ids=calendar_ids,
+            time_min=requested_start.isoformat().replace("+00:00", "Z"),
+            time_max=requested_end.isoformat().replace("+00:00", "Z"),
+            time_zone="Asia/Ho_Chi_Minh",
+        )
+        return _busy_periods_from_provider(provider_data)
+
+    result = run_scheduling_graph(
+        search_start=requested_start,
+        search_end=requested_end,
+        duration_minutes=duration_minutes,
+        max_results=max_results,
+        dependencies=SchedulingGraphDependencies(
+            resolve_calendar=resolve_calendar,
+            get_free_busy=get_free_busy,
+        ),
+    )
+    return {
+        "status": result["status"],
+        "action": "schedule",
+        "calendar_ids": result.get("calendar_ids", []),
+        "search_start": to_vietnam_time(requested_start).isoformat(),
+        "search_end": to_vietnam_time(requested_end).isoformat(),
+        "duration_minutes": duration_minutes,
+        "timezone": "Asia/Ho_Chi_Minh",
+        "busy": [
+            {
+                "calendar_id": period.calendar_id,
+                "start": to_vietnam_time(period.start).isoformat(),
+                "end": to_vietnam_time(period.end).isoformat(),
+            }
+            for period in result.get("busy_periods", [])
+        ],
+        "available_slots": [
+            {
+                "start": to_vietnam_time(slot.start).isoformat(),
+                "end": to_vietnam_time(slot.end).isoformat(),
+            }
+            for slot in result.get("available_slots", [])
+        ],
+        "provider_called": True,
+    }
 
 
 def _busy_periods_from_provider(data: dict[str, list[dict[str, str]]]) -> list[BusyPeriod]:
