@@ -314,8 +314,46 @@ Parser không:
 - tự quyết định conflict;
 - tự tạo/sửa/xóa event.
 
-### 16.4 Runtime status
+### 16.4 Tích hợp Calendar Write
+
+Khi Calendar Write nhận request không truyền `start`, runtime sẽ thử phân tích `payload.message` bằng `CalendarDateTimeParser`.
+
+Luồng:
+
+```text
+POST /api/v1/agent/chat
+  ↓
+Calendar classification
+  ↓
+AccountResolver
+  ↓
+Authorization
+  ↓
+CredentialResolver
+  ↓
+CalendarDateTimeParser
+  ↓
+start = datetime timezone-aware Asia/Ho_Chi_Minh
+  ↓
+Calendar Write
+  ↓
+UTC tại provider boundary
+  ↓
+Google Calendar API
+```
+
+Nguyên tắc an toàn:
+
+- `payload.start` tường minh luôn được ưu tiên.
+- Chỉ thử parse message khi có dấu hiệu ngày/giờ.
+- Nếu parser không parse được, `start` vẫn rỗng và Calendar Write trả validation error thay vì tự đoán.
+- V1 chỉ tự chuẩn hóa `start`; `end` vẫn phải truyền rõ bằng ISO-8601 có timezone.
+- Parser không truy cập account, authorization, credential hoặc provider.
+
+### 16.5 Runtime status
 
 - Service parser: **đã triển khai**.
-- Unit test cho các trường hợp V1: **đã tạo**.
-- E2E tích hợp Natural Language vào Calendar Create/Read: **chưa đóng**.
+- Unit test parser V1: **PASS — 9/9**.
+- Integration helper cho Calendar Write: **đã triển khai**.
+- Test integration helper: **đã tạo, chờ runtime verification local**.
+- E2E Natural Language Create/Update với Google Calendar thật: **chưa đóng**.
