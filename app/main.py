@@ -20,6 +20,7 @@ from app.api.chat import (
 )
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
+from app.application.execution_contract import build_execution_contract, normalize_result_status
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
 from app.services.calendar_datetime import CalendarDateTimeParser
@@ -46,6 +47,7 @@ class AgentChatRequest(BaseModel):
     duration_minutes: int = Field(default=60, ge=1, le=1440)
     max_results: int = Field(default=5, ge=1, le=20)
 
+
 def _natural_language_calendar_start(message: str, explicit_start: str | None) -> str | None:
     """Chuẩn hóa start từ câu tiếng Việt khi request chưa truyền start rõ ràng."""
     if explicit_start:
@@ -65,6 +67,23 @@ def _natural_language_calendar_start(message: str, explicit_start: str | None) -
     except ValueError:
         return None
     return parsed.value.isoformat()
+
+
+def _execution_contract(*, intent: str, capability: str | None, action: str | None) -> dict:
+    """Tạo execution state từ contract chuẩn thay vì tự dựng shape riêng."""
+    return build_execution_contract(
+        intent=intent,
+        capability=capability,
+        action=action,
+    )
+
+
+def _normalize_execution_statuses(execution: dict) -> None:
+    """Chuẩn hóa các status runtime qua Execution Contract trước khi trả API."""
+    for key in ("account", "authorization", "credential"):
+        section = execution.get(key)
+        if isinstance(section, dict) and isinstance(section.get("status"), str):
+            section["status"] = normalize_result_status(section["status"])
 
 
 @app.get("/auth/google/start")
@@ -107,6 +126,10 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     request = ChatRequest(message=payload.message, conversation_id=payload.conversation_id, account_hint=payload.account_hint, capability=payload.capability, action=payload.action, target_resource=payload.target_resource)
     body = asdict(build_chat_response(request))
     intent, capability, action = classify_chat_request(request)
+
+    # Execution Contract V1 là source của truth cho runtime execution shape.
+    body["execution"] = _execution_contract(intent=intent, capability=capability, action=action)
+
     # Request Calendar đã được phân loại phải đi vào runtime authorization,
     # kể cả khi client không truyền capability/action tường minh.
     needs_runtime_context = bool(
@@ -119,10 +142,6 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     if needs_runtime_context and (not x_user_id or not x_organization_id):
         raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required for runtime authorization")
 
-    body["execution"]["intent"] = intent
-    body["execution"]["capability"] = capability
-    body["execution"]["action"] = action
-
     if not needs_runtime_context:
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
     if not x_user_id or not x_organization_id:
@@ -130,6 +149,7 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
 
     execution_account = resolve_google_account(user_id=x_user_id, organization_id=x_organization_id, account_hint=payload.account_hint)
     body["execution"]["account"] = execution_account
+    _normalize_execution_statuses(body["execution"])
     if execution_account["status"] != "resolved":
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
 
@@ -139,6 +159,7 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     account = ExternalAccount(id=execution_account["account_id"], user_id=x_user_id, provider=execution_account["provider"], account_type="oauth", external_account_id=execution_account["external_account_id"], display_name=execution_account["display_name"], email=execution_account["email"], status=execution_account.get("account_state", "active"))
     authorization = authorize_request(user_id=x_user_id, organization_id=x_organization_id, capability=capability, action=action, account=account, target_resource=payload.target_resource)
     body["execution"]["authorization"] = authorization
+    _normalize_execution_statuses(body["execution"])
     if authorization.get("status") != "allow":
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
 
@@ -149,6 +170,7 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
         credential_result = CredentialResolver(PostgresCredentialRepository(connection)).resolve(decision=AuthorizationDecision(allowed=True, reason="authorized", code="allow"), account=account)
 
     body["execution"]["credential"] = resolve_google_credential(account=account, authorization=authorization)
+    _normalize_execution_statuses(body["execution"])
     if credential_result.status != "ready":
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
 
