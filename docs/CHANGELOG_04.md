@@ -428,3 +428,28 @@ Không thay đổi DB schema/migration, OAuth scope, Docker topology hoặc Exec
 - `fix Calendar Handler missing context HTTP boundary`
 - `update runtime tests for Calendar Handler boundaries`
 - `update Calendar API runtime mock boundary`
+
+
+## 2026-09-22 — Gia cố OAuth-required provider boundary sau Phase 3 verification
+
+Verification local sau các regression fix:
+- targeted Calendar Handler + Agent Runtime: **6 passed**;
+- full regression: **1 failed, 96 passed, 2 warnings**.
+
+Failure duy nhất:
+- `tests/runtime/test_execution_error_boundary_runtime.py::test_runtime_oauth_required_error_boundary`;
+- `credential.status = oauth_required` nhưng `credential.provider_called = true`.
+
+Đã sửa `app/application/capabilities/calendar.py` để nhánh credential chưa `ready` luôn kết thúc trước Calendar execution và giữ:
+- `execution.credential.provider_called = false`;
+- `execution.provider_called = false`.
+
+Đây là hardening đúng theo Execution/Error Boundary: `oauth_required` là pre-provider error.
+
+Không thay đổi DB schema/migration, OAuth scope, Docker topology hoặc Execution Contract semantics.
+
+**Verification:** chưa PASS; cần pull commit mới và chạy lại targeted + full regression.
+
+### Git commit
+
+- `851473cdaacb635a8d442bbaf5be3d7ecfcd1f5a` — fix OAuth-required provider boundary in Calendar Handler.
