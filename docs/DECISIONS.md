@@ -47,8 +47,8 @@ Device có identity/credential/capability riêng.
 AI inference không mặc định là fact.
 
 ## Decision 012 — LangChain + CrewAI
-**Status:** Superseded  
-Decision cũ về LangChain + CrewAI được thay thế bởi Decision 031. Framework primitives không được phép sở hữu authorization.
+**Status:** Rejected / Superseded  
+Quyết định lịch sử về LangChain + CrewAI bị loại khỏi kiến trúc project. **Project không dùng LangChain và không dùng CrewAI.** Quyết định hiện hành là **chỉ dùng LangGraph cho orchestration** và **Pydantic dùng chọn lọc cho data contract khi thực sự cần**. Không thêm LangChain/CrewAI làm dependency, abstraction layer hoặc runtime framework.
 
 ## Decision 013 — Provider Independence
 **Status:** Accepted  
@@ -124,7 +124,7 @@ Calendar Write dùng capability `calendar.write` và luôn đi qua AccountResolv
 
 ## Decision 031 — LangGraph as Production Agent Orchestrator
 **Status:** Accepted  
-LangGraph là framework orchestration chuẩn của toàn bộ Workspace AI Agent trong production.
+LangGraph là framework orchestration duy nhất của toàn bộ Workspace AI Agent trong production.
 
 Phạm vi:
 - Điều phối graph/node/edge và thứ tự thực thi.
@@ -173,3 +173,18 @@ Pydantic không được dùng để thay thế Authorization, business rules ho
 ## Decision 033 — Calendar nâng cấp sau CRUD
 **Status:** Proposed  
 Calendar sẽ được nâng cấp sau khi LangGraph architecture được chốt, ưu tiên Natural Language Date/Time → Free/Busy/Conflict Detection → Scheduling Assistant → Recurrence → Multi-account Calendar. Chưa triển khai các phần này trong decision hiện tại.
+
+## Decision 034 — Chủ project phải chốt trước khi dùng LangGraph/Pydantic cho phần mới
+**Status:** Accepted  
+Trước mỗi lần triển khai một phần mới có quyết định kỹ thuật trực tiếp về việc sử dụng LangGraph hoặc Pydantic, phải hỏi ý kiến chủ project trước.
+
+Quy trình:
+1. Xác định yêu cầu và boundary cần giải quyết.
+2. Phân tích xem có thực sự cần LangGraph/Pydantic hay không.
+3. Nếu có phương án/framework tốt hơn, phải đề xuất và so sánh cho chủ project.
+4. Chờ chủ project chốt.
+5. Chỉ sau khi được chấp thuận mới triển khai.
+
+Quy tắc này không yêu cầu hỏi cho mọi helper Python nhỏ hoặc thay đổi không liên quan đến quyết định dùng LangGraph/Pydantic.
+
+Mục tiêu là tránh over-engineering, giữ quyền quyết định kiến trúc ở chủ project và bảo đảm framework được dùng đúng chỗ.
