@@ -664,3 +664,41 @@ Implementation:
 - Không tạo migration database.
 
 Phase 1 là migration seam, chưa phải hoàn tất Super-Graph cho mọi capability. Phase 2 sẽ tách capability routing/execution handler khỏi callback theo từng capability và chạy regression sau từng bước.
+
+
+## Runtime Architecture V2.2 — Phase 2: Capability Routing
+
+Phase 2 đã chuyển Super-Graph từ orchestration seam sang capability routing thực tế.
+
+Luồng hiện tại:
+
+```text
+FastAPI
+  ↓
+Agent Runtime Entry
+  ↓
+LangGraph Super-Graph
+  ├── classify_request
+  ├── route_request
+  │    ├── calendar.read → Calendar handler
+  │    ├── calendar.write → Calendar handler
+  │    └── default → compatibility/default handler
+  ↓
+Application Boundary
+  ↓
+Tool
+  ↓
+Provider
+```
+
+Nguyên tắc Phase 2:
+- Super-Graph chịu trách nhiệm route theo capability đã được classification.
+- Capability handler được dependency injection từ Application boundary.
+- Graph state chỉ giữ request/context/classification/route/result; không chứa credential secret.
+- Calendar execution hiện tại được giữ nguyên để bảo toàn regression baseline.
+- Capability routing không cho LLM tự quyết định authorization, account hoặc credential.
+- Capability chưa có handler sẽ đi qua default nếu handler này được đăng ký; nếu không có default, Graph trả unsupported_action với provider_called=false.
+- Không thay đổi Docker Compose.
+- Không tạo migration database.
+
+Phase tiếp theo sẽ tách Calendar handler thành application capability handler độc lập hơn, sau khi Phase 2 routing regression PASS.
