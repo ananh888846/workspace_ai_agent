@@ -105,7 +105,6 @@
 - Cập nhật `docs/GOOGLE_CALENDAR.md` với contract Calendar Write V1 và nguyên tắc UTC/GMT+7.
 - **Chưa đánh dấu E2E PASS**; cần chạy Create/Update/Delete trên Google Calendar thật.
 
-
 ## 2026-09-21 — Chốt runbook Google OAuth
 
 - Thêm `docs/GOOGLE_OAUTH.md` làm tài liệu thao tác chuẩn cho toàn bộ quy trình Google OAuth.
@@ -122,3 +121,10 @@
 - Datetime sai định dạng hoặc thiếu timezone trả `validation_error` và `provider_called=false`, không bị báo nhầm thành lỗi provider.
 - Chuyển các docstring/comment tiếng Anh còn lại trong Calendar adapter sang tiếng Việt theo quy tắc mã nguồn Python của dự án.
 - Chưa đánh dấu Calendar Write E2E PASS; chờ kiểm tra Create/Update/Delete trên Google Calendar thật.
+
+## 2026-09-22 — Bảo vệ UTF-8 cho Calendar Write
+
+- Thêm lớp bảo vệ `_repair_mojibake()` trước khi gửi `summary`, `description` và `location` tới Google Calendar.
+- Chỉ khôi phục các chuỗi có dấu hiệu mojibake phổ biến; chuỗi Unicode tiếng Việt bình thường được giữ nguyên.
+- Mục tiêu là tránh trường hợp client Windows/PowerShell làm sai encoding trước khi text đi vào Google Calendar.
+- Chưa đánh dấu Calendar Write E2E PASS; cần tạo event tiếng Việt thật và kiểm tra trực tiếp trên Google Calendar.
