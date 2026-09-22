@@ -723,3 +723,37 @@ Regression local sau khi sửa đúng test dependency boundary:
 - full regression: **97 passed, 0 failed, 2 warnings**.
 
 Kết luận: Calendar Application Handler extraction đã giữ đúng Application Boundary và Execution/Error Contract. Phase 3 được đóng VERIFIED.
+
+
+## Decision 048 — Phase 4: E2E Agent + Google Calendar real provider
+
+**Trạng thái:** Accepted — Phase 4A implementation started
+
+Phase 4 kiểm chứng toàn bộ request path bằng Google Calendar thật, thay vì chỉ mock provider:
+
+`FastAPI → Agent Runtime → LangGraph Super-Graph → CalendarHandler → Account Resolver → Authorization → Credential Resolver → Calendar Tool → Google Calendar`.
+
+### Phạm vi Phase 4A
+- E2E test chạy opt-in, không làm chậm regression mặc định.
+- Tạo event thật bằng `calendar.write` thông qua Agent Runtime.
+- Đọc event thật bằng `calendar.read` thông qua Agent Runtime.
+- Delete phải đi qua hai bước: request chưa confirmation và request đã confirmation.
+- Request delete chưa confirmation phải có `provider_called=false` và không gọi Google Calendar.
+- Cleanup event test phải được thực hiện sau test để không để lại dữ liệu kiểm thử.
+- Không đưa credential/secret vào test payload hoặc Graph state.
+
+### Cấu hình E2E
+Các biến môi trường được dùng bởi test:
+- `RUN_GOOGLE_CALENDAR_E2E=1` để bật test.
+- `WORKSPACE_E2E_USER_ID` là user đã tồn tại trong database.
+- `WORKSPACE_E2E_ORGANIZATION_ID` là organization của user.
+- `WORKSPACE_E2E_ACCOUNT_HINT` là account Google cụ thể nếu user có nhiều account; có thể bỏ trống khi resolver tự chọn được một account.
+
+### Quy tắc regression
+Không bật E2E real-provider trong `python -m pytest -q` mặc định. Phase 4 chỉ được CLOSED sau khi chủ project chạy targeted E2E với credential thật và xác nhận provider side effects đúng.
+
+### Ranh giới tự nhiên ngôn ngữ
+Phase 4A kiểm chứng pipeline/provider trước với request tự nhiên ở classification nhưng vẫn cho phép payload có field chuẩn hóa khi cần. Các yêu cầu như “ngày mai”, “tuần này”, “kéo dài 1 tiếng” sẽ được mở thành các test natural-language extraction riêng, không giả định parser hiện tại đã hỗ trợ đầy đủ trước khi kiểm chứng.
+
+### Provider reference
+Google Calendar Events API hỗ trợ create/list/delete event; test của project phải đi qua Tool/Provider hiện hữu thay vì gọi Google API trực tiếp trong test.
