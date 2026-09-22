@@ -1,3 +1,11 @@
+## 2026-09-22 — Sửa expectation test Calendar Read theo UTC normalization
+
+- Runtime test phát hiện implementation đã chuyển đúng `2026-09-24T00:00:00+07:00` thành `2026-09-23T17:00:00+00:00` trước khi gọi provider.
+- Sửa expectation trong `tests/unit/api/test_chat_api.py` để phản ánh contract hiện tại: request local GMT+7 được normalize sang UTC ở provider boundary.
+- Đây là **test fix**, không thay đổi logic Calendar Read.
+- Lần chạy trước: **17/18 PASSED, 1 FAILED** do expectation của test sai múi giờ.
+- Chưa đánh dấu E2E PASS.
+
 ## 2026-09-22 — Calendar Read V1 hỗ trợ khoảng thời gian request
 
 - Sửa [app/api/chat.py](../app/api/chat.py): Calendar Read không còn luôn cố định vào ngày hiện tại.
