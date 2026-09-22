@@ -41,6 +41,29 @@ class ExternalAccount:
 
 
 @dataclass(frozen=True)
+class AccountCandidate:
+    """Account metadata + access metadata; không chứa credential secret."""
+
+    def __init__(self, account: ExternalAccount, access_mode: str, account_grant_id: str | None = None, organization_id: str | None = None, grant_scope: dict[str, Any] | None = None):
+        self.account = account
+        self.access_mode = access_mode
+        self.account_grant_id = account_grant_id
+        self.organization_id = organization_id
+        self.grant_scope = grant_scope
+
+
+@dataclass(frozen=True)
+class ResolvedAccount:
+    """Account đã resolve, không chứa access token/refresh token/client secret."""
+
+    account: ExternalAccount
+    access_mode: str
+    account_grant_id: str | None
+    organization_id: str
+    grant_scope: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
 class AuthorizationDecision:
     allowed: bool
     reason: str
@@ -55,7 +78,7 @@ class AccountRepository(Protocol):
         organization_id: str,
         provider: str,
         account_hint: str | None = None,
-    ) -> Sequence[ExternalAccount]:
+     ) -> Sequence[AccountCandidate]:
         ...
 
 
@@ -128,7 +151,14 @@ class AccountResolver:
             raise LookupError("account_not_found")
         if len(candidates) > 1:
             raise AccountSelectionRequiredError("account_selection_required")
-        return candidates[0]
+        candidate = candidates[0]
+        return ResolvedAccount(
+            account=candidate.account,
+            access_mode=candidate.access_mode,
+            account_grant_id=candidate.account_grant_id,
+            organization_id=candidate.organization_id or organization_id,
+            grant_scope=candidate.grant_scope,
+        )
 
 
 class AuthorizationService:
@@ -142,6 +172,7 @@ class AuthorizationService:
         *,
         context: AgentContext,
         account: ExternalAccount | None = None,
+        resolved_account: ResolvedAccount | None = None,
     ) -> AuthorizationDecision:
         capability = context.capability or ""
         action = context.action or ""
@@ -149,6 +180,8 @@ class AuthorizationService:
         if not self._permissions.has_capability_permission(
             user_id=context.user_id,
             capability=capability,
+            grant_scope=resolved_account.grant_scope if resolved_account else None,
+            access_mode=resolved_account.access_mode if resolved_account else None,
         ):
             return AuthorizationDecision(False, "capability_permission_denied", "authorization_denied")
 
