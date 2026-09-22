@@ -104,13 +104,21 @@ def health() -> dict[str, str]:
 
 @app.post("/api/v1/agent/chat")
 def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default=None), x_organization_id: str | None = Header(default=None)) -> dict:
-    needs_runtime_context = bool(payload.account_hint or payload.capability or payload.target_resource or payload.action)
-    if needs_runtime_context and (not x_user_id or not x_organization_id):
-        raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required for runtime authorization")
-
     request = ChatRequest(message=payload.message, conversation_id=payload.conversation_id, account_hint=payload.account_hint, capability=payload.capability, action=payload.action, target_resource=payload.target_resource)
     body = asdict(build_chat_response(request))
     intent, capability, action = classify_chat_request(request)
+    # Request Calendar đã được phân loại phải đi vào runtime authorization,
+    # kể cả khi client không truyền capability/action tường minh.
+    needs_runtime_context = bool(
+        payload.account_hint
+        or payload.capability
+        or payload.target_resource
+        or payload.action
+        or (intent == "calendar" and capability is not None)
+    )
+    if needs_runtime_context and (not x_user_id or not x_organization_id):
+        raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required for runtime authorization")
+
     body["execution"]["intent"] = intent
     body["execution"]["capability"] = capability
     body["execution"]["action"] = action
