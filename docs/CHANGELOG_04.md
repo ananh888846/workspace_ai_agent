@@ -402,3 +402,29 @@ Verification local sau khi pull Phase 3 phát hiện 2 vấn đề tương thíc
 
 - `39919c065d6a16f0eac8d8ba45871ce16fe71a49` — fix Calendar Handler authorization status assertion.
 - `fe99b62a08478db205c0fa0491482ceef994f0de` — preserve natural-language Calendar helper compatibility.
+
+
+## 2026-09-22 — Sửa regression sau verification Calendar Handler Phase 3
+
+Verification local sau khi pull Phase 3 ghi nhận **8 failures / 89 passed**. Nguyên nhân chính là các runtime/API test vẫn mock dependency tại `app.main` sau khi Calendar orchestration đã được chuyển sang `app.application.capabilities.calendar`; một request thiếu context cũng đang để `ValueError` thoát khỏi FastAPI.
+
+Đã sửa trên GitHub:
+- `app/application/capabilities/calendar.py`
+  - trả HTTP 400 khi request cần runtime authorization nhưng thiếu `X-User-ID` hoặc `X-Organization-ID`;
+  - không thay đổi Authorization → Credential → Provider ordering.
+- `tests/runtime/test_execution_error_boundary_runtime.py`
+  - chuyển monkeypatch sang CalendarHandler application boundary;
+  - giữ nguyên 5 nhánh Execution/Error Boundary.
+- `tests/unit/api/test_chat_api.py`
+  - chuyển mock Account Resolver sang CalendarHandler boundary;
+  - giữ regression contract của natural-language scheduling.
+
+Không thay đổi DB schema/migration, OAuth scope, Docker topology hoặc Execution Contract.
+
+**Verification:** cần chạy lại sau khi pull các commit sửa lỗi.
+
+### Git commits
+
+- `fix Calendar Handler missing context HTTP boundary`
+- `update runtime tests for Calendar Handler boundaries`
+- `update Calendar API runtime mock boundary`
