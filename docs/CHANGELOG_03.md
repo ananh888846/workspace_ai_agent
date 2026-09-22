@@ -1,3 +1,12 @@
+## 2026-09-23 — Runtime verification: Calendar Natural Language integration PASS
+
+- Đã runtime verification trên Windows với Python 3.14.7 và pytest 8.4.2.
+- Chạy `python -m pytest tests/services/test_calendar_datetime.py tests/api/test_calendar_natural_language.py -v`.
+- Kết quả: **13/13 tests PASSED**, thời gian chạy 0.84 giây.
+- Xác nhận parser V1 và integration helper cùng hoạt động.
+- Đã xác nhận `payload.start` tường minh được ưu tiên và message không có datetime không bị tự đoán.
+- **Calendar Natural Language Date/Time integration — TEST PASS.**
+- Đây vẫn là unit/integration-level verification; chưa phải E2E với Google Calendar thật.
 ## 2026-09-23 — Tích hợp Natural Language Date/Time vào Calendar Write
 
 - Cập nhật [`app/main.py`](../app/main.py): khi Calendar Write không có `start`, runtime thử chuẩn hóa `start` từ `payload.message` bằng `CalendarDateTimeParser`.
