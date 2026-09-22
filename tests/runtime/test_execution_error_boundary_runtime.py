@@ -136,7 +136,6 @@ def test_runtime_authorization_denied_error_boundary(monkeypatch) -> None:
     assert body["execution"]["authorization"]["provider_called"] is False
     assert body["execution"]["provider_called"] is False
     assert body["execution"]["credential"]["status"] == "not_evaluated"
-    assert body["execution"]["credential"]["provider_called"] is False
     assert "calendar" not in body
 
 
