@@ -215,3 +215,28 @@ Ngày 2026-09-22, Phase 3 đã PASS toàn bộ verification local:
 Đã xác nhận CalendarHandler là application capability boundary; FastAPI không còn giữ orchestration Calendar cũ. OAuth-required là pre-provider error và test boundary đã mock đúng dependency namespace.
 
 **Phase 3 status: CLOSED / VERIFIED.**
+
+
+## Phase 4 — E2E Agent + Google Calendar real provider
+
+### Trạng thái
+**Implementation started — chưa VERIFIED**
+
+Phase 4 chuyển verification từ unit/regression sang real-provider E2E. Test đầu tiên nằm tại [tests/e2e/test_calendar_agent_google.py](../tests/e2e/test_calendar_agent_google.py).
+
+### Phase 4A flow
+
+`Client/TestClient → POST /api/v1/agent/chat → Agent Runtime → LangGraph Super-Graph → CalendarHandler → Account Resolver → Authorization → Credential Resolver → Calendar execution / Tool → Google Calendar API`
+
+### E2E scenarios đã thêm
+1. Tạo event thật và xác nhận `provider_called=true`.
+2. Đọc event vừa tạo từ Google Calendar thật.
+3. Gửi delete chưa confirmation và xác nhận `confirmation_required` + `provider_called=false`.
+4. Gửi delete đã confirmation và xác nhận event được xóa thật.
+5. Fixture cleanup tự dọn event nếu test không xóa event.
+
+### Isolation
+E2E được bật bằng `RUN_GOOGLE_CALENDAR_E2E=1`, vì vậy regression mặc định không gọi Google Calendar thật. User/account/organization được lấy từ environment; test không chứa token hay credential secret.
+
+### Lưu ý
+Phase 4A cố ý kiểm chứng provider/runtime boundary trước. Natural-language extraction đầy đủ cho “ngày mai”, “tuần này”, “chiều mai rảnh 1 tiếng” và “kéo dài 1 tiếng” là phần tiếp theo sau khi baseline real-provider PASS.
