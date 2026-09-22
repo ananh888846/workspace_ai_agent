@@ -100,7 +100,24 @@ def _google_datetime(value: str) -> dict[str, str]:
 
 
 def _event_to_response(event: object) -> dict:
-    return {"id": event.id, "summary": event.summary, "description": event.description, "location": event.location, "start": event.start, "end": event.end, "status": event.status, "html_link": event.html_link}
+    """Chuẩn hóa event provider để response hiển thị theo GMT+7."""
+    def _display_datetime(value: dict | None) -> dict | None:
+        if not value or not value.get("dateTime"):
+            return value
+        parsed = datetime.fromisoformat(str(value["dateTime"]).replace("Z", "+00:00"))
+        local = to_vietnam_time(parsed)
+        return {**value, "dateTime": local.isoformat(), "timeZone": "Asia/Ho_Chi_Minh"}
+
+    return {
+        "id": event.id,
+        "summary": event.summary,
+        "description": event.description,
+        "location": event.location,
+        "start": _display_datetime(event.start),
+        "end": _display_datetime(event.end),
+        "status": event.status,
+        "html_link": event.html_link,
+    }
 
 
 def execute_google_calendar_read(*, account: ExternalAccount, credential_resolution: object) -> dict:
