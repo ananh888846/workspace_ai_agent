@@ -20,6 +20,7 @@ from app.api.chat import (
 )
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
+from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies, AgentRuntimeState
 from app.application.execution_boundary import enforce_result_boundary
 from app.application.execution_contract import build_execution_contract, normalize_result_status
 from app.infrastructure.oauth.google import GoogleOAuthService
@@ -123,11 +124,12 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/api/v1/agent/chat")
-def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default=None), x_organization_id: str | None = Header(default=None)) -> dict:
+def _execute_agent_chat(payload: AgentChatRequest, x_user_id: str | None, x_organization_id: str | None, state: AgentRuntimeState) -> JSONResponse:
     request = ChatRequest(message=payload.message, conversation_id=payload.conversation_id, account_hint=payload.account_hint, capability=payload.capability, action=payload.action, target_resource=payload.target_resource)
     body = asdict(build_chat_response(request))
-    intent, capability, action = classify_chat_request(request)
+    intent = state["intent"]
+    capability = state.get("capability")
+    action = state.get("action")
 
     # Execution Contract V1 là source của truth cho runtime execution shape.
     body["execution"] = _execution_contract(intent=intent, capability=capability, action=action)
@@ -205,3 +207,37 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     body["execution"]["authorization"]["provider_called"] = provider_called
     body["execution"]["credential"]["provider_called"] = provider_called
     return JSONResponse(content=body, media_type="application/json; charset=utf-8")
+
+
+def _classify_agent_request(payload: AgentChatRequest) -> tuple[str, str | None, str | None]:
+    request = ChatRequest(
+        message=payload.message,
+        conversation_id=payload.conversation_id,
+        account_hint=payload.account_hint,
+        capability=payload.capability,
+        action=payload.action,
+        target_resource=payload.target_resource,
+    )
+    return classify_chat_request(request)
+
+
+_agent_runtime = AgentRuntime(
+    AgentRuntimeDependencies(
+        classify=_classify_agent_request,
+        execute=lambda state: _execute_agent_chat(
+            state["request"],
+            state.get("context", {}).get("user_id"),
+            state.get("context", {}).get("organization_id"),
+            state,
+        ),
+    )
+)
+
+
+@app.post("/api/v1/agent/chat")
+def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default=None), x_organization_id: str | None = Header(default=None)) -> dict:
+    context = {
+        "user_id": x_user_id,
+        "organization_id": x_organization_id,
+    }
+    return _agent_runtime.run(request=payload, context=context)
