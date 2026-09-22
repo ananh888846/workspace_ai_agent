@@ -150,6 +150,7 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
         raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required for runtime authorization")
 
     execution_account = resolve_google_account(user_id=x_user_id, organization_id=x_organization_id, account_hint=payload.account_hint)
+    resolved_account = execution_account.pop("_resolved_account", None)
     body["execution"]["account"] = execution_account
     _normalize_execution_statuses(body["execution"])
     if execution_account["status"] != "resolved":
@@ -159,7 +160,7 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
 
     account = ExternalAccount(id=execution_account["account_id"], user_id=x_user_id, provider=execution_account["provider"], account_type="oauth", external_account_id=execution_account["external_account_id"], display_name=execution_account["display_name"], email=execution_account["email"], status=execution_account.get("account_state", "active"))
-    authorization = authorize_request(user_id=x_user_id, organization_id=x_organization_id, capability=capability, action=action, account=account, target_resource=payload.target_resource)
+    authorization = authorize_request(user_id=x_user_id, organization_id=x_organization_id, capability=capability, action=action, account=account, target_resource=payload.target_resource, resolved_account=resolved_account)
     body["execution"]["authorization"] = authorization
     _normalize_execution_statuses(body["execution"])
     if authorization.get("status") != "allow":
