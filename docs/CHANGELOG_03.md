@@ -1,3 +1,11 @@
+## 2026-09-23 — Tích hợp Natural Language Date/Time vào Calendar Write
+
+- Cập nhật [`app/main.py`](../app/main.py): khi Calendar Write không có `start`, runtime thử chuẩn hóa `start` từ `payload.message` bằng `CalendarDateTimeParser`.
+- `payload.start` tường minh luôn được ưu tiên; nếu không parse được câu ngày/giờ thì không tự đoán và Calendar Write tiếp tục trả validation error.
+- V1 chỉ tự chuẩn hóa `start`; `end` vẫn phải truyền rõ bằng ISO-8601 có timezone để tránh tự suy đoán thời lượng.
+- Thêm [`tests/api/test_calendar_natural_language.py`](../tests/api/test_calendar_natural_language.py): kiểm thử ngày mai lúc 9h, ngày cụ thể + giờ, ưu tiên start tường minh và message không có datetime.
+- Cập nhật [`docs/GOOGLE_CALENDAR.md`](./GOOGLE_CALENDAR.md) để ghi rõ boundary và trạng thái tích hợp.
+- Chưa đánh dấu E2E Natural Language Create/Update PASS; cần runtime verification local và sau đó mới kiểm thử Google Calendar thật.
 # CHANGELOG_03.md
 
 > Changelog tiếp theo của `docs/CHANGELOG_02.md`.
