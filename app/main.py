@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+import re
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -47,9 +48,10 @@ def _natural_language_calendar_start(message: str, explicit_start: str | None) -
     normalized = message.casefold()
     markers = (
         "hôm nay", "ngày mai", "ngày kia", "mai", "tuần", "thứ ",
-        "giờ", "h", "phút", "tiếng", "/",
+        "giờ", "phút", "tiếng", "/",
     )
-    if not any(marker in normalized for marker in markers):
+    has_clock_time = re.search(r"\b\d{1,2}(?::\d{2}|h(?:\s*\d{2})?)\b", normalized) is not None
+    if not any(marker in normalized for marker in markers) and not has_clock_time:
         return None
 
     try:
