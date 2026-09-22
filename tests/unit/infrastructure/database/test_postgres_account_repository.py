@@ -72,3 +72,24 @@ def test_account_hint_is_exact_and_parameterized():
     assert "ua.external_account_id = %s" in query
     assert "ua.email = %s" in query
     assert params[-3:] == ["acc-2", "acc-2", "acc-2"]
+
+
+def test_account_repository_returns_grant_metadata_without_credentials():
+    connection = FakeConnection([
+        (
+            "acc-2", "owner-1", "google", "google", "google-2",
+            "Shared Google", "shared@example.com", "active",
+            "grant-1", {"capabilities": ["calendar.read"]},
+        )
+    ])
+
+    accounts = PostgresAccountRepository(connection).find_candidates(
+        user_id="grantee-1",
+        organization_id="org-1",
+        provider="google",
+    )
+
+    assert accounts[0].access_mode == "grant"
+    assert accounts[0].account_grant_id == "grant-1"
+    assert accounts[0].grant_scope == {"capabilities": ["calendar.read"]}
+    assert accounts[0].organization_id == "org-1"
