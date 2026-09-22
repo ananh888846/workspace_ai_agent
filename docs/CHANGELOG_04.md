@@ -298,3 +298,15 @@ Kết quả verification local của chủ project phát hiện **5 test failure
 - `78eb849c98fd4225c8696436016f8457edc3962f` — update AccountCandidate repository assertions.
 - `ee337393f5b5cc8f9a4b3f6e306a9dff6512ee99` — update encrypted credential repository tests.
 - `2b0407bdbf6a37e776bd32e7f3bafa30a3b56b95` — fix timezone-safe credential expiry validation.
+
+
+## 2026-09-22 — Sửa lỗi syntax trong Credential Repository sau regression patch
+
+- Phát hiện sau khi chủ project `git pull`: `app/infrastructure/database/repositories/credentials.py` có lỗi `IndentationError` tại nhánh `oauth_required`.
+- Đã sửa đúng indentation của `return CredentialResolution(status="oauth_required")` bên trong điều kiện expiry.
+- Không thay đổi contract credential, database schema, OAuth scope hoặc Docker Compose.
+- Chưa ghi nhận PASS sau patch; cần chạy lại targeted + full regression suite.
+
+### Git commit
+
+- `0f2e6a22e39bc53e5c11f5c8d5b5f1f652a671c4` — fix credential repository indentation regression.
