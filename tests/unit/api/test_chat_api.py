@@ -40,7 +40,7 @@ def test_account_resolution_runtime_wiring(monkeypatch) -> None:
             "provider_called": False,
         }
 
-    monkeypatch.setattr("app.main.resolve_google_account", fake_resolve)
+    monkeypatch.setattr("app.application.capabilities.calendar.resolve_google_account", fake_resolve)
     response = client.post(
         "/api/v1/agent/chat",
         headers={"X-User-ID": "user-1", "X-Organization-ID": "org-1"},
@@ -70,7 +70,7 @@ def test_authorization_runtime_wiring(monkeypatch) -> None:
         return {"status": "allow", "code": "allow", "reason": "authorized", "provider_called": False}
 
     monkeypatch.setattr("app.main.resolve_google_account", fake_resolve)
-    monkeypatch.setattr("app.main.authorize_request", fake_authorize)
+    monkeypatch.setattr("app.application.capabilities.calendar.authorize_request", fake_authorize)
     response = client.post(
         "/api/v1/agent/chat",
         headers={"X-User-ID": "user-1", "X-Organization-ID": "org-1"},
