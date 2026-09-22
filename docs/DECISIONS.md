@@ -699,3 +699,10 @@ Chốt invariant:
 Đã gia cố trực tiếp tại `CalendarHandler` trước khi trả response cho nhánh credential chưa sẵn sàng.
 
 Không thay đổi DB schema, OAuth scope, Docker topology hoặc Execution Contract semantics.
+
+
+## 2026-09-22 — Hardening lần 2: cô lập credential provider_called cho oauth_required
+
+Local verification sau commit trước vẫn còn 1 failure: `oauth_required` trả `execution.credential.provider_called = true` dù handler đã dừng trước provider. Đã gia cố bằng cách tạo dict credential mới khi nhánh pre-provider kết thúc, tránh mọi alias/reference có thể làm thay đổi cờ `provider_called` sau phép gán.
+
+**Trạng thái:** chờ verification local lại. Chưa đóng Phase 3.
