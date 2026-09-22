@@ -171,8 +171,8 @@ Ví dụ:
 Pydantic không được dùng để thay thế Authorization, business rules hoặc Provider Adapter.
 
 ## Decision 033 — Calendar nâng cấp sau CRUD
-**Status:** Proposed  
-Calendar sẽ được nâng cấp sau khi LangGraph architecture được chốt, ưu tiên Natural Language Date/Time → Free/Busy/Conflict Detection → Scheduling Assistant → Recurrence → Multi-account Calendar. Chưa triển khai các phần này trong decision hiện tại.
+**Status:** Accepted  
+Calendar được nâng cấp theo thứ tự Natural Language Date/Time → Free/Busy/Conflict Detection → Scheduling Assistant → Recurrence → Multi-account Calendar. Calendar Intelligence giai đoạn đầu dùng service Python thuần; LangGraph chỉ làm Super-Graph ở tầng điều phối tổng thể và sẽ được tích hợp theo từng capability sau.
 
 ## Decision 034 — Chủ project phải chốt trước khi dùng LangGraph/Pydantic cho phần mới
 **Status:** Accepted  
@@ -188,3 +188,16 @@ Quy trình:
 Quy tắc này không yêu cầu hỏi cho mọi helper Python nhỏ hoặc thay đổi không liên quan đến quyết định dùng LangGraph/Pydantic.
 
 Mục tiêu là tránh over-engineering, giữ quyền quyết định kiến trúc ở chủ project và bảo đảm framework được dùng đúng chỗ.
+
+
+## Decision 035 — Calendar Natural Language Date/Time dùng Python thuần
+**Status:** Accepted  
+Bước Natural Language Date/Time V1 của Calendar không dùng LangGraph và không dùng Pydantic. Parser là service Python độc lập, timezone-aware và chuẩn hóa theo `Asia/Ho_Chi_Minh`.
+
+Nguyên tắc:
+- Không gọi provider, SQL, Qdrant hoặc credential từ parser.
+- Không để parser quyết định authorization hoặc account.
+- Input tối thiểu là text và reference datetime.
+- Output là datetime timezone-aware; provider boundary chịu trách nhiệm chuyển UTC.
+- Khi phase sau có dữ liệu phức tạp, phải phân tích nhu cầu Pydantic và hỏi chủ project trước khi dùng.
+- LangGraph giữ vai trò Super-Graph ở tầng trên cùng; không nhúng LangGraph vào parser chỉ để orchestration một hàm nhỏ.
