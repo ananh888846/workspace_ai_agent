@@ -513,3 +513,32 @@ Hai finding này sẽ được sửa ở implementation phase; Decision 044 khô
 2. Credential được resolve đúng một lần trong `main.py`; kết quả `credential_result` được tái sử dụng để dựng execution contract, không gọi CredentialResolver lần thứ hai.
 
 Test coverage đã bổ sung cho recurrence runtime signature và việc tái sử dụng credential resolution.
+
+ 
+### Decision 044 — Multi-account implementation phase 1
+**Status:** Implemented — core contract + grant-scope enforcement.
+
+Đã triển khai:
+- `AccountCandidate` và `ResolvedAccount`.
+- Account Resolver trả về `ResolvedAccount` thay vì account metadata thuần.
+- Account candidate giữ `access_mode`, `account_grant_id`, `organization_id`, `grant_scope`; không chứa credential secret.
+- Account repository đọc grant metadata từ `account_grants`, vẫn không đọc `account_credentials`.
+- Authorization nhận `ResolvedAccount` và chỉ áp dụng grant scope khi `access_mode=grant`.
+- Grant scope V1 kiểm tra capability hiện tại; không elevate user capability.
+- Owner không bị giới hạn bởi grant scope.
+- Resolved account nội bộ được truyền xuyên suốt tới Authorization nhưng không serialize thành secret/API response.
+
+### Verification coverage
+
+Đã bổ sung unit coverage cho:
+- A01 — single account resolved.
+- A02 — multiple accounts require selection.
+- A03 — explicit hint path remains repository-selected.
+- A04 — no candidate → account_not_found.
+- A11 — owner + capability.
+- A12 — owner thiếu capability.
+- A13 — grantee + capability + grant scope.
+- A14 — grantee thiếu grant scope.
+- Account repository grant metadata mapping và không truy cập `account_credentials`.
+
+A15–A20 vẫn cần runtime/integration verification với CredentialResolver và Provider side-effect trước khi đóng Multi-account V1.
