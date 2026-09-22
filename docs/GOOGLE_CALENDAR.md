@@ -241,3 +241,11 @@ Acceptance cần đạt:
 8. Provider error trả `provider_error` thay vì làm sập HTTP runtime.
 
 Không dùng OAuth URL/callback cũ. Không dán access token/refresh token vào request, log hoặc SQL.
+
+
+## 14. Credential hết hạn nhưng còn refresh token
+
+- CredentialResolver không loại bỏ credential chỉ vì `expires_at` đã qua.
+- Credential có `status=active` vẫn được giải mã nếu còn `refresh_token`; Google Auth có thể làm mới access token khi provider được gọi.
+- Nếu credential đã hết hạn và không còn `refresh_token`, runtime trả `oauth_required`.
+- Đây là trạng thái của access token, không phải trạng thái OAuth account. Không chạy OAuth lại nếu credential active vẫn còn refresh token.
