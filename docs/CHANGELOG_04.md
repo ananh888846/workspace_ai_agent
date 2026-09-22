@@ -460,3 +460,20 @@ Không thay đổi DB schema/migration, OAuth scope, Docker topology hoặc Exec
 Local verification sau commit trước vẫn còn 1 failure: `oauth_required` trả `execution.credential.provider_called = true` dù handler đã dừng trước provider. Đã gia cố bằng cách tạo dict credential mới khi nhánh pre-provider kết thúc, tránh mọi alias/reference có thể làm thay đổi cờ `provider_called` sau phép gán.
 
 **Trạng thái:** chờ verification local lại. Chưa đóng Phase 3.
+
+
+## 2026-09-22 — Sửa root cause test boundary của OAuth-required
+
+Sau khi chạy lại targeted test, failure vẫn còn. Đã trace dependency boundary và xác định test helper mock sai symbol `CredentialResolver`.
+
+Chi tiết:
+- Handler dùng `CredentialResolver` đã import tại `app.application.capabilities.calendar`;
+- test helper trước đó mock `app.application.core_runtime.CredentialResolver`;
+- vì mock không tác động tới symbol đã import, Handler vẫn có thể nhận `credential_result.status=ready` nội bộ dù response adapter bị mock thành `oauth_required`;
+- Handler tiếp tục Calendar execution và cờ `provider_called` bị propagate thành `true`.
+
+Đã cập nhật `tests/runtime/test_execution_error_boundary_runtime.py` để mock đúng `app.application.capabilities.calendar.CredentialResolver`.
+
+**Commit:** `a8b242e09417413930b316a1a1f11f914f24aefe` — `fix Calendar Handler credential resolver test boundary`
+
+**Trạng thái:** chờ verification local targeted + full regression; chưa đóng Phase 3.
