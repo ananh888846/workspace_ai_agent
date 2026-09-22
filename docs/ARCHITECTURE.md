@@ -408,3 +408,36 @@ Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, devic
 **Quyền quyết định:** trước mỗi triển khai mới có ảnh hưởng trực tiếp đến việc dùng LangGraph/Pydantic, phải hỏi ý kiến chủ project; nếu có phương án tốt hơn phải đề xuất để chủ project chốt.
 
 Database V2.1 001 → 050 đã CLOSED; Agent/Knowledge application runtime vẫn chưa triển khai.
+
+
+## Calendar Free/Busy V1
+
+Free/Busy và Conflict Detection là Calendar Intelligence capability độc lập.
+
+Luồng:
+Calendar request
+  ↓
+AccountResolver
+  ↓
+AuthorizationService
+  ↓
+CredentialResolver
+  ↓
+CalendarToolRegistry
+  ↓
+GoogleCalendarTool
+  ↓
+GoogleCalendarAdapter
+  ↓
+Google Calendar API freeBusy.query
+  ↓
+CalendarConflictDetector
+
+Nguyên tắc:
+- Provider adapter chịu trách nhiệm gọi API chính thức của provider và normalize response.
+- ConflictDetector là deterministic Python service, không truy cập provider, SQL, Qdrant hoặc credential.
+- V1 dùng capability calendar.read + action free_busy.
+- V1 không dùng Pydantic và không nhúng LangGraph vào service.
+- LangGraph vẫn là Super-Graph ở tầng orchestration tổng thể.
+- Không tạo database migration cho Free/Busy V1.
+- Ưu tiên API/SDK chính thức của provider trước third-party library.
