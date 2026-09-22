@@ -265,3 +265,36 @@ A01–A04 và A11–A14 đã có test coverage trong repository. A15–A20 chưa
 - Không thay đổi Docker Compose.
 - Không tạo migration database.
 - Chưa kết luận PASS runtime/regression trong lượt này; cần verification sau khi pull.
+
+
+## 2026-09-22 21:16 +07:00 — Sửa regression sau Runtime V2.2 Phase 1 verification
+
+Kết quả verification local của chủ project phát hiện **5 test failure / 87 pass**. Đã xử lý nguyên nhân và đồng bộ test contract:
+
+- `app/api/chat.py`
+  - Chuẩn hóa recurrence ở API boundary: chấp nhận cả `RRULE:...` và dạng ngắn `FREQ=...`.
+  - Domain `CalendarRecurrenceService` vẫn giữ contract RRULE rõ ràng.
+- `app/infrastructure/database/repositories/credentials.py`
+  - Giữ `expires_at` timezone-aware trong `CredentialResolution`.
+  - Chỉ chuyển expiry sang naive UTC ở boundary của Google Credentials.
+  - So sánh expiry theo UTC an toàn cho cả TIMESTAMPTZ aware và giá trị naive.
+- `tests/unit/application/test_core_runtime.py`
+  - Đồng bộ test với contract mới: `AccountRepository → AccountCandidate → AccountResolver → ResolvedAccount`.
+- `tests/unit/infrastructure/database/test_postgres_account_repository.py`
+  - Đọc account metadata qua `AccountCandidate.account`.
+- `tests/unit/infrastructure/database/test_postgres_credential_repository.py`
+  - Đồng bộ test với schema bảo mật hiện hành: `encrypted_value` được Credential Repository đọc sau Authorization để giải mã nội bộ.
+  - Test dùng Fernet key/ciphertext giả và không đưa secret vào assertion HTTP.
+- Không thay đổi database schema.
+- Không tạo migration.
+- Không thay đổi Docker Compose.
+- Chưa ghi nhận PASS sau patch; cần chủ project chạy lại targeted + regression suite.
+
+### Git commits
+
+- `8a0b5e69e8464ab31b2cbdf0b4b072597a87a0a2` — normalize recurrence input at API boundary.
+- `2287e71ed3f1f5d45f7c49cd5c0480a719590cd2` — preserve credential expiry timezone contract.
+- `080c1272d5830cd2b13bb7a06cee85c2db1255f1` — update AccountResolver unit contract.
+- `78eb849c98fd4225c8696436016f8457edc3962f` — update AccountCandidate repository assertions.
+- `ee337393f5b5cc8f9a4b3f6e306a9dff6512ee99` — update encrypted credential repository tests.
+- `2b0407bdbf6a37e776bd32e7f3bafa30a3b56b95` — fix timezone-safe credential expiry validation.
