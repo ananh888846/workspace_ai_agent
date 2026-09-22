@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from fastapi import HTTPException
+
 from app.api.chat import (
     authorize_request,
     build_chat_response,
@@ -62,8 +64,9 @@ class CalendarHandler:
         if not needs_runtime_context:
             return body
         if not user_id or not organization_id:
-            raise ValueError(
-                "x_user_id and x_organization_id are required for runtime authorization"
+            raise HTTPException(
+                status_code=400,
+                detail="x_user_id and x_organization_id are required for runtime authorization",
             )
 
         execution_account = resolve_google_account(
