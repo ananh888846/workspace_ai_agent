@@ -1,3 +1,12 @@
+## 2026-09-22 — Sửa lỗi runtime/unit sau khi cài LangGraph
+
+- Runtime verification local với Python 3.14.7 và pytest 8.4.2 đã phát hiện **5/14 tests FAILED** trong Scheduling Assistant V1 + runtime wiring.
+- Sửa [app/services/scheduling.py](../app/services/scheduling.py): mỗi khoảng trống đủ dài nay sinh toàn bộ các slot liên tiếp theo `duration_minutes`, thay vì chỉ sinh một slot đầu tiên của mỗi khoảng.
+- Sửa [app/main.py](../app/main.py): khi request có runtime context như `account_hint`, account vẫn được resolve trước khi kiểm tra có phải Calendar capability hay không; điều này giữ đúng contract runtime account resolution.
+- Sửa [tests/unit/api/test_chat_api.py](../tests/unit/api/test_chat_api.py): fixture authorization dùng UUID hợp lệ thay vì giá trị `acc-1`, tránh lỗi PostgreSQL UUID khi đi qua CredentialResolver thật.
+- Đây là **code fix sau test failure**, chưa đánh dấu Scheduling Assistant V1 PASS/CLOSED.
+- Cần pull các commit mới và chạy lại toàn bộ test suite đã nêu trước khi tiếp tục E2E Google Calendar.
+
 ## 2026-09-22 — Sửa classification Scheduling Assistant V1
 
 - Cập nhật [app/api/chat.py](../app/api/chat.py): nhận dạng các câu như tìm thời gian/tìm giờ/khung giờ ngay cả khi câu không chứa từ lịch.
