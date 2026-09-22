@@ -334,6 +334,14 @@ def execute_google_calendar_scheduling(
             }
             for period in result.get("busy_periods", [])
         ],
+        "conflicts": [
+            {
+                "calendar_id": period.calendar_id,
+                "start": to_vietnam_time(period.start).isoformat(),
+                "end": to_vietnam_time(period.end).isoformat(),
+            }
+            for period in result.get("conflicts", [])
+        ],
         "available_slots": [
             {
                 "start": to_vietnam_time(slot.start).isoformat(),
@@ -341,6 +349,7 @@ def execute_google_calendar_scheduling(
             }
             for slot in result.get("available_slots", [])
         ],
+        "confirmation_state": result.get("confirmation_state", "not_required"),
         "provider_called": True,
     }
 
