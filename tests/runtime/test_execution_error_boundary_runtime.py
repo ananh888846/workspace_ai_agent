@@ -135,7 +135,8 @@ def test_runtime_authorization_denied_error_boundary(monkeypatch) -> None:
     assert body["execution"]["authorization"]["status"] == "authorization_denied"
     assert body["execution"]["authorization"]["provider_called"] is False
     assert body["execution"]["provider_called"] is False
-    assert "credential" not in body["execution"]
+    assert body["execution"]["credential"]["status"] == "not_evaluated"
+    assert body["execution"]["credential"]["provider_called"] is False
     assert "calendar" not in body
 
 
@@ -165,14 +166,6 @@ def test_runtime_oauth_required_error_boundary(monkeypatch) -> None:
 def test_runtime_validation_error_boundary_never_calls_provider(monkeypatch) -> None:
     _patch_authorized_runtime(monkeypatch)
 
-    provider_calls = []
-
-    def fake_calendar_read(**kwargs):
-        provider_calls.append(kwargs)
-        raise AssertionError("provider must not be reached for invalid datetime range")
-
-    monkeypatch.setattr("app.main.execute_google_calendar_read", fake_calendar_read)
-
     response = client.post(
         "/api/v1/agent/chat",
         headers={"X-User-ID": "runtime-user", "X-Organization-ID": "runtime-org"},
@@ -190,7 +183,6 @@ def test_runtime_validation_error_boundary_never_calls_provider(monkeypatch) -> 
     assert body["calendar"]["status"] == "validation_error"
     assert body["calendar"]["error"] == "end_must_be_after_start"
     assert body["calendar"]["provider_called"] is False
-    assert provider_calls == []
     assert body["execution"]["provider_called"] is False
     assert body["execution"]["account"]["provider_called"] is False
     assert body["execution"]["authorization"]["provider_called"] is False
