@@ -342,3 +342,48 @@ Kết quả verification local của chủ project phát hiện **5 test failure
 Không thay đổi database schema, migration, Docker Compose hoặc OAuth scope.
 
 **Verification:** chưa ghi nhận PASS trong entry này; cần chạy targeted và full regression sau khi pull.
+
+
+## 2026-09-22 — Runtime Architecture V2.2 Phase 3: Calendar Application Handler
+
+Đã triển khai Phase 3 theo Decision 047:
+
+- Thêm `app/application/capabilities/calendar.py` với `CalendarHandler`.
+- Handler nhận state từ Agent Super-Graph và thực hiện application orchestration:
+  - Account Resolver;
+  - Authorization;
+  - Credential Resolver;
+  - Calendar execution;
+  - Execution/Error Boundary.
+- `app/main.py` được rút gọn thành FastAPI transport + OAuth HTTP flow + Agent Runtime wiring.
+- Loại bỏ `_execute_agent_chat()` khỏi FastAPI entry.
+- Đăng ký `calendar.read` và `calendar.write` trực tiếp vào `CalendarHandler.handle`.
+- Giữ nguyên `POST /api/v1/agent/chat`.
+- Không thay đổi database schema/migration, OAuth scope hoặc Docker topology.
+- Không rewrite Calendar CRUD, Free/Busy, Scheduling hoặc Recurrence.
+- Bổ sung `tests/unit/application/test_calendar_handler.py`:
+  - kiểm tra thứ tự Application Boundary;
+  - kiểm tra Authorization deny không resolve credential/provider;
+  - kiểm tra không đưa credential vào Agent state.
+- Cập nhật [`docs/AGENT_RUNTIME_V2_2.md`](./AGENT_RUNTIME_V2_2.md), [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) và [`docs/DECISIONS.md`](./DECISIONS.md) với Decision 047.
+
+### Verification
+
+Chưa chạy local trong lượt GitHub-first này. Sau khi pull cần chạy:
+
+```powershell
+python -m pytest tests/unit/application/test_calendar_handler.py tests/unit/agent_runtime -q
+python -m pytest -q
+```
+
+Baseline trước Phase 3: **94 passed, 2 warnings**.
+
+### Git commits
+
+- `a661c753b625107c92e9a4943c6e52920ee239d8` — add Calendar application handler.
+- `b1ded91eafd848b060ab92bad2a8c3da912bccb8` — move Calendar chat orchestration out of FastAPI main.
+- `8b060236604354c4109a257e08ef164119b9237b` — preserve handler response metadata.
+- `e7c7d90c0007ace72e385936f9d36908527b4c9f` — update Calendar API test monkeypatch boundaries.
+- `c78a291ebe1dedc0dc3ebdea8e91824b784ec232` — add Calendar Handler tests.
+- `ce144e6d4428d6b02431ba8c5ee6af172edf343f` — isolate credential boundary in Handler test.
+- `ae3cafac2a8600f563bedbf991dde41313039e32` — remove unused Runtime state import.
