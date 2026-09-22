@@ -1,7 +1,7 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "scheduling_assistant": "./app/graphs/scheduling_graph.py:graph"
+    "scheduling_assistant": "./app/graphs/scheduling.py:graph"
   },
   "env": ".env"
 }
