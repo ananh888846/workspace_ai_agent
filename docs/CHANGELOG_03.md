@@ -1,3 +1,14 @@
+## 2026-09-22 — Calendar Read V1 hỗ trợ khoảng thời gian request
+
+- Sửa [app/api/chat.py](../app/api/chat.py): Calendar Read không còn luôn cố định vào ngày hiện tại.
+- Có cả `start` và `end`: provider được gọi đúng khoảng thời gian request.
+- Chỉ có `start`: đọc một ngày kể từ `start`; chỉ có `end`: đọc một ngày kết thúc tại `end`.
+- Không có `start/end`: giữ fallback hôm nay → ngày mai để bảo toàn hành vi cũ.
+- Sửa [app/main.py](../app/main.py): truyền `payload.start` và `payload.end` vào Calendar Read.
+- Bổ sung unit tests cho explicit range, start-only fallback và invalid range.
+- Không thay đổi LangGraph, Pydantic, OAuth scope, database schema hoặc provider boundary.
+- Đây là code + test update; chưa đánh dấu E2E PASS cho việc đối chiếu Events API với Free/Busy.
+
 ## 2026-09-22 — Sửa lỗi runtime/unit sau khi cài LangGraph
 
 - Runtime verification local với Python 3.14.7 và pytest 8.4.2 đã phát hiện **5/14 tests FAILED** trong Scheduling Assistant V1 + runtime wiring.
