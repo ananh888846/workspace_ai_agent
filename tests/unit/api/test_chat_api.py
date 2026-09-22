@@ -82,3 +82,13 @@ def test_authorization_runtime_wiring(monkeypatch) -> None:
     )
     assert response.status_code == 200
     assert response.json()["execution"]["authorization"]["status"] == "allow"
+
+
+def test_classify_scheduling_request():
+    from app.api.chat import classify_chat_request
+    from app.api.schemas import ChatRequest
+
+    intent, capability, action = classify_chat_request(
+        ChatRequest(message="Tìm thời gian trống 1 tiếng ngày mai")
+    )
+    assert (intent, capability, action) == ("calendar", "calendar.read", "schedule")
