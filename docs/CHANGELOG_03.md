@@ -1,4 +1,4 @@
-## 2026-09-22 — Sửa expectation test Calendar Read theo UTC normalization
+## 2026-09-22 — Sửa expectation Calendar Read local timezone\n\n- Runtime test xác nhận provider boundary nhận UTC đúng: `2026-09-24T00:00:00+07:00` → `2026-09-23T17:00:00+00:00`.\n- Sửa expectation `requested_start/requested_end` trong `tests/unit/api/test_chat_api.py`: response giữ nguyên thời gian local GMT+7, không cộng thêm 7 giờ.\n- Không thay đổi production logic.\n- Lần chạy vừa rồi: **17/18 PASSED, 1 FAILED**; failure chỉ do expectation của test không khớp contract local-time response.\n- Chưa đánh dấu E2E PASS.\n\n## 2026-09-22 — Sửa expectation test Calendar Read theo UTC normalization
 
 - Runtime test phát hiện implementation đã chuyển đúng `2026-09-24T00:00:00+07:00` thành `2026-09-23T17:00:00+00:00` trước khi gọi provider.
 - Sửa expectation trong `tests/unit/api/test_chat_api.py` để phản ánh contract hiện tại: request local GMT+7 được normalize sang UTC ở provider boundary.
