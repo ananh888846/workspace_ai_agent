@@ -681,3 +681,21 @@ Quyết định xử lý:
 - Không thay đổi Execution Contract.
 
 Verification gate vẫn giữ nguyên: targeted tests + full regression phải PASS trước khi đóng Phase 3.
+
+
+## Decision 047 — OAuth-required provider boundary invariant
+
+**Trạng thái:** Implemented — chờ verification local lại
+
+Verification local tiếp theo sau Phase 3 regression fix còn 1 failure: khi Credential Resolver trả `oauth_required`, response vẫn bị đánh dấu `provider_called=true` ở credential boundary.
+
+Chốt invariant:
+- `oauth_required` là lỗi trước provider;
+- Credential Resolver có thể được gọi sau Authorization, nhưng Google Calendar Provider tuyệt đối chưa được gọi;
+- `execution.credential.provider_called = false`;
+- `execution.provider_called = false`;
+- không chạy Calendar execution khi credential chưa ở trạng thái `ready`.
+
+Đã gia cố trực tiếp tại `CalendarHandler` trước khi trả response cho nhánh credential chưa sẵn sàng.
+
+Không thay đổi DB schema, OAuth scope, Docker topology hoặc Execution Contract semantics.
