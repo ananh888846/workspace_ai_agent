@@ -118,3 +118,93 @@ def test_natural_language_scheduling_enters_runtime(monkeypatch) -> None:
     )]
     assert response.json()["execution"]["intent"] == "calendar"
     assert response.json()["execution"]["action"] == "schedule"
+
+    
+def test_calendar_read_uses_explicit_date_range(monkeypatch) -> None:
+    from types import SimpleNamespace
+    from app.api.chat import execute_google_calendar_read
+    from app.application.core_runtime import ExternalAccount
+
+    captured = {}
+
+    class FakeTool:
+        def execute(self, action, **kwargs):
+            captured.update(kwargs)
+            return []
+
+    monkeypatch.setattr("app.api.chat.CalendarToolRegistry.resolve", lambda self, **kwargs: FakeTool())
+    account = ExternalAccount(
+        id="01a0c387-8f30-767d-acb4-ccf9edc0f22b",
+        user_id="01a0c387-8eb5-7df5-aaa1-fcb8d3684ccc",
+        provider="google", account_type="oauth",
+        external_account_id="ananh888846@gmail.com",
+        display_name="Calendar", email=None, status="active",
+    )
+    credential = SimpleNamespace(credential_context=object())
+    result = execute_google_calendar_read(
+        account=account, credential_resolution=credential,
+        start="2026-09-24T00:00:00+07:00",
+        end="2026-09-25T00:00:00+07:00",
+    )
+    assert result["status"] == "ok"
+    assert captured["time_min"] == "2026-09-24T00:00:00+00:00"
+    assert captured["time_max"] == "2026-09-25T00:00:00+00:00"
+    assert result["requested_start"] == "2026-09-24T07:00:00+07:00"
+    assert result["requested_end"] == "2026-09-25T07:00:00+07:00"
+
+
+def test_calendar_read_start_only_defaults_to_one_day(monkeypatch) -> None:
+    from types import SimpleNamespace
+    from app.api.chat import execute_google_calendar_read
+    from app.application.core_runtime import ExternalAccount
+
+    captured = {}
+
+    class FakeTool:
+        def execute(self, action, **kwargs):
+            captured.update(kwargs)
+            return []
+
+    monkeypatch.setattr("app.api.chat.CalendarToolRegistry.resolve", lambda self, **kwargs: FakeTool())
+    account = ExternalAccount(
+        id="01a0c387-8f30-767d-acb4-ccf9edc0f22b",
+        user_id="01a0c387-8eb5-7df5-aaa1-fcb8d3684ccc",
+        provider="google", account_type="oauth",
+        external_account_id="ananh888846@gmail.com",
+        display_name="Calendar", email=None, status="active",
+    )
+    credential = SimpleNamespace(credential_context=object())
+    result = execute_google_calendar_read(
+        account=account, credential_resolution=credential,
+        start="2026-09-24T13:00:00+07:00",
+    )
+    assert result["status"] == "ok"
+    assert captured["time_min"] == "2026-09-24T06:00:00+00:00"
+    assert captured["time_max"] == "2026-09-25T06:00:00+00:00"
+
+
+def test_calendar_read_rejects_invalid_range(monkeypatch) -> None:
+    from types import SimpleNamespace
+    from app.api.chat import execute_google_calendar_read
+    from app.application.core_runtime import ExternalAccount
+
+    monkeypatch.setattr("app.api.chat.CalendarToolRegistry.resolve", lambda self, **kwargs: None)
+    account = ExternalAccount(
+        id="01a0c387-8f30-767d-acb4-ccf9edc0f22b",
+        user_id="01a0c387-8eb5-7df5-aaa1-fcb8d3684ccc",
+        provider="google", account_type="oauth",
+        external_account_id="ananh888846@gmail.com",
+        display_name="Calendar", email=None, status="active",
+    )
+    credential = SimpleNamespace(credential_context=object())
+    result = execute_google_calendar_read(
+        account=account, credential_resolution=credential,
+        start="2026-09-25T00:00:00+07:00",
+        end="2026-09-24T00:00:00+07:00",
+    )
+    assert result == {
+        "status": "validation_error",
+        "action": "list_events",
+        "error": "end_must_be_after_start",
+        "provider_called": False,
+    }
