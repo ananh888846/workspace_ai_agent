@@ -20,6 +20,7 @@ from app.api.chat import (
 )
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
+from app.application.execution_boundary import enforce_result_boundary
 from app.application.execution_contract import build_execution_contract, normalize_result_status
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
@@ -203,6 +204,8 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
             body["calendar"] = execute_google_calendar_write(account=account, credential_resolution=credential_result, action=action, event_id=payload.event_id, summary=payload.summary, start=natural_start, end=payload.end, description=payload.description, location=payload.location, confirmed=payload.confirmed)
         else:
             body["calendar"] = {"status": "unsupported_action", "action": action, "provider_called": False}
+
+        body["calendar"] = enforce_result_boundary(body["calendar"])
         provider_called = body["calendar"].get("provider_called", False)
         body["execution"]["provider_called"] = provider_called
         body["execution"]["account"]["provider_called"] = provider_called
