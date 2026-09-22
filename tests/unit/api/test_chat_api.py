@@ -33,7 +33,7 @@ def test_account_resolution_runtime_wiring(monkeypatch) -> None:
         return {
             "status": "resolved",
             "provider": "google",
-            "account_id": "acc-1",
+            "account_id": "01a0c387-8f30-767d-acb4-ccf9edc0f22b",
             "external_account_id": "google-1",
             "display_name": "Personal Google",
             "email": "abc@gmail.com",
@@ -55,7 +55,7 @@ def test_authorization_runtime_wiring(monkeypatch) -> None:
         return {
             "status": "resolved",
             "provider": "google",
-            "account_id": "acc-1",
+            "account_id": "01a0c387-8f30-767d-acb4-ccf9edc0f22b",
             "external_account_id": "google-1",
             "display_name": "Personal Google",
             "email": "abc@gmail.com",
@@ -66,7 +66,7 @@ def test_authorization_runtime_wiring(monkeypatch) -> None:
         assert kwargs["user_id"] == "user-1"
         assert kwargs["organization_id"] == "org-1"
         assert kwargs["capability"] == "calendar.read"
-        assert kwargs["account"].id == "acc-1"
+        assert kwargs["account"].id == "01a0c387-8f30-767d-acb4-ccf9edc0f22b"
         return {"status": "allow", "code": "allow", "reason": "authorized", "provider_called": False}
 
     monkeypatch.setattr("app.main.resolve_google_account", fake_resolve)
