@@ -71,3 +71,29 @@ Không thay đổi Docker Compose. Postgres và Qdrant tiếp tục là infrastr
 - Calendar regression vẫn PASS.
 - Không phát sinh provider side effect ngoài hành vi hiện tại.
 - Sau đó mới tách capability routing và execution handler khỏi endpoint.
+
+
+## Phase 2 — Capability Routing
+
+**Trạng thái:** Implemented — chờ runtime verification.
+
+Phase 2 đã thay đổi Super-Graph thành router thực tế:
+
+- app/agent_runtime/runtime.py bổ sung route trong graph state.
+- Thêm node route_request và conditional edges tới capability handler tương ứng.
+- AgentRuntimeDependencies dùng route_handlers thay cho một execute callback duy nhất.
+- calendar.read và calendar.write được đăng ký từ Agent Runtime wiring trong app/main.py.
+- default handler giữ compatibility cho request chưa có capability route riêng.
+- Nếu không có route và không có default, Graph trả unsupported_action với provider_called=false.
+- Graph state không chứa credential, access token hoặc provider client.
+- Calendar execution logic chưa bị rewrite; mục tiêu là giảm rủi ro regression.
+
+### Verification gate
+Sau khi pull code, phải chạy:
+
+```text
+python -m pytest tests/unit/agent_runtime -q
+python -m pytest -q
+```
+
+Chỉ khi cả hai suite PASS mới ghi nhận Phase 2 đã verified.
