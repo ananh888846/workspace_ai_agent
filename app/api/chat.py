@@ -91,13 +91,25 @@ def authorize_request(*, user_id: str, organization_id: str, capability: str, ac
     return {"status": "allow" if decision.allowed else "deny", "code": decision.code, "reason": decision.reason, "provider_called": False}
 
 
-def resolve_google_credential(*, account: ExternalAccount, authorization: dict) -> dict:
+def resolve_google_credential(*, account: ExternalAccount, authorization: dict, credential_resolution: object | None = None) -> dict:
+    """Chuẩn hóa kết quả CredentialResolver; không resolve lại khi đã có kết quả."""
     if authorization.get("status") != "allow":
         return {"status": "not_evaluated", "provider_called": False}
-    with database_connection() as connection:
-        result = CredentialResolver(PostgresCredentialRepository(connection)).resolve(decision=AuthorizationDecision(allowed=True, reason="authorized", code="allow"), account=account)
-    if result.status == "ready":
-        return {"status": "ready", "credential_type": result.credential_type, "expires_at": result.expires_at.isoformat() if result.expires_at else None, "scopes": result.scopes, "provider_called": False}
+    if credential_resolution is None:
+        with database_connection() as connection:
+            credential_resolution = CredentialResolver(PostgresCredentialRepository(connection)).resolve(
+                decision=AuthorizationDecision(allowed=True, reason="authorized", code="allow"),
+                account=account,
+            )
+    result = credential_resolution
+    if getattr(result, "status", None) == "ready":
+        return {
+            "status": "ready",
+            "credential_type": result.credential_type,
+            "expires_at": result.expires_at.isoformat() if result.expires_at else None,
+            "scopes": result.scopes,
+            "provider_called": False,
+        }
     return {"status": "oauth_required", "code": "oauth_required", "reason": "credential_not_ready", "provider_called": False}
 
 
@@ -201,7 +213,7 @@ def execute_google_calendar_read(
     }
 
 
-def execute_google_calendar_write(*, account: ExternalAccount, credential_resolution: object, action: str, event_id: str | None = None, summary: str | None = None, start: str | None = None, end: str | None = None, description: str | None = None, location: str | None = None, confirmed: bool = False) -> dict:
+def execute_google_calendar_write(*, account: ExternalAccount, credential_resolution: object, action: str, event_id: str | None = None, summary: str | None = None, start: str | None = None, end: str | None = None, description: str | None = None, location: str | None = None, confirmed: bool = False, recurrence: str | None = None) -> dict:
     """Calendar Write V1: create/update/delete sau Authorization + credential resolution."""
     credential_context = getattr(credential_resolution, "credential_context", None)
     if credential_context is None:
