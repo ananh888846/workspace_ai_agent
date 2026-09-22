@@ -1,6 +1,6 @@
 # Scheduling Assistant V1
 
-> Đặc tả thiết kế đã được chốt trước khi triển khai code. Tài liệu này là contract cho implementation V1.
+> Thiết kế đã được chốt. Implementation V1 đang được triển khai từng bước theo tài liệu này.
 
 ## 1. Mục tiêu
 
@@ -274,3 +274,18 @@ Tài liệu chưa triển khai:
 - optimization theo sở thích người tham dự;
 - timezone negotiation phức tạp;
 - notification/reminder orchestration.
+
+
+## 15. Trạng thái implementation
+
+Đã triển khai bước đầu:
+
+- [app/services/scheduling.py](../app/services/scheduling.py): SchedulingService và AvailableSlot.
+- [app/graphs/scheduling.py](../app/graphs/scheduling.py): Scheduling Graph V1 với LangGraph.
+- [tests/services/test_scheduling.py](../tests/services/test_scheduling.py): unit tests cho thuật toán tìm slot.
+- [tests/unit/graphs/test_scheduling.py](../tests/unit/graphs/test_scheduling.py): test orchestration Graph.
+- [app/api/chat.py](../app/api/chat.py): tích hợp Graph sau Authorization + CredentialResolver.
+- [app/main.py](../app/main.py): thêm search window, duration và max_results cho request.
+- [requirements.txt](../requirements.txt): thêm LangGraph.
+
+Chưa đánh dấu PASS/CLOSED vì chưa có runtime verification trên môi trường local và chưa có E2E với Google Calendar thật.
