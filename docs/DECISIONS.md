@@ -605,3 +605,20 @@ Migration rule:
 - Không rewrite toàn bộ Calendar runtime trong một phase.
 - Calendar V1 tiếp tục là regression baseline.
 - Phase 2 chỉ mở sau khi Phase 1 unit + regression verification PASS.
+
+
+## Decision 046 — Runtime V2.2 Phase 2: Capability Routing trong Super-Graph
+**Status:** Accepted — Implemented
+
+Super-Graph phải route capability bằng graph node/edge thay vì để một execution callback duy nhất tự quyết định capability.
+
+### Contract
+- classify_request tạo intent, capability, action.
+- route_request chọn route dựa trên capability đã được application classification xác định.
+- Capability handler được inject vào Runtime; Graph không truy cập SQL, Qdrant, credential secret hoặc provider API.
+- calendar.read và calendar.write được đăng ký là Calendar routes trong Phase 2.
+- default được giữ để bảo toàn compatibility cho request chưa có capability route riêng.
+- Không có route phù hợp và không có default → unsupported_action, provider_called=false.
+
+### Migration rule
+Phase 2 không rewrite Calendar execution. Calendar V1 tiếp tục là regression baseline. Việc tách handler/application capability boundary sâu hơn sẽ thực hiện ở phase kế tiếp.
