@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.api.chat import authorize_request, classify_chat_request, resolve_google_account
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
-from app.application.capabilities.calendar import calendar_handler
+from app.application.capabilities.calendar import CalendarHandler, calendar_handler
 from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
@@ -144,3 +144,7 @@ def agent_chat(
         "organization_id": x_organization_id,
     }
     return _agent_runtime.run(request=payload, context=context)
+
+
+# Compatibility helper: các test/API nội bộ cũ vẫn có thể import helper từ app.main.
+_natural_language_calendar_start = CalendarHandler._natural_language_calendar_start
