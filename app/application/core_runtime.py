@@ -44,12 +44,11 @@ class ExternalAccount:
 class AccountCandidate:
     """Account metadata + access metadata; không chứa credential secret."""
 
-    def __init__(self, account: ExternalAccount, access_mode: str, account_grant_id: str | None = None, organization_id: str | None = None, grant_scope: dict[str, Any] | None = None):
-        self.account = account
-        self.access_mode = access_mode
-        self.account_grant_id = account_grant_id
-        self.organization_id = organization_id
-        self.grant_scope = grant_scope
+    account: ExternalAccount
+    access_mode: str
+    account_grant_id: str | None = None
+    organization_id: str | None = None
+    grant_scope: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -78,7 +77,7 @@ class AccountRepository(Protocol):
         organization_id: str,
         provider: str,
         account_hint: str | None = None,
-     ) -> Sequence[AccountCandidate]:
+    ) -> Sequence[AccountCandidate]:
         ...
 
 
@@ -95,6 +94,8 @@ class PermissionRepository(Protocol):
         user_id: str,
         account: ExternalAccount,
         capability: str,
+        grant_scope: dict[str, Any] | None = None,
+        access_mode: str | None = None,
     ) -> bool:
         ...
 
@@ -138,7 +139,7 @@ class AccountResolver:
         organization_id: str,
         provider: str,
         account_hint: str | None = None,
-    ) -> ExternalAccount:
+    ) -> ResolvedAccount:
         candidates = list(
             self._repository.find_candidates(
                 user_id=user_id,
@@ -180,8 +181,6 @@ class AuthorizationService:
         if not self._permissions.has_capability_permission(
             user_id=context.user_id,
             capability=capability,
-            grant_scope=resolved_account.grant_scope if resolved_account else None,
-            access_mode=resolved_account.access_mode if resolved_account else None,
         ):
             return AuthorizationDecision(False, "capability_permission_denied", "authorization_denied")
 
@@ -190,6 +189,8 @@ class AuthorizationService:
             user_id=context.user_id,
             account=account,
             capability=capability,
+            grant_scope=resolved_account.grant_scope if resolved_account else None,
+            access_mode=resolved_account.access_mode if resolved_account else None,
         ):
             return AuthorizationDecision(False, "account_access_denied", "authorization_denied")
 
