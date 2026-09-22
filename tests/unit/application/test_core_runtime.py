@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.application.core_runtime import CredentialResolution
+from app.application.core_runtime import AccountCandidate, CredentialResolution
 
 from app.application.core_runtime import (
     AccountResolver,
@@ -64,7 +64,7 @@ def account():
 
 
 def test_account_resolver_never_needs_credentials():
-    repo = FakeAccounts([account()])
+    repo = FakeAccounts([AccountCandidate(account=account(), access_mode="owner", organization_id="org-1")])
     resolver = AccountResolver(repo)
 
     result = resolver.resolve(
@@ -73,18 +73,19 @@ def test_account_resolver_never_needs_credentials():
         provider="google",
     )
 
-    assert result.id == "acc-1"
+    assert result.account.id == "acc-1"
+    assert result.access_mode == "owner"
     assert repo.calls == 1
 
 
 def test_multiple_accounts_require_explicit_selection():
-    repo = FakeAccounts([account(), account().__class__(
+    repo = FakeAccounts([AccountCandidate(account=account(), access_mode="owner", organization_id="org-1"), AccountCandidate(account=account().__class__(
         id="acc-2",
         user_id="user-1",
         provider="google",
         account_type="google",
         external_account_id="google-2",
-    )])
+    ), access_mode="owner", organization_id="org-1")])
 
     with pytest.raises(AccountSelectionRequiredError, match="account_selection_required"):
         AccountResolver(repo).resolve(
