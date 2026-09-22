@@ -702,3 +702,30 @@ Nguyên tắc Phase 2:
 - Không tạo migration database.
 
 Phase tiếp theo sẽ tách Calendar handler thành application capability handler độc lập hơn, sau khi Phase 2 routing regression PASS.
+
+
+## Runtime Architecture V2.2 — Phase 3: Calendar Handler
+
+Phase 3 hoàn tất bước tách **Application Handler** khỏi FastAPI entry:
+
+```text
+Client
+  ↓
+FastAPI /api/v1/agent/chat
+  ↓
+Agent Runtime
+  ↓
+LangGraph Super-Graph
+  ↓
+CalendarHandler
+  ├── Account Resolver
+  ├── Authorization
+  ├── Credential Resolver
+  └── Calendar execution adapter
+          ↓
+      Tool / Provider
+```
+
+`main.py` không còn chứa Calendar request execution orchestration. Handler nằm tại `app/application/capabilities/calendar.py` và là nơi phù hợp để các capability handler khác được bổ sung về sau.
+
+Phase 3 không thay đổi DB, OAuth scope, Docker topology hoặc Calendar domain behavior. Các execution function hiện hữu trong `app/api/chat.py` được giữ nguyên trong bước chuyển tiếp để bảo toàn regression baseline; việc tách execution adapter hoàn toàn khỏi API layer là một phase riêng nếu cần.
