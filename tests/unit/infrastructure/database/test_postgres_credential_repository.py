@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
+from types import SimpleNamespace
+
+from cryptography.fernet import Fernet
 
 from app.application.core_runtime import ExternalAccount
 from app.infrastructure.database.repositories.credentials import (
@@ -55,12 +59,27 @@ def test_missing_credential_requires_oauth():
 
     assert result.status == "oauth_required"
     assert connection.cursor_instance.params == ["acc-1"]
-    assert "encrypted_value" not in connection.cursor_instance.query
+    assert "encrypted_value" in connection.cursor_instance.query
 
 
-def test_active_credential_is_ready_without_returning_secret():
+def test_active_credential_is_ready_without_returning_secret(monkeypatch):
     expires_at = datetime.now(timezone.utc)
-    connection = FakeConnection(("oauth2", expires_at, ["calendar.readonly"]))
+    key = Fernet.generate_key()
+    payload = {
+        "token": "test-access-token",
+        "refresh_token": "test-refresh-token",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "client_id": "client-id",
+        "client_secret": "client-secret",
+    }
+    encrypted_value = Fernet(key).encrypt(json.dumps(payload).encode("utf-8"))
+    monkeypatch.setattr(
+        "app.infrastructure.database.repositories.credentials.get_settings",
+        lambda: SimpleNamespace(google_credential_encryption_key=key.decode("ascii")),
+    )
+    connection = FakeConnection(
+        ("oauth2", encrypted_value, expires_at, ["calendar.readonly"])
+    )
 
     result = PostgresCredentialRepository(connection).resolve_authorized_credential(
         account=_account()
@@ -70,4 +89,5 @@ def test_active_credential_is_ready_without_returning_secret():
     assert result.credential_type == "oauth2"
     assert result.expires_at == expires_at
     assert result.scopes == ["calendar.readonly"]
-    assert "encrypted_value" not in connection.cursor_instance.query
+    assert result.credential_context is not None
+    assert "encrypted_value" in connection.cursor_instance.query
