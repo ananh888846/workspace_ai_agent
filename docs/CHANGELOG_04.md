@@ -173,3 +173,31 @@
 ### Decision
 
 - Thêm **Decision 044 — Account Resolver + Account Grant V1: chốt contract trước Multi-account** vào `docs/DECISIONS.md`.
+
+ 
+## 2026-09-22 — Runtime fixes: Calendar Recurrence + Credential Resolution
+
+Đã sửa và ghi nhận sau khi thay đổi code:
+
+- [`app/api/chat.py`](../app/api/chat.py)
+  - `execute_google_calendar_write()` nhận thêm `recurrence`.
+  - Giữ validation qua `CalendarRecurrenceService`.
+  - `resolve_google_credential()` có thể nhận kết quả CredentialResolver đã resolve để chỉ chuẩn hóa response, không resolve lại.
+
+- [`app/main.py`](../app/main.py)
+  - Tái sử dụng `credential_result` cho execution response.
+  - Loại bỏ duplicate CredentialResolver trong cùng một request.
+
+- [`tests/unit/api/test_chat_api.py`](../tests/unit/api/test_chat_api.py)
+  - Bổ sung regression test cho recurrence.
+  - Bổ sung test xác nhận credential result có thể được tái sử dụng mà không cần resolve lần hai.
+
+### Documentation contract
+
+Mọi thay đổi code ở lượt này đã cập nhật Decision Log và Changelog theo nguyên tắc project: **sửa code → cập nhật docs/changelog → mới chuyển sang bước verification**.
+
+### Git commits
+
+- `9348e550b9f191ed9dbb833154835c7e10e01771` — fix recurrence + credential reuse.
+- `80485924689608b68091f3cf972ab1889355829c` — remove duplicate credential resolution from main runtime.
+- `47994c591ee175576d861846f579be38f6a71e4e` — add regression tests.
