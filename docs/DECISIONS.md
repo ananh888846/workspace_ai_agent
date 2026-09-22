@@ -264,3 +264,58 @@ Acceptance đã xác nhận:
 Ranh giới tiếp theo:
 - Scheduling Assistant là capability kế tiếp theo Decision 033.
 - Nếu phase sau cần LangGraph hoặc Pydantic ở boundary mới, phải thực hiện quy trình chốt tại Decision 034 trước khi triển khai.
+
+
+## Decision 041 — Scheduling Assistant V1: LangGraph orchestration + domain service độc lập
+**Status:** Accepted
+
+Scheduling Assistant V1 được chốt là capability đầu tiên dùng LangGraph ở tầng orchestration thực tế, theo nguyên tắc:
+
+```text
+LangGraph điều phối
+        ↓
+Domain Service thực thi
+        ↓
+Tool làm boundary
+        ↓
+Provider kết nối bên ngoài
+```
+
+### Phạm vi V1
+- Nhận yêu cầu tìm thời gian phù hợp cho lịch.
+- Chuẩn hóa khoảng thời gian cần tìm.
+- Resolve calendar/account theo runtime authorization hiện tại.
+- Lấy Free/Busy từ capability `calendar.read` + action `free_busy`.
+- Tìm các khoảng thời gian còn trống bằng `SchedulingService`.
+- Trả các slot phù hợp và thông tin conflict nếu có.
+- Chưa tự tạo/sửa/xóa event trong V1.
+- Chưa triển khai recurrence hoặc multi-account scheduling.
+
+### LangGraph
+Graph chịu trách nhiệm:
+- `classify_request`;
+- `resolve_calendar`;
+- `get_free_busy`;
+- `find_available_slots`;
+- `confirm` khi phase sau có side effect;
+- `format_result`.
+
+Graph state chứa request context, timezone, khoảng thời gian tìm kiếm, calendar/account context, busy periods, available slots, conflict và confirmation state khi cần.
+
+### Domain boundary
+`SchedulingService` là Python service độc lập:
+- không phụ thuộc LangGraph;
+- không truy cập credential;
+- không truy cập SQL/Qdrant;
+- không gọi Google Calendar API trực tiếp;
+- nhận dữ liệu Free/Busy đã được kiểm soát và trả available slots.
+
+### Pydantic
+Không mặc định thêm Pydantic cho Scheduling Assistant V1. Chỉ bổ sung nếu một Tool/Graph boundary phát sinh nhu cầu rõ ràng về validation, normalization, serialization hoặc contract ổn định; khi đó phải hỏi chủ project trước theo Decision 034.
+
+### Database
+Scheduling Assistant V1 không mặc định tạo migration. Chỉ tạo migration nếu implementation thực tế chứng minh cần persistence mới.
+
+### Regression
+Calendar CRUD V1, Natural Language Date/Time V1 và Free/Busy + Conflict Detection V1 tiếp tục là regression baselines.
+
