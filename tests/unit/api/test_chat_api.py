@@ -94,6 +94,22 @@ def test_classify_scheduling_request():
     assert (intent, capability, action) == ("calendar", "calendar.read", "schedule")
 
 
+def test_classify_natural_meeting_write_requests() -> None:
+    from app.api.chat import classify_chat_request
+    from app.api.schemas import ChatRequest
+
+    cases = {
+        "Tạo cuộc họp ngày mai": ("calendar", "calendar.write", "create"),
+        "Tạo meeting ngày mai": ("calendar", "calendar.write", "create"),
+        "Sửa cuộc họp ngày mai": ("calendar", "calendar.write", "update"),
+        "Xóa cuộc họp ngày mai": ("calendar", "calendar.write", "delete"),
+        "Đọc cuộc họp ngày mai": ("calendar", "calendar.read", "read"),
+    }
+
+    for message, expected in cases.items():
+        assert classify_chat_request(ChatRequest(message=message)) == expected
+
+
 def test_natural_language_scheduling_enters_runtime(monkeypatch) -> None:
     calls = []
 
