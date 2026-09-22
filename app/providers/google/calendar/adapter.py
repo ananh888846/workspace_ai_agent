@@ -9,6 +9,8 @@ class GoogleCalendarService(Protocol):
 
     def events(self) -> Any: ...
 
+    def freebusy(self) -> Any: ...
+
 
 @dataclass(frozen=True)
 class CalendarEvent:
@@ -96,6 +98,31 @@ class GoogleCalendarAdapter:
             .delete(calendarId=calendar_id, eventId=event_id)
             .execute()
         )
+
+    def free_busy(
+        self,
+        *,
+        time_min: str,
+        time_max: str,
+        calendar_ids: list[str],
+        time_zone: str | None = None,
+    ) -> dict[str, list[dict[str, str]]]:
+        body: dict[str, Any] = {
+            "timeMin": time_min,
+            "timeMax": time_max,
+            "items": [{"id": calendar_id} for calendar_id in calendar_ids],
+        }
+        if time_zone:
+            body["timeZone"] = time_zone
+        response = self._service.freebusy().query(body=body).execute()
+        calendars = response.get("calendars", {})
+        return {
+            str(calendar_id): [
+                {"start": str(period["start"]), "end": str(period["end"])}
+                for period in calendar_data.get("busy", [])
+            ]
+            for calendar_id, calendar_data in calendars.items()
+        }
 
     @staticmethod
     def _map_event(calendar_id: str, raw: dict[str, Any]) -> CalendarEvent:
