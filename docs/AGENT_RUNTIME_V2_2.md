@@ -176,3 +176,16 @@ Sau verification local, Phase 3 phát hiện 8 regression failures do test bound
 Mục tiêu là giữ FastAPI là transport boundary và CalendarHandler là application capability boundary, thay vì khôi phục coupling cũ.
 
 **Trạng thái:** chờ chạy lại targeted + full regression.
+
+
+## Phase 3 — OAuth-required boundary hardening
+
+Verification local sau regression compatibility fix còn **1 failure / 96 passed** ở nhánh `oauth_required`: `execution.credential.provider_called` thực tế là `true`, trong khi contract yêu cầu `false` vì provider chưa được gọi.
+
+Đã gia cố `CalendarHandler`:
+- khi `CredentialResolution.status != "ready"`, handler trả ngay;
+- ép `execution.credential.provider_called = false`;
+- ép `execution.provider_called = false`;
+- không dispatch Calendar execution/provider.
+
+**Trạng thái:** chờ chạy lại targeted + full regression. Không chuyển Phase 4 cho tới khi full suite PASS.
