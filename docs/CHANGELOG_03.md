@@ -1,3 +1,9 @@
+## 2026-09-22 — Sửa classification Scheduling Assistant V1
+
+- Cập nhật [app/api/chat.py](../app/api/chat.py): nhận dạng các câu như tìm thời gian/tìm giờ/khung giờ ngay cả khi câu không chứa từ lịch.
+- Giữ nguyên ưu tiên loại trừ Calendar Write để không route yêu cầu tạo/sửa/xóa sang Scheduling Assistant.
+- Chưa runtime verify; cần chạy test classification và Scheduling Graph sau khi pull.
+
 ## 2026-09-22 — Triển khai Scheduling Assistant V1: SchedulingService + LangGraph Graph
 
 - Thêm [app/services/scheduling.py](../app/services/scheduling.py): thuật toán deterministic tìm available slots từ Free/Busy.
