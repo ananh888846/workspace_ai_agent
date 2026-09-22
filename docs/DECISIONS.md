@@ -189,7 +189,6 @@ Quy tắc này không yêu cầu hỏi cho mọi helper Python nhỏ hoặc thay
 
 Mục tiêu là tránh over-engineering, giữ quyền quyết định kiến trúc ở chủ project và bảo đảm framework được dùng đúng chỗ.
 
-
 ## Decision 035 — Calendar Natural Language Date/Time dùng Python thuần
 **Status:** Accepted  
 Bước Natural Language Date/Time V1 của Calendar không dùng LangGraph và không dùng Pydantic. Parser là service Python độc lập, timezone-aware và chuẩn hóa theo `Asia/Ho_Chi_Minh`.
@@ -201,7 +200,6 @@ Nguyên tắc:
 - Output là datetime timezone-aware; provider boundary chịu trách nhiệm chuyển UTC.
 - Khi phase sau có dữ liệu phức tạp, phải phân tích nhu cầu Pydantic và hỏi chủ project trước khi dùng.
 - LangGraph giữ vai trò Super-Graph ở tầng trên cùng; không nhúng LangGraph vào parser chỉ để orchestration một hàm nhỏ.
-
 
 ## Decision 036 — Calendar Natural Language Date/Time V1 E2E baseline
 **Status:** Accepted  
@@ -218,7 +216,6 @@ Acceptance đã xác nhận:
 Ranh giới tiếp theo:
 - Free/Busy và Conflict Detection là capability kế tiếp, không được suy luận từ Natural Language parser.
 - Trước khi dùng LangGraph hoặc Pydantic cho Free/Busy/Conflict Detection phải thực hiện quy trình tại Decision 034.
-
 
 ## Decision 037 — Calendar Free/Busy V1 không dùng Pydantic
 **Status:** Accepted  
@@ -248,7 +245,6 @@ Thứ tự ưu tiên:
 
 Không thêm dependency bên thứ ba nếu API/SDK chính thức đã đáp ứng yêu cầu.
 
-
 ## Decision 040 — Calendar Free/Busy + Conflict Detection V1 E2E baseline
 **Status:** Accepted  
 Free/Busy và Conflict Detection V1 được chốt làm regression baseline sau khi runtime verification hoàn tất với Google Calendar thật.
@@ -264,7 +260,6 @@ Acceptance đã xác nhận:
 Ranh giới tiếp theo:
 - Scheduling Assistant là capability kế tiếp theo Decision 033.
 - Nếu phase sau cần LangGraph hoặc Pydantic ở boundary mới, phải thực hiện quy trình chốt tại Decision 034 trước khi triển khai.
-
 
 ## Decision 041 — Scheduling Assistant V1: LangGraph orchestration + domain service độc lập
 **Status:** Accepted
@@ -319,3 +314,58 @@ Scheduling Assistant V1 không mặc định tạo migration. Chỉ tạo migrat
 ### Regression
 Calendar CRUD V1, Natural Language Date/Time V1 và Free/Busy + Conflict Detection V1 tiếp tục là regression baselines.
 
+## Decision 042 — Agent Execution Contract và Error Contract V1
+**Status:** Accepted
+
+Workspace AI Agent dùng một execution/result/error contract thống nhất cho các capability sau Calendar V1.
+
+### Execution Contract
+Execution phải mô tả tối thiểu:
+- `intent`;
+- `capability`;
+- `action`;
+- `account`;
+- `authorization`;
+- `credential`;
+- `provider_called`.
+
+`provider_called` là execution fact và phải phản ánh provider có thực sự được gọi hay chưa.
+
+### Result Contract
+Capability result chuẩn gồm:
+- `status`;
+- `action`;
+- `data`;
+- `error`;
+- `provider_called`.
+
+### Error Contract
+Error chuẩn gồm:
+- `code` ổn định cho machine processing;
+- `message` không chứa secret;
+- `retryable`;
+- `provider_called`;
+- `details` nếu cần.
+
+### Status V1
+```text
+not_classified
+account_not_found
+account_selection_required
+authorization_denied
+oauth_required
+validation_error
+confirmation_required
+provider_error
+unsupported_action
+ok
+```
+
+### Provider boundary
+Lỗi xảy ra trước provider call phải có `provider_called=false`. Nếu provider đã được gọi và phát sinh lỗi thì phải dùng `provider_error` với `provider_called=true`.
+
+### Framework và database
+Execution Contract V1 dùng Python dataclass/StrEnum, không tạo migration và không thêm LangGraph/Pydantic chỉ để phục vụ contract.
+
+### Migration rule
+Calendar V1 tiếp tục là regression baseline. Các capability mới phải tái sử dụng contract này thay vì tạo response shape riêng.
