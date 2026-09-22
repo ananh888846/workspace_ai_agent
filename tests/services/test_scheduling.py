@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pytest
 
@@ -65,6 +65,16 @@ def test_returns_empty_when_no_window_can_fit_duration():
         busy_periods=busy,
     )
     assert slots == []
+
+
+def test_find_conflicts_clips_to_search_window():
+    busy = [BusyPeriod(calendar_id="primary", start=dt(8), end=dt(10, 30))]
+    conflicts = SchedulingService().find_conflicts(
+        search_start=dt(9),
+        search_end=dt(12),
+        busy_periods=busy,
+    )
+    assert [(item.start, item.end) for item in conflicts] == [(dt(9), dt(10, 30))]
 
 
 @pytest.mark.parametrize(
