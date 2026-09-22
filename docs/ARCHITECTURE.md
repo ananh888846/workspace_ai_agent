@@ -527,9 +527,9 @@ V1 không tạo migration chỉ để lưu scheduling state. Graph state là exe
 
 
 
-## 11.7 — Runtime Architecture V2.2 — Agent Runtime + LangGraph Boundary (PROPOSED)
+## 11.7 — Runtime Architecture V2.2 — Agent Runtime + LangGraph Boundary (ACCEPTED)
 
-> Trạng thái: **PROPOSED — chưa triển khai code**. Phần này mô tả kiến trúc mục tiêu để chủ project phê duyệt trước khi thực hiện thay đổi runtime.
+> Trạng thái: **ACCEPTED — Phase 1 đã triển khai orchestration seam**. Decision 045 đã được chủ project phê duyệt ngày 2026-09-22.
 
 ### Mục tiêu
 
@@ -633,3 +633,34 @@ Mọi side-effect vẫn phải đi qua: Route → Account → Authorization → 
 
 ### Trạng thái
 **PROPOSED — chưa triển khai.** Cần chủ project phê duyệt trước khi bắt đầu thay đổi LangGraph/Pydantic/runtime theo Decision 034.
+
+
+### 11.8 — Runtime Architecture V2.2 Phase 1 — Orchestration Seam
+
+Phase 1 đã triển khai Agent Runtime Entry và Super-Graph tối thiểu mà không rewrite toàn bộ Calendar runtime.
+
+```text
+FastAPI
+  ↓
+Agent Runtime Entry
+  ↓
+LangGraph Super-Graph
+  ├── classify_request
+  └── execute_route
+        ↓
+Existing Application Runtime
+  ↓
+Account → Authorization → Credential → Tool → Provider
+```
+
+Implementation:
+- `app/agent_runtime/runtime.py` là Agent Runtime Entry.
+- `AgentRuntimeState` chỉ giữ request/context/intent/capability/action/result.
+- `AgentRuntimeDependencies` inject classification và execution callback.
+- `app/main.py` giữ `/api/v1/agent/chat` làm compatibility endpoint nhưng delegate vào Agent Runtime.
+- Calendar execution hiện tại được giữ nguyên trong callback để bảo toàn regression baseline.
+- Không đưa credential, SQL connection, provider client hoặc secret vào Graph state.
+- Không thay đổi Docker Compose.
+- Không tạo migration database.
+
+Phase 1 là migration seam, chưa phải hoàn tất Super-Graph cho mọi capability. Phase 2 sẽ tách capability routing/execution handler khỏi callback theo từng capability và chạy regression sau từng bước.
