@@ -228,7 +228,8 @@ def execute_google_calendar_write(*, account: ExternalAccount, credential_resolu
     normalized_recurrence = None
     if recurrence is not None:
         try:
-            normalized_recurrence = CalendarRecurrenceService().parse(recurrence).to_rrule()
+            normalized_input = recurrence if recurrence.startswith("RRULE:") else f"RRULE:{recurrence}"
+            normalized_recurrence = CalendarRecurrenceService().parse(normalized_input).to_rrule()
         except ValueError as exc:
             return {"status": "validation_error", "error": str(exc), "provider_called": False}
     for datetime_value in (start, end):
