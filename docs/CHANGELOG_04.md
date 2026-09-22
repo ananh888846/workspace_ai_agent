@@ -514,3 +514,23 @@ python -m pytest -q
 ```
 
 Nếu E2E PASS, phase tiếp theo là bổ sung test/implementation cho natural-language extraction đầy đủ thay vì suy luận rằng parser hiện tại đã hỗ trợ toàn bộ câu tự nhiên.
+
+## 2026-09-23 16:00 +07:00 — Fix Calendar natural-language meeting classification
+
+Phát hiện từ verification Phase 4A rằng câu "Tạo cuộc họp ..." bị classify_chat_request() trả về not_classified, dù cùng ý nghĩa nghiệp vụ với "Tạo cuộc hẹn ...".
+
+Đã sửa trên GitHub:
+
+- app/api/chat.py
+  - mở rộng Calendar read terms với "cuộc họp", "họp", "meeting";
+  - mở rộng write phrases cho tạo/sửa/xóa/huỷ cuộc họp;
+  - giữ nguyên contract calendar.read / calendar.write và action read/create/update/delete.
+- tests/unit/api/test_chat_api.py
+  - thêm regression test cho câu tự nhiên về cuộc họp/meeting;
+  - kiểm tra create, update, delete và read classification.
+- Không thay đổi database schema, OAuth scope, Docker topology hoặc Google Calendar provider execution.
+
+### Verification gate
+
+Sau khi pull, chạy targeted test classification/API trước khi chuyển sang Google Calendar E2E.
+
