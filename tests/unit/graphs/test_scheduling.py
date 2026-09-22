@@ -1,9 +1,6 @@
 from datetime import datetime, timezone
 
-from app.graphs.scheduling import (
-    SchedulingGraphDependencies,
-    run_scheduling_graph,
-)
+from app.graphs.scheduling import SchedulingGraphDependencies, run_scheduling_graph
 from app.services.calendar_free_busy import BusyPeriod
 
 
@@ -35,7 +32,10 @@ def test_scheduling_graph_orchestrates_nodes_and_service():
     assert calls == ["resolve_calendar", ("get_free_busy", ["primary"])]
     assert result["intent"] == "calendar"
     assert result["action"] == "schedule"
+    assert result["timezone"] == "Asia/Ho_Chi_Minh"
     assert result["status"] == "available"
+    assert result["confirmation_state"] == "not_required"
+    assert len(result["conflicts"]) == 1
     assert [(slot.start, slot.end) for slot in result["available_slots"]] == [
         (dt(9), dt(10)),
         (dt(11), dt(12)),
