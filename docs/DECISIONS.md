@@ -247,3 +247,20 @@ Thứ tự ưu tiên:
 4. Third-party library chỉ khi có lý do kỹ thuật rõ ràng.
 
 Không thêm dependency bên thứ ba nếu API/SDK chính thức đã đáp ứng yêu cầu.
+
+
+## Decision 040 — Calendar Free/Busy + Conflict Detection V1 E2E baseline
+**Status:** Accepted  
+Free/Busy và Conflict Detection V1 được chốt làm regression baseline sau khi runtime verification hoàn tất với Google Calendar thật.
+
+Acceptance đã xác nhận:
+- Create event test thành công với Google Calendar thật.
+- FreeBusy trả đúng busy interval và ConflictDetector xác định đúng overlap.
+- Khoảng bắt đầu đúng thời điểm busy kết thúc được xác định là không conflict.
+- Delete event test thành công sau verification.
+- Runtime giữ capability `calendar.read` + action `free_busy`, OAuth scope hiện tại và không tạo migration database.
+- Free/Busy service không dùng LangGraph nội bộ và không dùng Pydantic.
+
+Ranh giới tiếp theo:
+- Scheduling Assistant là capability kế tiếp theo Decision 033.
+- Nếu phase sau cần LangGraph hoặc Pydantic ở boundary mới, phải thực hiện quy trình chốt tại Decision 034 trước khi triển khai.
