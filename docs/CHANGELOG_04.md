@@ -238,3 +238,15 @@ Sau thay đổi code đã cập nhật Decision Log và Changelog ngay trong cù
 ### Verification status
 
 A01–A04 và A11–A14 đã có test coverage trong repository. A15–A20 chưa đóng cho tới khi chạy runtime/integration side-effect tests.
+
+
+## 2026-09-22 — Đề xuất Runtime Architecture V2.2
+
+- Review runtime hiện tại của Agent, FastAPI, Scheduling Graph, langgraph.json và Docker infrastructure.
+- Xác nhận FastAPI vẫn là HTTP/Application entry hiện tại; LangGraph đã được triển khai thực tế cho Scheduling Assistant; chưa có Unified Agent Super-Graph; chưa có LangGraph Server production; Docker Compose hiện chỉ có Postgres và Qdrant.
+- Thêm đề xuất Runtime Architecture V2.2 vào [docs/ARCHITECTURE.md](./ARCHITECTURE.md): FastAPI = HTTP transport boundary; Agent Runtime Entry = application entry cho Agent Run; LangGraph Super-Graph = orchestration cấp Agent; Capability Graph = graph theo capability khi cần; Tool/Provider = action/external API boundary.
+- Thêm [Decision 045](./DECISIONS.md) với trạng thái **Proposed — chờ chủ project phê duyệt**.
+- Không thay đổi code runtime.
+- Không thay đổi Docker Compose.
+- Không tạo migration database.
+- Không triển khai LangGraph Server.
