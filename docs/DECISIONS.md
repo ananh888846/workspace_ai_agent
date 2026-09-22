@@ -685,7 +685,7 @@ Verification gate vẫn giữ nguyên: targeted tests + full regression phải P
 
 ## Decision 047 — OAuth-required provider boundary invariant
 
-**Trạng thái:** Implemented — chờ verification local lại
+**Trạng thái:** Implemented — VERIFIED
 
 Verification local tiếp theo sau Phase 3 regression fix còn 1 failure: khi Credential Resolver trả `oauth_required`, response vẫn bị đánh dấu `provider_called=true` ở credential boundary.
 
@@ -715,3 +715,11 @@ Xác định nguyên nhân của failure còn lại trong `test_runtime_oauth_re
 Chốt sửa: test phải patch đúng symbol tại application boundary mà handler thực sự sử dụng: `app.application.capabilities.calendar.CredentialResolver`.
 
 Không thay đổi production semantics; đây là sửa test boundary để phản ánh đúng dependency injection/import boundary hiện tại.
+
+## 2026-09-22 — Phase 3 VERIFIED
+
+Regression local sau khi sửa đúng test dependency boundary:
+- targeted Calendar Handler + Agent Runtime: **6 passed**;
+- full regression: **97 passed, 0 failed, 2 warnings**.
+
+Kết luận: Calendar Application Handler extraction đã giữ đúng Application Boundary và Execution/Error Contract. Phase 3 được đóng VERIFIED.
