@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import asdict
-
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
-from app.api.chat import classify_chat_request
+from app.api.chat import authorize_request, classify_chat_request, resolve_google_account
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
 from app.application.capabilities.calendar import calendar_handler
@@ -49,7 +47,7 @@ def google_oauth_start(
         raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required")
     if capability not in {"calendar.read", "calendar.write"}:
         raise HTTPException(status_code=400, detail="unsupported_calendar_capability")
-    account = calendar_handler.resolve_account_for_oauth(
+    account = resolve_google_account(
         user_id=x_user_id,
         organization_id=x_organization_id,
         account_hint=account_id,
@@ -66,10 +64,11 @@ def google_oauth_start(
         email=account["email"],
         status=account.get("account_state", "active"),
     )
-    authorization = calendar_handler.authorize_for_oauth(
+    authorization = authorize_request(
         user_id=x_user_id,
         organization_id=x_organization_id,
         capability=capability,
+        action="read" if capability == "calendar.read" else "write",
         account=external_account,
     )
     if authorization.get("status") != "allow":
