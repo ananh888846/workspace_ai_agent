@@ -26,6 +26,7 @@ class GoogleCalendarTool:
             "create_event": self.create_event,
             "update_event": self.update_event,
             "delete_event": self.delete_event,
+            "free_busy": self.free_busy,
         }
         handler = handlers.get(action)
         if handler is None:
@@ -73,3 +74,20 @@ class GoogleCalendarTool:
         if not event_id:
             raise ValueError("event_id is required for delete")
         adapter.delete_event(calendar_id=calendar_id, event_id=event_id)
+
+
+    @staticmethod
+    def free_busy(
+        *,
+        adapter: GoogleCalendarAdapter,
+        calendar_ids: list[str],
+        time_min: str,
+        time_max: str,
+        time_zone: str | None = None,
+    ) -> dict[str, list[dict[str, str]]]:
+        return adapter.free_busy(
+            calendar_ids=calendar_ids,
+            time_min=time_min,
+            time_max=time_max,
+            time_zone=time_zone,
+        )
