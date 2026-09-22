@@ -201,3 +201,40 @@ Mọi thay đổi code ở lượt này đã cập nhật Decision Log và Chang
 - `9348e550b9f191ed9dbb833154835c7e10e01771` — fix recurrence + credential reuse.
 - `80485924689608b68091f3cf972ab1889355829c` — remove duplicate credential resolution from main runtime.
 - `47994c591ee175576d861846f579be38f6a71e4e` — add regression tests.
+
+ 
+## 2026-09-22 — Multi-account V1 phase 1 implementation
+
+Đã triển khai contract và authorization boundary:
+
+- `app/application/core_runtime.py`
+  - thêm `AccountCandidate`;
+  - thêm `ResolvedAccount`;
+  - AccountResolver trả về `ResolvedAccount`;
+  - AuthorizationService nhận resolved account để enforce grant scope.
+
+- `app/infrastructure/database/repositories/accounts.py`
+  - đọc metadata active grant cùng account;
+  - phân biệt `owner` / `grant`;
+  - không truy cập `account_credentials`.
+
+- `app/infrastructure/database/repositories/permissions.py`
+  - owner/grant lifecycle vẫn được kiểm tra ở DB query;
+  - grant scope V1 yêu cầu capability hiện tại nằm trong `scope.capabilities`;
+  - scope không thay thế user capability permission.
+
+- `app/api/chat.py` + `app/main.py`
+  - truyền `ResolvedAccount` nội bộ từ Account Resolver tới Authorization;
+  - không đưa object nội bộ vào HTTP response.
+
+- Tests:
+  - `tests/application/test_execution_contract.py`;
+  - `tests/unit/infrastructure/database/test_postgres_account_repository.py`.
+
+### Documentation rule
+
+Sau thay đổi code đã cập nhật Decision Log và Changelog ngay trong cùng phase. Đây tiếp tục là nguyên tắc bắt buộc: **mọi code change phải cập nhật docs liên quan trước khi chuyển sang verification/phase kế tiếp.**
+
+### Verification status
+
+A01–A04 và A11–A14 đã có test coverage trong repository. A15–A20 chưa đóng cho tới khi chạy runtime/integration side-effect tests.
