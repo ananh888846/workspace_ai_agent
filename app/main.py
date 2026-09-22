@@ -154,7 +154,12 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
 
     try:
         if capability == "calendar.read" and action == "read":
-            body["calendar"] = execute_google_calendar_read(account=account, credential_resolution=credential_result)
+            body["calendar"] = execute_google_calendar_read(
+                account=account,
+                credential_resolution=credential_result,
+                start=payload.start,
+                end=payload.end,
+            )
         elif capability == "calendar.read" and action == "schedule":
             body["calendar"] = execute_google_calendar_scheduling(
                 account=account,
