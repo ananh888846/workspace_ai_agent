@@ -15,7 +15,33 @@ class AvailableSlot:
 
 
 class SchedulingService:
-    """Tìm các khoảng thời gian trống từ dữ liệu Free/Busy đã được kiểm soát."""
+    """Tìm khoảng thời gian trống từ dữ liệu Free/Busy đã được kiểm soát."""
+
+    def find_conflicts(
+        self,
+        *,
+        search_start: datetime,
+        search_end: datetime,
+        busy_periods: list[BusyPeriod],
+    ) -> list[BusyPeriod]:
+        """Lọc các khoảng bận giao với cửa sổ tìm kiếm."""
+        self._validate_window(search_start, search_end)
+
+        conflicts: list[BusyPeriod] = []
+        for period in busy_periods:
+            if period.start.tzinfo is None or period.end.tzinfo is None:
+                continue
+            if period.end <= period.start:
+                continue
+            if period.start < search_end and period.end > search_start:
+                conflicts.append(
+                    BusyPeriod(
+                        calendar_id=period.calendar_id,
+                        start=max(period.start, search_start),
+                        end=min(period.end, search_end),
+                    )
+                )
+        return sorted(conflicts, key=lambda period: period.start)
 
     def find_available_slots(
         self,
@@ -26,47 +52,30 @@ class SchedulingService:
         busy_periods: list[BusyPeriod],
         max_results: int = 5,
     ) -> list[AvailableSlot]:
-        if search_start.tzinfo is None or search_end.tzinfo is None:
-            raise ValueError("datetime_must_be_timezone_aware")
-        if search_end <= search_start:
-            raise ValueError("search_end_must_be_after_search_start")
+        """Tìm các slot liên tiếp, không giao với dữ liệu Free/Busy."""
+        self._validate_window(search_start, search_end)
         if duration_minutes <= 0:
             raise ValueError("duration_minutes_must_be_positive")
         if max_results <= 0:
             raise ValueError("max_results_must_be_positive")
 
         duration = timedelta(minutes=duration_minutes)
-        normalized = sorted(
-            (
-                period
-                for period in busy_periods
-                if period.start.tzinfo is not None
-                and period.end.tzinfo is not None
-                and period.end > period.start
-            ),
-            key=lambda period: period.start,
+        normalized = self.find_conflicts(
+            search_start=search_start,
+            search_end=search_end,
+            busy_periods=busy_periods,
         )
 
         merged: list[BusyPeriod] = []
         for period in normalized:
-            if period.start >= search_end or period.end <= search_start:
-                continue
-            start = max(period.start, search_start)
-            end = min(period.end, search_end)
-            if not merged or start > merged[-1].end:
-                merged.append(
-                    BusyPeriod(
-                        calendar_id=period.calendar_id,
-                        start=start,
-                        end=end,
-                    )
-                )
-            elif end > merged[-1].end:
+            if not merged or period.start > merged[-1].end:
+                merged.append(period)
+            elif period.end > merged[-1].end:
                 previous = merged[-1]
                 merged[-1] = BusyPeriod(
                     calendar_id=previous.calendar_id,
                     start=previous.start,
-                    end=end,
+                    end=period.end,
                 )
 
         slots: list[AvailableSlot] = []
@@ -89,3 +98,11 @@ class SchedulingService:
             cursor += duration
 
         return slots
+
+    @staticmethod
+    def _validate_window(search_start: datetime, search_end: datetime) -> None:
+        """Kiểm tra cửa sổ tìm kiếm phải có timezone và thứ tự hợp lệ."""
+        if search_start.tzinfo is None or search_end.tzinfo is None:
+            raise ValueError("datetime_must_be_timezone_aware")
+        if search_end <= search_start:
+            raise ValueError("search_end_must_be_after_search_start")
