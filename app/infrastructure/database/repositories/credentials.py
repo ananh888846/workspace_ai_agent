@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import timezone
+from datetime import datetime, timezone
 from typing import Any
 
 from cryptography.fernet import Fernet
@@ -15,9 +15,9 @@ from app.providers.google.calendar.client import GoogleCredentialContext
 class PostgresCredentialRepository:
     """Kiểm tra credential của external account bằng PostgreSQL.
 
-    Repository này chỉ được gọi sau khi Authorization = ALLOW.
-    Repository giải mã credential chỉ sau khi Authorization = ALLOW và không
-    đưa secret ra HTTP response.
+    Credential hết hạn vẫn được giữ nếu còn refresh token để Google Auth có thể
+    làm mới access token khi provider được gọi. Repository không đưa secret ra
+    HTTP response.
     """
 
     def __init__(self, connection: Any) -> None:
@@ -35,7 +35,6 @@ class PostgresCredentialRepository:
             FROM account_credentials
             WHERE user_account_id = %s
               AND status = 'active'
-              AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
             ORDER BY updated_at DESC,
                      created_at DESC,
                      id::text
@@ -70,6 +69,13 @@ class PostgresCredentialRepository:
                 scopes=row[3] or [],
                 expiry=expires_at,
             )
+
+            if (
+                expires_at is not None
+                and expires_at <= datetime.now(timezone.utc).replace(tzinfo=None)
+                and not payload.get("refresh_token")
+            ):
+                return CredentialResolution(status="oauth_required")
         except Exception as exc:
             raise RuntimeError("google_credential_decrypt_failed") from exc
 
