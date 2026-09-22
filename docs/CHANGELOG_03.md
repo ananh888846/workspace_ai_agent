@@ -1,3 +1,17 @@
+## 2026-09-22 — Triển khai Scheduling Assistant V1: SchedulingService + LangGraph Graph
+
+- Thêm [app/services/scheduling.py](../app/services/scheduling.py): thuật toán deterministic tìm available slots từ Free/Busy.
+- Thêm [app/graphs/scheduling.py](../app/graphs/scheduling.py): Scheduling Graph V1 bằng LangGraph với các node classify_request, resolve_calendar, get_free_busy, find_available_slots, format_result.
+- Thêm [tests/services/test_scheduling.py](../tests/services/test_scheduling.py): unit test validation, busy boundary, merge busy và tìm slot.
+- Thêm [tests/unit/graphs/test_scheduling.py](../tests/unit/graphs/test_scheduling.py): kiểm thử Graph orchestration và dependency injection.
+- Cập nhật [app/api/chat.py](../app/api/chat.py): route scheduling qua Graph sau Authorization + CredentialResolver và tái sử dụng Calendar Free/Busy.
+- Cập nhật [app/main.py](../app/main.py): thêm search_start, search_end, duration_minutes, max_results.
+- Cập nhật [requirements.txt](../requirements.txt): thêm dependency LangGraph.
+- Cập nhật [tests/unit/api/test_chat_api.py](../tests/unit/api/test_chat_api.py): kiểm thử classification cho Scheduling request.
+- Chưa đánh dấu runtime PASS hoặc E2E PASS; cần pull code, cài dependency và chạy test/runtime verification trên môi trường local.
+- Không tạo database migration.
+- Không thêm Pydantic contract mới cho Scheduling Graph.
+
 ## 2026-09-22 — Chốt thiết kế Scheduling Assistant V1
 
 - Chủ project đã chốt thiết kế Scheduling Assistant V1 theo mô hình **LangGraph orchestration + Domain Service độc lập + Tool boundary + Provider**.
