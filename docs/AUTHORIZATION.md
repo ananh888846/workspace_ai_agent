@@ -111,3 +111,48 @@ Trong V2.1, Agent-to-Agent delegation chỉ được phép trong cùng Organizat
 Anomaly là kết quả phát hiện sai lệch dựa trên evidence. Nó không tự trở thành authorization decision hoặc kết luận fraud.
 
 Anomaly evidence phải truy ngược được về source hợp lệ và cùng organization scope.
+
+## 11. Account Grant scope contract V1
+
+Account Grant là **delegation boundary**, không phải permission thay thế cho user.
+
+Effective authorization:
+
+```text
+User Capability Permission
+AND Organization Membership
+AND Account Ownership / Active Grant
+AND Grant Lifecycle
+AND Grant Scope nếu là grantee
+AND Resource Permission nếu áp dụng
+=
+ALLOW
+```
+
+V1 canonical scope:
+
+```json
+{
+  "capabilities": ["calendar.read", "calendar.write"]
+}
+```
+
+Grant scope không thể cấp capability mà user không có. Ngược lại, user có capability nhưng grant scope không cho capability đó thì request vẫn bị DENY.
+
+Grant không chuyển ownership và không đưa credential của owner cho grantee.
+
+## 12. Account selection
+
+Nếu một user có nhiều account cùng provider:
+
+```text
+explicit account_hint
+        ↓
+default account policy nếu có
+        ↓
+single candidate
+        ↓
+multiple candidates → account_selection_required
+```
+
+LLM không được tự chọn account. Khi cần user chọn account, hệ thống phải dừng trước Credential Resolver và Provider.
