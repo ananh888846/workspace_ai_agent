@@ -4,6 +4,13 @@
 >
 > Quy tắc: changelog chỉ ghi trạng thái đã được triển khai/kiểm tra; không ghi `PASS` nếu chưa có runtime verification.
 
+## 2026-09-22 — Sửa Calendar Natural Language Date/Time V1: nhận dạng giờ có dấu hai chấm
+
+- Sửa [`app/services/calendar_datetime.py`](../app/services/calendar_datetime.py): parser nhận dạng các dạng giờ `HH:MM` và `HHhMM`, đồng thời tiếp tục hỗ trợ giờ đơn như `9h` hoặc `9 giờ` sau bước normalize.
+- Bổ sung [`tests/services/test_calendar_datetime.py`](../tests/services/test_calendar_datetime.py): kiểm thử riêng cho `08:30` và `14h30`.
+- Lỗi trước đó: `14:30` và `08:30` không khớp regex nên parser rơi về giờ mặc định `09:00`.
+- Chưa đánh dấu runtime PASS; cần chạy lại pytest trên môi trường local sau khi pull.
+
 ## 2026-09-22 — Chốt nguyên tắc Calendar Intelligence và triển khai Natural Language Date/Time V1
 
 - Cập nhật [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md): chốt Calendar Service là tầng domain độc lập; LangGraph chỉ là Super-Graph ở tầng trên cùng.
