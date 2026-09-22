@@ -421,12 +421,13 @@ Event E2E đã được xóa sau khi hoàn tất verification, không để lạ
 **Calendar Natural Language Date/Time V1 — CLOSED / E2E PASS.**
 
 
-## 12. Free/Busy và Conflict Detection V1 — ĐANG TRIỂN KHAI
+## 12. Free/Busy và Conflict Detection V1 — CLOSED / E2E PASS
 
-Free/Busy V1 dùng capability calendar.read với action free_busy, không tạo permission mới.
+Free/Busy và Conflict Detection V1 dùng capability `calendar.read` với action `free_busy`, không tạo permission mới.
 
 Luồng runtime:
 
+```text
 AccountResolver
   ↓
 AuthorizationService(calendar.read)
@@ -442,22 +443,40 @@ GoogleCalendarAdapter
 Google Calendar API freeBusy.query
   ↓
 CalendarConflictDetector
+  ↓
+FREE / CONFLICT
+```
 
 Ranh giới:
 - GoogleCalendarAdapter chỉ chuyển đổi request/response của provider.
-- CalendarConflictDetector chỉ xử lý các khoảng busy đã nhận, không gọi Google API.
-- Free/Busy V1 không dùng LangGraph trong service.
-- Free/Busy V1 không dùng Pydantic.
-- Datetime nội bộ tiếp tục timezone-aware; provider boundary dùng UTC.
+- CalendarConflictDetector là deterministic Python service; không gọi Google API và không truy cập SQL, Qdrant, credential.
+- Free/Busy V1 không dùng LangGraph trong service và không dùng Pydantic.
+- Datetime nội bộ timezone-aware; provider boundary dùng UTC.
 - OAuth scope hiện tại được giữ nguyên.
-- Chưa tạo migration database.
+- Không tạo migration database cho capability này.
+- Ưu tiên Google Calendar API và client library chính thức của Google.
 
-API provider được ưu tiên là Google Calendar API và client library chính thức của Google; không thêm thư viện bên thứ ba chỉ để thay thế capability đã có trong SDK chính thức.
+### E2E verification thực tế
 
-### Trạng thái
+Account: `ananh888846@gmail.com`.
 
-- Thiết kế: **ĐÃ CHỐT**
-- Code service/adapter/tool: **ĐÃ TẠO**
-- Unit tests: **ĐÃ TẠO, CHƯA RUNTIME VERIFY**
-- Google Calendar E2E: **CHƯA THỰC HIỆN**
-- Chưa được đánh dấu CLOSED/PASS cho tới khi runtime verification thật hoàn tất.
+1. Create event test — **PASS**: `TEST FreeBusy V1`, ID `10krafu0fd8629bb41hpantv9o`, `14:00–15:00` GMT+7.
+2. FreeBusy `13:00–16:00` — **PASS / conflict**, busy `14:00–15:00`.
+3. FreeBusy `14:30–15:30` — **PASS / conflict**.
+4. Boundary `15:00–16:00` — **PASS / free**.
+5. Delete event test — **PASS**, `provider_called=true`.
+
+Quy tắc overlap đã được xác nhận qua E2E: `busy.start < requested_end and busy.end > requested_start`.
+
+### Acceptance gate — CLOSED
+
+- ConflictDetector unit tests: **5/5 PASS**.
+- Google Calendar Create test event: **PASS**.
+- FreeBusy overlap/conflict detection: **PASS**.
+- Boundary no-overlap: **PASS**.
+- Google Calendar Delete test event: **PASS**.
+- Timezone `Asia/Ho_Chi_Minh`: **PASS**.
+- Official Google Calendar API/client boundary: **PASS**.
+- OAuth scope/migration: **không thay đổi / không cần migration**.
+
+**Calendar Free/Busy + Conflict Detection V1 — CLOSED / E2E PASS.**
