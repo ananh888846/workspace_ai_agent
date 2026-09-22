@@ -171,7 +171,7 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     with database_connection() as connection:
         credential_result = CredentialResolver(PostgresCredentialRepository(connection)).resolve(decision=AuthorizationDecision(allowed=True, reason="authorized", code="allow"), account=account)
 
-    body["execution"]["credential"] = resolve_google_credential(account=account, authorization=authorization)
+    body["execution"]["credential"] = resolve_google_credential(account=account, authorization=authorization, credential_resolution=credential_result)
     _normalize_execution_statuses(body["execution"])
     if credential_result.status != "ready":
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
