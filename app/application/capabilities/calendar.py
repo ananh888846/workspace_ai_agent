@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
 from typing import Any
 
 from app.api.chat import (
@@ -18,11 +17,10 @@ from app.api.schemas import ChatRequest
 from app.application.core_runtime import AuthorizationDecision, CredentialResolver, ExternalAccount
 from app.application.execution_boundary import enforce_result_boundary
 from app.application.execution_contract import build_execution_contract, normalize_result_status
-from app.core.datetime import utc_now
+from app.agent_runtime.runtime import AgentRuntimeState
 from app.infrastructure.database.connection import database_connection
 from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
 from app.services.calendar_datetime import CalendarDateTimeParser
-from app.agent_runtime.runtime import AgentRuntimeState
 
 
 class CalendarHandler:
@@ -127,14 +125,17 @@ class CalendarHandler:
         if credential_result.status != "ready":
             return body
 
-        body["calendar"] = self._execute_calendar(
+        calendar_result = self._execute_calendar(
             payload=payload,
             capability=capability,
             action=action,
             account=account,
             credential_result=credential_result,
         )
-        body["calendar"] = enforce_result_boundary(body["calendar"])
+        natural_language_datetime = calendar_result.pop("_natural_language_datetime", None)
+        if natural_language_datetime is not None:
+            body["execution"]["natural_language_datetime"] = natural_language_datetime
+        body["calendar"] = enforce_result_boundary(calendar_result)
 
         provider_called = body["calendar"].get("provider_called", False)
         for section in (
@@ -252,7 +253,6 @@ class CalendarHandler:
                     payload.message,
                     payload.start,
                 )
-                # Metadata phục vụ audit/diagnostic; không chứa credential.
                 result = execute_google_calendar_write(
                     account=account,
                     credential_resolution=credential_result,
