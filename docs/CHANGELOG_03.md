@@ -4,6 +4,18 @@
 >
 > Quy tắc: changelog chỉ ghi trạng thái đã được triển khai/kiểm tra; không ghi `PASS` nếu chưa có runtime verification.
 
+## 2026-09-22 — Chốt LangGraph và Pydantic selective contracts
+
+- Cập nhật [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md): chốt **LangGraph** là framework orchestration chuẩn cho Agent Runtime production toàn project.
+- Cập nhật [`docs/DECISIONS.md`](./DECISIONS.md): thêm **Decision 031 — LangGraph as Production Agent Orchestrator**.
+- Cập nhật [`docs/DECISIONS.md`](./DECISIONS.md): thêm **Decision 032 — Pydantic Selective Tool Contracts**.
+- LangGraph chịu trách nhiệm graph state, routing, control flow, retry/interrupt/resume khi cần; không sở hữu Authorization, Credential hoặc Provider business logic.
+- Pydantic chỉ dùng khi data boundary thực sự cần validation, normalization, serialization hoặc contract ổn định.
+- Không bắt buộc tạo Pydantic model cho mọi Tool/helper; tránh over-engineering.
+- Quyết định này mới ở mức **architecture/documentation accepted**; chưa đánh dấu runtime migration sang LangGraph là PASS.
+- Calendar CRUD V1 tiếp tục được giữ nguyên làm regression baseline trong quá trình migrate từng capability.
+- Chưa triển khai Calendar Intelligence, Free/Busy, Scheduling Assistant, Recurrence hoặc Multi-account Calendar.
+
 ## 2026-09-21 — Google OAuth scope consistency
 
 - Sửa `app/infrastructure/oauth/google.py` để lưu bộ scope thực tế của từng phiên OAuth vào OAuth state đã mã hóa.
@@ -129,7 +141,6 @@
 - Mục tiêu là tránh trường hợp client Windows/PowerShell làm sai encoding trước khi text đi vào Google Calendar.
 - Chưa đánh dấu Calendar Write E2E PASS; cần tạo event tiếng Việt thật và kiểm tra trực tiếp trên Google Calendar.
 
-
 ## 2026-09-22 — Sửa CredentialResolver cho OAuth credential có thể refresh
 
 - Xác định nguyên nhân Calendar Write trả `oauth_required` dù account có credential `active`: truy vấn credential trước đây loại bỏ mọi row có `expires_at` đã qua.
@@ -139,14 +150,12 @@
 - Không thay đổi encrypted credential, OAuth scope hoặc database schema.
 - Chưa đánh dấu Calendar Write E2E PASS; cần chạy lại request Create UTF-8 sau khi restart server.
 
-
 ## 2026-09-22 — Chuẩn hóa timezone response Calendar Write
 
 - Sửa response Calendar Write để chuyển `start` và `end` từ UTC của Google Calendar sang `Asia/Ho_Chi_Minh` / GMT+7.
 - Response đặt `timeZone=Asia/Ho_Chi_Minh` để `dateTime` và timezone metadata nhất quán.
 - Không thay đổi nguyên tắc database lưu UTC hoặc payload gửi Google Calendar.
 - Cần test lại Create với event mới; không dùng lại event đã tạo trước khi sửa.
-
 
 ## 2026-09-22 — Calendar Write V1 CLOSED / E2E PASS
 
