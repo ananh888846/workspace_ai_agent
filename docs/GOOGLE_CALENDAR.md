@@ -1,6 +1,6 @@
 # Google Calendar — Event CRUD V1
 
-> Trạng thái: **Calendar Read V1 — CLOSED / E2E PASS** · **Calendar Write V1 — IMPLEMENTED / READY FOR E2E**
+> Trạng thái: **Calendar Read V1 — CLOSED / E2E PASS** · **Calendar Write V1 — CLOSED / E2E PASS**
 
 ## 1. Capability
 
@@ -179,11 +179,11 @@ LLM không được gọi Google Calendar trực tiếp và không được bypa
 
 ### Chưa đóng acceptance
 
-- E2E Create event với Google Calendar thật.
-- E2E Update event với Google Calendar thật.
-- E2E Delete event với confirmation.
-- Provider error/rollback acceptance.
-- Calendar webhook/push sync.
+- E2E Create event với Google Calendar thật — **PASS**.
+- E2E Update event với Google Calendar thật — **PASS**.
+- E2E Delete event với confirmation — **PASS**.
+- Provider error/rollback acceptance — chưa đóng.
+- Calendar webhook/push sync — chưa triển khai.
 
 ## 12. Calendar Read V1 — Verification Gate CLOSED
 
@@ -225,20 +225,29 @@ Acceptance thực tế đã xác nhận:
 
 **Calendar Read V1 được CLOSED.**
 
-## 13. Calendar Write V1 — Verification Gate
+## 13. Calendar Write V1 — Verification Gate CLOSED
 
-Code path đã được triển khai nhưng **chưa tuyên bố CLOSED** cho đến khi người dùng chạy E2E trên Google Calendar thật.
+Calendar Write V1 đã được kiểm chứng E2E trên Google Calendar thật và đủ điều kiện **CLOSED / E2E PASS**.
 
 Acceptance cần đạt:
 
-1. Create tạo đúng event trên Google Calendar.
-2. Start/end gửi provider ở UTC nhưng hiển thị lại đúng GMT+7.
-3. Update đúng event theo `event_id`.
-4. Delete không gọi provider nếu `confirmed=false`.
-5. Delete có `confirmed=true` xóa đúng event.
-6. Authorization DENY không gọi provider.
-7. Credential thiếu/hết hạn không gọi provider.
-8. Provider error trả `provider_error` thay vì làm sập HTTP runtime.
+1. Create tạo đúng event trên Google Calendar — **PASS**.
+2. Start/end gửi provider ở UTC nhưng hiển thị lại đúng GMT+7 — **PASS**.
+3. Update đúng event theo `event_id` — **PASS**.
+4. Delete không gọi provider nếu `confirmed=false` — **PASS**.
+5. Delete có `confirmed=true` xóa đúng event — **PASS**.
+6. Authorization DENY không gọi provider — chưa E2E trong phase này.
+7. Credential thiếu/hết hạn không gọi provider — chưa E2E trong phase này.
+8. Provider error trả `provider_error` thay vì làm sập HTTP runtime — chưa E2E trong phase này.
+
+### E2E thực tế đã đóng
+
+- Create: event `p85pvng0r6fmnacg8bfm8lhesg` được tạo thành công.
+- Update: chính event trên được đổi thành `Kiểm tra Calendar Update V1`, thời gian `14:00–15:00` GMT+7.
+- Delete không xác nhận: trả `confirmation_required`, `provider_called=false`.
+- Delete có `confirmed=true`: event `p85pvng0r6fmnacg8bfm8lhesg` được Google Calendar xóa thành công.
+- Response `start/end` nhất quán với `Asia/Ho_Chi_Minh` / GMT+7.
+- Chuỗi tiếng Việt và UTF-8 được kiểm chứng qua Create/Update.
 
 Không dùng OAuth URL/callback cũ. Không dán access token/refresh token vào request, log hoặc SQL.
 
