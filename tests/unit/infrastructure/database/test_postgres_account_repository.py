@@ -52,9 +52,10 @@ def test_postgres_account_repository_maps_account_metadata_without_credentials()
     )
 
     assert len(accounts) == 1
-    assert accounts[0].id == "acc-1"
-    assert accounts[0].external_account_id == "google-1"
-    assert accounts[0].email == "user@example.com"
+    assert accounts[0].account.id == "acc-1"
+    assert accounts[0].account.external_account_id == "google-1"
+    assert accounts[0].account.email == "user@example.com"
+    assert accounts[0].access_mode == "owner"
     assert "account_credentials" not in connection.cursor_obj.executed[0]
     assert connection.cursor_obj.executed[1] == ["org-1", "user-1", "google", "user-1"]
 
