@@ -1,3 +1,16 @@
+## 2026-09-22 — E2E đóng Calendar Natural Language Date/Time V1
+
+- Runtime verification hoàn tất với Google Calendar thật trên account `ananh888846@gmail.com`.
+- Natural Language Create: **PASS** với câu `Tạo lịch họp ngày 24/09/2026 lúc 09:00`.
+- Parser resolve đúng `2026-09-24T09:00:00+07:00`, timezone `Asia/Ho_Chi_Minh` và Google tạo event thật `vet0dr4i57cobksqmbpgol2jb4`.
+- Natural Language Update: **PASS** với câu `Cập nhật lịch E2E ngày 24/09/2026 lúc 14:00`; event được cập nhật thành `14:00–15:00` GMT+7.
+- Delete safety: **PASS** với `confirmed=false`; trả `confirmation_required` và `provider_called=false`.
+- Delete thật: **PASS** với `confirmed=true`; Google Calendar xóa thành công event test.
+- Combined parser + integration tests trước E2E: **13/13 PASSED**.
+- Cập nhật [`docs/GOOGLE_CALENDAR.md`](./GOOGLE_CALENDAR.md): Natural Language Date/Time V1 **CLOSED / E2E PASS**.
+- Cập nhật [`docs/DECISIONS.md`](./DECISIONS.md): thêm **Decision 036 — Calendar Natural Language Date/Time V1 E2E baseline**.
+- Event test đã được xóa sau verification; không để lại dữ liệu test trên Google Calendar.
+
 ## 2026-09-23 — Runtime verification: Calendar Natural Language integration PASS
 
 - Đã runtime verification trên Windows với Python 3.14.7 và pytest 8.4.2.
