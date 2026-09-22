@@ -525,3 +525,111 @@ Scheduling Assistant V1 chỉ tìm và trả slot. Việc tạo/sửa event sẽ
 
 V1 không tạo migration chỉ để lưu scheduling state. Graph state là execution state; persistence mới chỉ được thêm khi có yêu cầu nghiệp vụ rõ ràng.
 
+
+
+## 11.7 — Runtime Architecture V2.2 — Agent Runtime + LangGraph Boundary (PROPOSED)
+
+> Trạng thái: **PROPOSED — chưa triển khai code**. Phần này mô tả kiến trúc mục tiêu để chủ project phê duyệt trước khi thực hiện thay đổi runtime.
+
+### Mục tiêu
+
+Tách rõ ba vai trò hiện đang dễ bị trộn lẫn:
+1. **FastAPI** là HTTP/API transport boundary.
+2. **Agent Runtime/Application** là nơi tạo AgentContext, thực thi Authentication/AccountResolver/Authorization/CredentialResolver và áp dụng Execution Contract.
+3. **LangGraph** là orchestration engine của Agent Run, không phải nơi chứa authorization/provider/credential.
+
+### Kiến trúc mục tiêu
+
+```text
+Client
+  ↓
+FastAPI
+  ↓
+Agent API Adapter
+  ↓
+Agent Runtime Entry
+  ↓
+LangGraph Super-Graph
+  ├── classify / route
+  ├── capability graph
+  │    ├── Calendar → Scheduling Graph
+  │    ├── Knowledge
+  │    ├── Gmail
+  │    ├── Smart Home
+  │    └── ...
+  ↓
+Application Boundary
+  ├── Account Resolver
+  ├── Authorization
+  ├── Credential Resolver
+  ├── Tool Resolver
+  └── Execution Contract / Error Boundary
+  ↓
+Tool
+  ↓
+Provider / Infrastructure
+```
+
+### Vai trò FastAPI
+FastAPI chỉ chịu trách nhiệm HTTP request/response, authentication transport adapter, request parsing, HTTP error/status mapping và gọi Agent Runtime Entry. FastAPI không trở thành nơi điều phối capability theo kiểu if/elif ngày càng lớn.
+
+### Vai trò Agent Runtime Entry
+Agent Runtime Entry là application entry duy nhất cho request agent. Nó tạo/chuẩn hóa AgentContext, khởi tạo Agent Run, đưa request vào LangGraph Super-Graph, nhận Graph Result, áp dụng Execution/Error Boundary và trả kết quả cho FastAPI. Nó không chứa provider-specific logic.
+
+### Vai trò LangGraph Super-Graph
+Super-Graph là orchestration layer cấp Agent: route capability, kiểm soát thứ tự phase, điều phối confirmation/error/retry/interrupt khi cần và giữ execution state của Agent Run.
+
+Super-Graph không đọc SQL/Qdrant trực tiếp, không lấy OAuth secret, không tự quyết định authorization và không gọi provider API trực tiếp.
+
+### Capability Graph
+Mỗi capability phức tạp có thể có graph riêng. Capability đơn giản không bắt buộc có graph riêng và có thể đi qua node/handler/service trong Super-Graph nếu không cần workflow phức tạp.
+
+```text
+Agent Super-Graph
+   └── Calendar Capability Graph
+         └── Scheduling Graph
+```
+
+### Scheduling Graph
+app/graphs/scheduling.py tiếp tục là graph chuyên biệt của Scheduling Assistant. Nó không trở thành HTTP entry và không sở hữu authorization/provider.
+
+### Tool / Provider
+Tool vẫn là action boundary; Provider Adapter vẫn là external API boundary.
+
+```text
+Capability
+  ↓
+Application Authorization
+  ↓
+Credential Resolver
+  ↓
+Tool Resolver
+  ↓
+Tool
+  ↓
+Provider Adapter
+  ↓
+External API
+```
+
+### Docker / Deployment
+- **Không thêm Agent service vào docker-compose.yml ở giai đoạn này.**
+- Postgres và Qdrant tiếp tục là infrastructure services.
+- FastAPI/Agent Runtime có thể chạy native Python trong development.
+- Đóng gói Agent Runtime thành container hoặc dùng LangGraph Server production là một quyết định deployment riêng.
+- langgraph.json chỉ là graph configuration/discovery cho LangGraph CLI/Studio; không được xem là bằng chứng LangGraph Server đang chạy production.
+
+### Migration strategy
+1. Giữ /api/v1/agent/chat làm HTTP compatibility endpoint.
+2. Tạo Agent Runtime Entry độc lập khỏi FastAPI.
+3. Đưa routing orchestration cấp Agent vào Super-Graph.
+4. Giữ Calendar Scheduling Graph làm capability graph con.
+5. Di chuyển từng capability theo phase.
+6. Sau mỗi phase chạy regression trước khi đóng.
+7. Chỉ sau khi Super-Graph ổn định mới đánh giá deployment container/LangGraph Server.
+
+### Quy tắc side-effect
+Mọi side-effect vẫn phải đi qua: Route → Account → Authorization → Credential → Tool → Provider. Super-Graph không được phép rút ngắn chain này.
+
+### Trạng thái
+**PROPOSED — chưa triển khai.** Cần chủ project phê duyệt trước khi bắt đầu thay đổi LangGraph/Pydantic/runtime theo Decision 034.
