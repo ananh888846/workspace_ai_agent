@@ -104,3 +104,18 @@
 - Không thay đổi thiết kế credential encryption và không lưu token plaintext vào repository.
 - Đồng bộ `docs/CONFIGURATION.md` và `docs/GOOGLE_CALENDAR.md` với implementation.
 
+
+
+## 2026-09-22 — Bắt đầu triển khai Calendar Free/Busy + Conflict Detection V1
+
+- Chốt Decision 037: Free/Busy V1 không dùng Pydantic.
+- Chốt Decision 038: giữ OAuth scope Calendar hiện tại và dùng capability calendar.read với action free_busy.
+- Chốt Decision 039: ưu tiên API/SDK chính thức của provider trước thư viện bên thứ ba.
+- Thêm [app/services/calendar_free_busy.py](../app/services/calendar_free_busy.py): BusyPeriod, Conflict, ConflictResult và ConflictDetector thuần Python.
+- Mở rộng [app/providers/google/calendar/adapter.py](../app/providers/google/calendar/adapter.py) với Google Calendar freeBusy.query.
+- Mở rộng [app/tools/calendar.py](../app/tools/calendar.py) và [app/tools/registry.py](../app/tools/registry.py) với action free_busy.
+- Mở rộng [app/api/chat.py](../app/api/chat.py) để lấy Free/Busy và kiểm tra conflict.
+- Mở rộng [app/main.py](../app/main.py) để route calendar.read/free_busy.
+- Thêm [tests/services/test_calendar_free_busy.py](../tests/services/test_calendar_free_busy.py).
+- Cập nhật [docs/GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md) và [docs/DECISIONS.md](./DECISIONS.md).
+- Đây mới là code + test preparation; **CHƯA runtime verify và CHƯA E2E PASS**.
