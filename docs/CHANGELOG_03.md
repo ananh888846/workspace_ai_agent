@@ -4,6 +4,16 @@
 >
 > Quy tắc: changelog chỉ ghi trạng thái đã được triển khai/kiểm tra; không ghi `PASS` nếu chưa có runtime verification.
 
+## 2026-09-22 — Chốt nguyên tắc Calendar Intelligence và triển khai Natural Language Date/Time V1
+
+- Cập nhật [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md): chốt Calendar Service là tầng domain độc lập; LangGraph chỉ là Super-Graph ở tầng trên cùng.
+- Cập nhật [`docs/DECISIONS.md`](./DECISIONS.md): thêm **Decision 035 — Calendar Natural Language Date/Time dùng Python thuần**.
+- Cập nhật [`docs/GOOGLE_CALENDAR.md`](./GOOGLE_CALENDAR.md): ghi rõ phạm vi, boundary và trạng thái Calendar Natural Language Date/Time V1.
+- Thêm [`app/services/calendar_datetime.py`](../app/services/calendar_datetime.py): parser ngày giờ tự nhiên tiếng Việt bằng Python thuần, không Pydantic, không LangGraph.
+- Thêm [`tests/services/test_calendar_datetime.py`](../tests/services/test_calendar_datetime.py): test cho ngày mai, thứ tuần sau, thời gian tương đối, buổi chiều, ngày cụ thể và validation reference.
+- Chưa tích hợp parser vào Calendar CRUD request flow; do đó chưa đánh dấu E2E Calendar Natural Language là PASS.
+- Không thay đổi Calendar CRUD V1; CRUD V1 tiếp tục là regression baseline.
+
 ## 2026-09-22 — Chốt lại Framework toàn project: chỉ LangGraph + Pydantic có chọn lọc
 
 - Cập nhật [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md): **LangGraph là framework orchestration duy nhất** của project.
