@@ -30,6 +30,33 @@
   - [`tests/application/test_execution_contract.py`](../tests/application/test_execution_contract.py): **4 passed**.
   - [`tests/services/test_scheduling.py`](../tests/services/test_scheduling.py), [`tests/unit/graphs/test_scheduling.py`](../tests/unit/graphs/test_scheduling.py), [`tests/unit/api/test_chat_api.py`](../tests/unit/api/test_chat_api.py): **18 passed, 1 warning**.
 
+## 2026-09-22 — Execution Error Boundary V1
+
+- Thêm [`app/application/execution_boundary.py`](../app/application/execution_boundary.py).
+- Chuẩn hóa nhóm lỗi **trước provider**:
+  - `account_not_found`;
+  - `account_selection_required`;
+  - `authorization_denied`;
+  - `oauth_required`;
+  - `validation_error`;
+  - `confirmation_required`;
+  - `unsupported_action`.
+- Các lỗi trước provider bắt buộc `provider_called=false` và không retry.
+- `provider_error` bắt buộc `provider_called=true`; có thể đánh dấu `retryable=true` khi provider failure có thể retry an toàn.
+- Thêm `enforce_result_boundary()` làm điểm kiểm tra cuối cho capability result trước API response.
+- Cập nhật [`app/main.py`](../app/main.py) để đưa Calendar capability result qua boundary enforcement.
+- Thêm [`tests/application/test_execution_boundary.py`](../tests/application/test_execution_boundary.py) kiểm tra:
+  - provider boundary;
+  - retry policy;
+  - status alias normalization;
+  - provider error boundary.
+- Chưa tạo migration và chưa thay đổi database schema.
+- Chưa ghi nhận runtime PASS cho nhóm test mới; cần chạy local verification sau khi pull.
+
 ### Commit
 
 - `900105f25e34a57f907f0c680f7cdc30f2f2cab6` — wire Execution Contract vào Agent Chat Runtime.
+- `04cc9818b699630c86698d092070b2a190a9e7be` — thêm Execution Error Boundary V1.
+- `e1191b6136622411269f11170f44ebfa99476793` — enforce boundary cho capability result.
+- `8fe143794f2b1e474e74763a8a6802e50af7bed6` — wire boundary enforcement vào Agent Chat.
+- `1a4df750f4822211108a2b53abba526e00da9cd6` — bổ sung test boundary.
