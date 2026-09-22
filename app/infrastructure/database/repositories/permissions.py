@@ -32,7 +32,11 @@ class PostgresPermissionRepository:
         with self._connection.cursor() as cursor:
             cursor.execute(query, [user_id, resource, action])
             row = cursor.fetchone()
-        return bool(row and row[0])
+        if not bool(row and row[0]):
+            return False
+        if access_mode != "grant":
+            return True
+        return capability in ((grant_scope or {}).get("capabilities") or [])
 
     def has_account_access(
         self,
@@ -41,6 +45,8 @@ class PostgresPermissionRepository:
         user_id: str,
         account: ExternalAccount,
         capability: str,
+        grant_scope: dict[str, Any] | None = None,
+        access_mode: str | None = None,
     ) -> bool:
         # Account do chính user sở hữu được cấp quyền truy cập metadata.
         # Account được ủy quyền cần grant còn hiệu lực trong cùng organization.
