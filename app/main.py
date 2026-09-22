@@ -115,14 +115,17 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     body["execution"]["capability"] = capability
     body["execution"]["action"] = action
 
-    if intent != "calendar" or capability is None:
+    if not needs_runtime_context:
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
     if not x_user_id or not x_organization_id:
-        raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required for Calendar runtime")
+        raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required for runtime authorization")
 
     execution_account = resolve_google_account(user_id=x_user_id, organization_id=x_organization_id, account_hint=payload.account_hint)
     body["execution"]["account"] = execution_account
     if execution_account["status"] != "resolved":
+        return JSONResponse(content=body, media_type="application/json; charset=utf-8")
+
+    if intent != "calendar" or capability is None:
         return JSONResponse(content=body, media_type="application/json; charset=utf-8")
 
     account = ExternalAccount(id=execution_account["account_id"], user_id=x_user_id, provider=execution_account["provider"], account_type="oauth", external_account_id=execution_account["external_account_id"], display_name=execution_account["display_name"], email=execution_account["email"], status=execution_account.get("account_state", "active"))
