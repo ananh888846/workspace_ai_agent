@@ -369,3 +369,31 @@ Execution Contract V1 dùng Python dataclass/StrEnum, không tạo migration và
 
 ### Migration rule
 Calendar V1 tiếp tục là regression baseline. Các capability mới phải tái sử dụng contract này thay vì tạo response shape riêng.
+
+
+## Decision 043 — Calendar Recurrence V1 dùng RRULE explicit, không thêm framework/migration
+**Status:** Accepted
+
+Calendar Recurrence V1 mở rộng Calendar Write hiện tại bằng recurrence rule dạng RFC 5545/Google Calendar RRULE explicit.
+
+Phạm vi V1:
+- hỗ trợ FREQ=DAILY|WEEKLY|MONTHLY|YEARLY;
+- hỗ trợ INTERVAL dương;
+- hỗ trợ một trong COUNT hoặc UNTIL;
+- hỗ trợ BYDAY;
+- chuẩn hóa lại RRULE trước khi gửi provider;
+- recurrence được gửi trong field Google Calendar recurrence khi create/update.
+
+Ranh giới:
+- recurrence validation nằm trong app/services/calendar_recurrence.py;
+- không để LLM tự tạo recurrence mà bỏ qua validation;
+- không dùng LangGraph riêng cho recurrence vì đây là validation/domain transformation nhỏ;
+- không dùng Pydantic vì contract hiện tại chưa cần boundary schema phức tạp;
+- không tạo migration vì recurrence là thuộc tính của Calendar Event provider, chưa cần persistence riêng trong DB;
+- Authorization, Credential, Tool và Provider boundary hiện tại được giữ nguyên.
+
+V1 chưa bao gồm:
+- natural-language recurrence parser phức tạp;
+- exception dates (EXDATE), recurrence overrides hoặc chỉnh một instance trong series;
+- scheduling assistant tự động tạo recurring event;
+- multi-account recurrence.
