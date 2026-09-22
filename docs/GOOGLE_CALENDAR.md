@@ -243,6 +243,15 @@ Acceptance cần đạt:
 Không dùng OAuth URL/callback cũ. Không dán access token/refresh token vào request, log hoặc SQL.
 
 
+
+## 15. Chuẩn hóa timezone trong response Calendar Write
+
+- Input Calendar Write được chuẩn hóa về UTC trước khi gửi Google Calendar.
+- Provider có thể trả event với datetime UTC và `timeZone=UTC`.
+- Response API chuyển `start` và `end` sang `Asia/Ho_Chi_Minh` / GMT+7.
+- Không thay đổi dữ liệu provider hoặc nguyên tắc lưu UTC trong database.
+- Acceptance yêu cầu `dateTime` và `timeZone` trong response phải nhất quán.
+
 ## 14. Credential hết hạn nhưng còn refresh token
 
 - CredentialResolver không loại bỏ credential chỉ vì `expires_at` đã qua.
