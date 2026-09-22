@@ -105,3 +105,23 @@
 - Không thêm Pydantic mới cho Scheduling domain.
 - Không tạo migration database.
 - Chưa ghi nhận runtime PASS; cần chạy test local sau khi pull.
+
+
+## 2026-09-22 — Runtime Verification Scheduling Assistant V1
+
+- Unit/domain + LangGraph Scheduling suite đã PASS:
+  - `tests/services/test_scheduling.py`: **8 passed**.
+  - `tests/unit/graphs/test_scheduling.py`: **1 passed**.
+  - Tổng: **9 passed, 0 failed**.
+- Regression suite đã PASS:
+  - `tests/application tests/unit/api tests/runtime`: **32 passed, 2 warnings**.
+- Runtime verification xác nhận:
+  - Execution Contract/Error Boundary không bị regression.
+  - Calendar scheduling classification và runtime authorization wiring tiếp tục PASS.
+  - Scheduling Graph orchestration và SchedulingService tiếp tục PASS.
+- Hai warning đều là dependency warning, không phải test failure:
+  - Starlette/TestClient sử dụng alias AnyIO đã deprecated.
+  - Google API Core cảnh báo `grpcio 1.81.1` sẽ cần `>=1.83.0` từ tháng 10/2026.
+- Không tạo/sửa/xóa Google Calendar event thật trong các suite trên.
+- Không thay đổi OAuth scope và không tạo migration database.
+- **Scheduling Assistant V1 được xác nhận PASS qua unit/domain verification và regression suite.**
