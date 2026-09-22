@@ -80,7 +80,7 @@ class PostgresCredentialRepository:
                     expiry_utc <= datetime.now(timezone.utc)
                     and not payload.get("refresh_token")
                 ):
-                return CredentialResolution(status="oauth_required")
+                    return CredentialResolution(status="oauth_required")
         except Exception as exc:
             raise RuntimeError("google_credential_decrypt_failed") from exc
 
