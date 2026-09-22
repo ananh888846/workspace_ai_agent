@@ -224,12 +224,26 @@ def _classify_agent_request(payload: AgentChatRequest) -> tuple[str, str | None,
 _agent_runtime = AgentRuntime(
     AgentRuntimeDependencies(
         classify=_classify_agent_request,
-        execute=lambda state: _execute_agent_chat(
-            state["request"],
-            state.get("context", {}).get("user_id"),
-            state.get("context", {}).get("organization_id"),
-            state,
-        ),
+        route_handlers={
+            "calendar.read": lambda state: _execute_agent_chat(
+                state["request"],
+                state.get("context", {}).get("user_id"),
+                state.get("context", {}).get("organization_id"),
+                state,
+            ),
+            "calendar.write": lambda state: _execute_agent_chat(
+                state["request"],
+                state.get("context", {}).get("user_id"),
+                state.get("context", {}).get("organization_id"),
+                state,
+            ),
+            "default": lambda state: _execute_agent_chat(
+                state["request"],
+                state.get("context", {}).get("user_id"),
+                state.get("context", {}).get("organization_id"),
+                state,
+            ),
+        },
     )
 )
 
