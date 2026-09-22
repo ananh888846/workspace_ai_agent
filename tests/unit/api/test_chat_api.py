@@ -92,3 +92,29 @@ def test_classify_scheduling_request():
         ChatRequest(message="Tìm thời gian trống 1 tiếng ngày mai")
     )
     assert (intent, capability, action) == ("calendar", "calendar.read", "schedule")
+
+
+def test_natural_language_scheduling_enters_runtime(monkeypatch) -> None:
+    calls = []
+
+    def fake_resolve(*, user_id, organization_id, account_hint=None):
+        calls.append((user_id, organization_id, account_hint))
+        return {"status": "not_found", "provider_called": False}
+
+    monkeypatch.setattr("app.main.resolve_google_account", fake_resolve)
+    response = client.post(
+        "/api/v1/agent/chat",
+        headers={
+            "X-User-ID": "01a0c387-8eb5-7df5-aaa1-fcb8d3684ccc",
+            "X-Organization-ID": "01a0c387-8eaa-7147-8cf8-5e284268b30a",
+        },
+        json={"message": "Tìm thời gian trống 1 tiếng ngày mai"},
+    )
+    assert response.status_code == 200
+    assert calls == [(
+        "01a0c387-8eb5-7df5-aaa1-fcb8d3684ccc",
+        "01a0c387-8eaa-7147-8cf8-5e284268b30a",
+        None,
+    )]
+    assert response.json()["execution"]["intent"] == "calendar"
+    assert response.json()["execution"]["action"] == "schedule"
