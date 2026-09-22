@@ -47,8 +47,8 @@ Device có identity/credential/capability riêng.
 AI inference không mặc định là fact.
 
 ## Decision 012 — LangChain + CrewAI
-**Status:** Accepted  
-Framework cung cấp primitives/orchestration; không sở hữu authorization.
+**Status:** Superseded  
+Decision cũ về LangChain + CrewAI được thay thế bởi Decision 031. Framework primitives không được phép sở hữu authorization.
 
 ## Decision 013 — Provider Independence
 **Status:** Accepted  
@@ -121,3 +121,55 @@ Mọi timestamp do Workspace AI Agent lưu trong database phải dùng UTC và t
 ## Decision 030 — Calendar Write Requires Explicit Confirmation for Delete
 **Status:** Accepted  
 Calendar Write dùng capability `calendar.write` và luôn đi qua AccountResolver → AuthorizationService → CredentialResolver → ToolResolver trước provider. Create/update có resource contract rõ ràng; delete bắt buộc `event_id` và `confirmed=true`. Nếu chưa confirmation thì không được gọi Google Calendar API.
+
+## Decision 031 — LangGraph as Production Agent Orchestrator
+**Status:** Accepted  
+LangGraph là framework orchestration chuẩn của toàn bộ Workspace AI Agent trong production.
+
+Phạm vi:
+- Điều phối graph/node/edge và thứ tự thực thi.
+- Quản lý Agent Run state.
+- Rẽ nhánh theo classification, authorization, validation, confirmation, tool result và lỗi.
+- Hỗ trợ retry/interrupt/resume khi workflow cần.
+- Tạo execution trace có thể liên kết Agent Run → Tool Run → Audit.
+
+Ranh giới:
+- LangGraph không sở hữu Authorization policy.
+- LangGraph không truy cập trực tiếp credential secret.
+- LangGraph không truy cập trực tiếp SQL/Qdrant/provider API nếu bỏ qua Application/Tool/Provider boundary.
+- Provider-specific business logic vẫn thuộc Provider/Tool layer.
+- LLM không được quyết định identity, account hoặc permission.
+
+Migration rule:
+- Không rewrite toàn bộ runtime trong một lần.
+- Calendar CRUD V1 đang CLOSED/E2E PASS được giữ làm regression baseline.
+- Migrate theo từng capability/graph nhỏ và phải kiểm chứng runtime trước khi đóng phase.
+
+## Decision 032 — Pydantic Selective Tool Contracts
+**Status:** Accepted  
+Pydantic được dùng **chọn lọc** tại các data boundary khi nó tạo giá trị rõ ràng về validation, normalization, serialization hoặc contract ổn định.
+
+Nên dùng khi:
+- input phức tạp đến từ LLM/HTTP;
+- nhiều field cần validate;
+- dữ liệu cần normalize trước provider;
+- output Tool cần contract ổn định cho Graph;
+- thao tác nhạy cảm cần schema rõ ràng.
+
+Không bắt buộc khi:
+- helper nội bộ đơn giản;
+- hàm chuyển đổi dữ liệu nhỏ;
+- dữ liệu đã được kiểm soát và type rõ ràng;
+- việc tạo Model không cải thiện correctness hoặc maintainability.
+
+Ví dụ:
+- Calendar Create/Update;
+- Gmail Send;
+- Smart Home command nhiều tham số;
+- Tool output cần contract ổn định.
+
+Pydantic không được dùng để thay thế Authorization, business rules hoặc Provider Adapter.
+
+## Decision 033 — Calendar nâng cấp sau CRUD
+**Status:** Proposed  
+Calendar sẽ được nâng cấp sau khi LangGraph architecture được chốt, ưu tiên Natural Language Date/Time → Free/Busy/Conflict Detection → Scheduling Assistant → Recurrence → Multi-account Calendar. Chưa triển khai các phần này trong decision hiện tại.
