@@ -74,4 +74,12 @@
   - `validation_error` và xác nhận provider không bị gọi;
   - `provider_error` và xác nhận provider đã được đánh dấu đã gọi.
 - Provider boundary được mô phỏng tại application execution boundary; không tạo/sửa/xóa Google Calendar event thật.
-- Chưa ghi nhận E2E PASS cho đến khi bộ test được chạy trên môi trường local của máy triển khai.
+- Runtime verification trên môi trường local đã PASS:
+  - runtime boundary suite: **5 passed, 1 warning**;
+  - regression suite `tests/application tests/unit/api tests/runtime`: **32 passed, 2 warnings**.
+- Warning hiện tại đến từ dependency:
+  - Starlette/TestClient sử dụng API AnyIO đã deprecated;
+  - Google API Core cảnh báo `grpcio 1.81.1` sẽ cần nâng lên `>=1.83.0` khi yêu cầu tương thích PQC của Google Cloud Python packages có hiệu lực vào tháng 10/2026.
+- Không có test failure.
+- Không tạo/sửa/xóa Google Calendar event thật và không thay đổi OAuth thật.
+- **Execution Error Boundary V1 được xác nhận PASS qua runtime verification và regression suite.**
