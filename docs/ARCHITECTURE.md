@@ -15,6 +15,8 @@
 9. Provider-specific logic nằm trong Provider/Tool layer.
 10. Muốn đổi kiến trúc phải cập nhật Decision Log.
 11. Mọi timestamp lưu trong PostgreSQL phải theo UTC; khi trả dữ liệu cho người dùng/API phải chuyển sang múi giờ hiển thị đã quy định, mặc định GMT+7 (`Asia/Ho_Chi_Minh`).
+12. **LangGraph là framework orchestration chuẩn của Agent Runtime production; Graph kiểm soát luồng chạy, nhưng không sở hữu Authorization hoặc business logic của Provider.**
+13. **Pydantic chỉ được dùng chọn lọc tại các boundary cần validation, normalization, serialization hoặc contract ổn định; không bắt buộc cho mọi Tool hoặc hàm nội bộ.**
 
 ## 2. V2.1 — Tenant, Resource, Session, Task và Multi-Agent
 
@@ -48,6 +50,8 @@ Anomaly là kết quả phát hiện sai lệch từ facts/events/activities/tas
 ```text
 LLM / Agent
   ↓ intent / plan
+LangGraph
+  ↓ graph state / routing / control flow
 Application
   ↓ authorization
 Capability
@@ -57,7 +61,7 @@ Tool
 Provider
 ```
 
-Không có đường đi `LLM → Tool` hoặc `LLM → Credential`.
+Không có đường đi `LLM → Tool` hoặc `LLM → Credential` bỏ qua graph/application boundaries.
 
 ### 2.9 Nguyên tắc V2.1
 - Organization là tenant boundary; không dùng User làm tenant thay thế.
@@ -78,6 +82,8 @@ Authentication
  ↓
 AgentContext
  ↓
+LangGraph entry
+ ↓
 Route / Capability
  ↓
 Resolve candidate Account nếu cần
@@ -93,6 +99,8 @@ Resolve Credential
 OAuth nếu credential chưa sẵn sàng
  ↓
 Resolve Tool
+ ↓
+Pydantic boundary nếu Tool contract cần validation/normalization
  ↓
 Execute
  ↓
@@ -217,13 +225,42 @@ Qdrant
 
 SQL giữ metadata, ownership, access, version/checksum và mapping. Retrieval phải chạy trong authorization context.
 
-## 11. LangChain / CrewAI
+## 11. Agent Orchestration và Framework
 
-LangChain cung cấp LLM, retrieval, tool và agent primitives. CrewAI cung cấp multi-agent/task/workflow orchestration. Authorization vẫn thuộc Application Layer.
+**LangGraph là lựa chọn chuẩn cho orchestration của toàn project trong production.**
+
+LangGraph chịu trách nhiệm:
+- điều phối graph/node/edge và thứ tự thực thi;
+- quản lý state của Agent Run;
+- rẽ nhánh theo kết quả classification, authorization, validation, confirmation và tool execution;
+- hỗ trợ retry/error/interrupt/resume khi workflow cần;
+- tạo execution trace rõ ràng.
+
+LangGraph **không** sở hữu:
+- Authorization policy;
+- Credential storage/resolution;
+- Provider-specific business logic;
+- SQL/Qdrant access trực tiếp;
+- quyết định identity/account/permission.
+
+Tool vẫn là boundary hành động; Provider Adapter vẫn là boundary external API.
+
+**Pydantic được dùng chọn lọc tại boundary dữ liệu**, đặc biệt khi dữ liệu đến từ LLM, HTTP/API hoặc Tool cần contract input/output ổn định. Các helper nội bộ, phép chuyển đổi đơn giản và dữ liệu đã được kiểm soát không bắt buộc tạo Pydantic model.
+
+Ví dụ phù hợp:
+- Calendar Create/Update input;
+- Gmail Send input;
+- Smart Home command có nhiều tham số;
+- Tool output cần contract ổn định cho Graph.
+
+Ví dụ không cần ép dùng:
+- `to_utc(datetime)`;
+- hàm normalize text đơn giản;
+- helper nội bộ chỉ nhận một kiểu dữ liệu rõ ràng.
 
 ## 12. Audit
 
-Operation nhạy cảm phải truy được request_id, user, session/device, capability/action, account, resource/package, tool, result và thời gian.
+Operation nhạy cảm phải truy được request_id, user, session/device, capability/action, account, resource/package, tool, result và thời gian. Agent Run/Graph Run và Tool Run nên được liên kết để có thể truy vết toàn bộ execution path.
 
 ## 13. Quy tắc ghi chú trong Python
 
@@ -242,6 +279,8 @@ Khi phát sinh yêu cầu mới:
 4. ghi Changelog;
 5. rồi mới triển khai code.
 
+Với thay đổi framework/orchestration cấp toàn project, phải chốt Decision trước khi migrate runtime.
+
 ## 15. Google OAuth boundary
 
 Google OAuth thuộc infrastructure/application integration boundary. OAuth state phải gắn với account, user và organization, được ký và có thời hạn. Authorization code chỉ được đổi thành credential trong callback; credential phải được mã hóa trước khi lưu `account_credentials`. Không lưu token plaintext, không đưa secret vào AgentContext/prompt/audit/HTTP response. Sau khi OAuth hoàn tất, runtime quay lại CredentialResolver để kiểm tra readiness trước ToolResolver.
@@ -258,4 +297,6 @@ Google OAuth thuộc infrastructure/application integration boundary. OAuth stat
 
 Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, device-resource binding, activity session, task/work order, agent-to-agent communication và anomaly detection.
 
-Architecture contract đã chốt. Database V2.1 001 → 050 đã CLOSED; Agent/Knowledge application runtime vẫn chưa triển khai.
+**Orchestration decision:** LangGraph được chốt làm framework orchestration production toàn project. **Pydantic:** dùng chọn lọc tại các data boundary cần contract/validation/normalization; không áp dụng bắt buộc cho mọi Tool/hàm.
+
+Database V2.1 001 → 050 đã CLOSED; Agent/Knowledge application runtime vẫn chưa triển khai.
