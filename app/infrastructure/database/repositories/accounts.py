@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence
 
-from app.application.core_runtime import ExternalAccount
+from app.application.core_runtime import AccountCandidate, ExternalAccount
 
 
 class PostgresAccountRepository:
@@ -22,7 +22,7 @@ class PostgresAccountRepository:
         organization_id: str,
         provider: str,
         account_hint: str | None = None,
-    ) -> Sequence[ExternalAccount]:
+    ) -> Sequence[AccountCandidate]:
         params: list[Any] = [user_id, organization_id, provider]
         hint_clause = ""
         if account_hint:
@@ -44,7 +44,9 @@ class PostgresAccountRepository:
                 account_rows.external_account_id,
                 account_rows.display_name,
                 account_rows.email,
-                account_rows.status
+                account_rows.status,
+                account_rows.account_grant_id,
+                account_rows.grant_scope
             FROM (
                 SELECT DISTINCT
                     ua.id,
@@ -54,7 +56,9 @@ class PostgresAccountRepository:
                     ua.external_account_id,
                     ua.display_name,
                     ua.email,
-                    ua.status
+                    ua.status,
+                    ag.id AS account_grant_id,
+                    ag.scope AS grant_scope
                 FROM user_accounts AS ua
             JOIN organization_members AS om_owner
               ON om_owner.organization_id = %s
@@ -93,11 +97,11 @@ class PostgresAccountRepository:
             cursor.execute(query, params)
             rows = cursor.fetchall()
 
-        return [self._to_external_account(row) for row in rows]
+        return [self._to_account_candidate(row, current_user_id=user_id, organization_id=organization_id) for row in rows]
 
     @staticmethod
-    def _to_external_account(row: Sequence[Any]) -> ExternalAccount:
-        return ExternalAccount(
+    def _to_account_candidate(row: Sequence[Any], *, current_user_id: str, organization_id: str) -> AccountCandidate:
+        account = ExternalAccount(
             id=str(row[0]),
             user_id=str(row[1]),
             provider=str(row[2]),
@@ -106,4 +110,11 @@ class PostgresAccountRepository:
             display_name=row[5],
             email=row[6],
             status=str(row[7]),
+        )
+        return AccountCandidate(
+            account=account,
+            access_mode="owner" if account.user_id == current_user_id else "grant",
+            account_grant_id=str(row[8]) if row[8] else None,
+            organization_id=organization_id,
+            grant_scope=row[9] if isinstance(row[9], dict) else None,
         )
