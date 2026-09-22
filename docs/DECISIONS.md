@@ -656,3 +656,12 @@ Giảm trách nhiệm của FastAPI entry, tạo capability boundary ổn địn
 ### Verification gate
 
 Phải chạy targeted Calendar Handler + Agent Runtime tests và full regression. Chỉ sau khi PASS mới mở Phase 4.
+
+
+### Decision 047 — Regression fixes after initial Phase 3 verification
+
+Verification local phát hiện:
+- test assertion dùng alias `deny` thay vì canonical `authorization_denied` của Execution Contract V1;
+- một test API cũ import `_natural_language_calendar_start` từ `app.main` sau khi helper đã được chuyển vào `CalendarHandler`.
+
+Đã sửa test contract và giữ compatibility alias tại `app.main`. Phase 3 vẫn ở trạng thái **chờ verification lại**; chưa được đóng PASS.
