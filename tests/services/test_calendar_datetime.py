@@ -43,6 +43,18 @@ def test_explicit_date(parser: CalendarDateTimeParser) -> None:
     assert result.value == datetime(2026, 9, 24, 8, 30, tzinfo=VN)
 
 
+def test_colon_time(parser: CalendarDateTimeParser) -> None:
+    reference = datetime(2026, 9, 23, 10, 0, tzinfo=VN)
+    result = parser.parse("ngày mai lúc 08:30", reference=reference)
+    assert result.value == datetime(2026, 9, 24, 8, 30, tzinfo=VN)
+
+
+def test_h_time_with_minutes(parser: CalendarDateTimeParser) -> None:
+    reference = datetime(2026, 9, 23, 10, 0, tzinfo=VN)
+    result = parser.parse("ngày mai lúc 14h30", reference=reference)
+    assert result.value == datetime(2026, 9, 24, 14, 30, tzinfo=VN)
+
+
 def test_naive_reference_is_rejected(parser: CalendarDateTimeParser) -> None:
     with pytest.raises(ValueError, match="reference_datetime_must_be_timezone_aware"):
         parser.parse("ngày mai lúc 9h", reference=datetime(2026, 9, 23, 10, 0))
