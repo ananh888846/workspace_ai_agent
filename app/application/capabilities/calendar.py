@@ -126,6 +126,9 @@ class CalendarHandler:
         )
         self._normalize_execution_statuses(body["execution"])
         if credential_result.status != "ready":
+            # OAuth chưa sẵn sàng là lỗi trước provider: tuyệt đối không đánh dấu provider đã gọi.
+            body["execution"]["credential"]["provider_called"] = False
+            body["execution"]["provider_called"] = False
             return body
 
         calendar_result = self._execute_calendar(
