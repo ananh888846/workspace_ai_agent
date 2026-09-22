@@ -1,6 +1,6 @@
 import pytest
 
-from app.application.execution_boundary import build_boundary_error
+from app.application.execution_boundary import build_boundary_error, enforce_result_boundary
 
 
 @pytest.mark.parametrize(
@@ -67,4 +67,35 @@ def test_pre_provider_error_cannot_be_marked_retryable() -> None:
             message="confirmation needed",
             action="delete_event",
             retryable=True,
+        )
+
+
+def test_enforce_result_boundary_normalizes_alias_and_error_provider_fact() -> None:
+    result = enforce_result_boundary(
+        {
+            "status": "deny",
+            "provider_called": False,
+            "error": {
+                "code": "deny",
+                "message": "not allowed",
+                "retryable": False,
+                "provider_called": False,
+            },
+        }
+    )
+
+    assert result["status"] == "authorization_denied"
+    assert result["provider_called"] is False
+    assert result["error"]["code"] == "authorization_denied"
+    assert result["error"]["provider_called"] is False
+
+
+def test_enforce_result_boundary_rejects_provider_error_without_provider_call() -> None:
+    with pytest.raises(ValueError, match="provider_called_must_be_true"):
+        enforce_result_boundary(
+            {
+                "status": "provider_error",
+                "provider_called": False,
+                "error": {"code": "provider_error"},
+            }
         )
