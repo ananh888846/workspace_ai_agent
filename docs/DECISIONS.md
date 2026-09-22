@@ -542,3 +542,48 @@ Test coverage đã bổ sung cho recurrence runtime signature và việc tái s�
 - Account repository grant metadata mapping và không truy cập `account_credentials`.
 
 A15–A20 vẫn cần runtime/integration verification với CredentialResolver và Provider side-effect trước khi đóng Multi-account V1.
+
+
+## Decision 045 — Runtime Architecture V2.2: FastAPI / Agent Runtime / LangGraph Super-Graph
+**Status:** Proposed — chờ chủ project phê duyệt
+
+### Bối cảnh
+Runtime hiện tại đã có FastAPI Agent entry và Scheduling Graph, nhưng /api/v1/agent/chat vẫn là application entry chính; LangGraph mới được dùng thực tế cho Scheduling Assistant. langgraph.json là graph configuration/discovery, chưa phải LangGraph Server production.
+
+### Quyết định đề xuất
+Tách runtime thành các boundary rõ ràng:
+
+```text
+FastAPI
+  ↓
+Agent API Adapter
+  ↓
+Agent Runtime Entry
+  ↓
+LangGraph Super-Graph
+  ↓
+Capability Graph / Service
+  ↓
+Application Authorization + Credential
+  ↓
+Tool
+  ↓
+Provider
+```
+
+### Nguyên tắc
+1. FastAPI chỉ là HTTP transport boundary.
+2. Agent Runtime Entry là application entry duy nhất cho Agent Run.
+3. LangGraph Super-Graph là orchestration layer cấp Agent.
+4. Capability Graph chỉ dùng khi workflow thực sự cần graph/state/control flow.
+5. Scheduling Graph tiếp tục là graph chuyên biệt, không phải HTTP entry.
+6. Authorization, CredentialResolver và Execution Contract vẫn thuộc Application boundary.
+7. LangGraph không truy cập SQL, Qdrant, credential secret hoặc provider API trực tiếp.
+8. Không thêm Agent service vào Docker Compose ở phase kiến trúc này.
+9. Không xem langgraph.json là bằng chứng LangGraph Server production.
+10. Migration runtime phải incremental; giữ compatibility endpoint và regression baseline.
+11. Deployment container/LangGraph Server là decision riêng sau khi Super-Graph runtime ổn định.
+12. Trước khi triển khai code có ảnh hưởng trực tiếp tới LangGraph/Pydantic, tiếp tục tuân thủ Decision 034.
+
+### Trạng thái phê duyệt
+**CHƯA CHỐT.** Decision này chỉ ghi nhận kiến trúc đề xuất; chưa cho phép triển khai code.
