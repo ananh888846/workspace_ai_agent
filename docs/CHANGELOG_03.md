@@ -119,3 +119,10 @@
 - Thêm [tests/services/test_calendar_free_busy.py](../tests/services/test_calendar_free_busy.py).
 - Cập nhật [docs/GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md) và [docs/DECISIONS.md](./DECISIONS.md).
 - Đây mới là code + test preparation; **CHƯA runtime verify và CHƯA E2E PASS**.
+
+
+## 2026-09-22 — Hoàn thiện boundary provider cho Free/Busy
+
+- [app/providers/google/calendar/adapter.py](../app/providers/google/calendar/adapter.py) sử dụng Google Calendar API freeBusy.query thông qua Google Calendar client hiện tại.
+- Adapter chuyển lỗi theo từng calendar từ provider thành provider error thay vì coi calendar lỗi là rảnh.
+- Đây vẫn là code-level preparation; **CHƯA runtime verify và CHƯA E2E PASS**.
