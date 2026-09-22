@@ -152,3 +152,24 @@
 - Không tạo migration.
 - Chưa thực hiện E2E mutation trên Google Calendar trong lượt verification này.
 - **Calendar Recurrence V1 — UNIT + REGRESSION PASS.**
+
+
+## 2026-09-22 — Review Account Resolver + Account Grant V1 và khóa Multi-account design
+
+- Review runtime hiện tại của Account Resolver, Authorization và Credential Resolver.
+- Xác nhận DB hiện tại đã có đủ nền tảng cho Multi-account V1: `user_accounts`, `account_credentials`, `account_grants`, organization membership và tenant constraints.
+- Chốt contract `ResolvedAccount` với `account`, `access_mode`, `account_grant_id`, `organization_id`; không chứa secret.
+- Chốt Account selection policy: explicit `account_hint` → default policy nếu có → single candidate → `account_selection_required`; không cho LLM tự chọn account.
+- Chốt Account Grant scope là giới hạn quyền ủy quyền, không thay thế user capability permission và không được elevate permission.
+- Chốt grant lifecycle: active + starts_at + expires_at + revoked_at.
+- Chốt owner/grant access mode.
+- Chốt test matrix A01–A20 và side-effect assertions.
+- Không tạo migration DB ở bước design lock.
+- Không thay đổi code runtime trong lượt này.
+- Ghi nhận 2 finding cần sửa trước implementation:
+  1. Recurrence runtime signature mismatch trong `execute_google_calendar_write()`.
+  2. Duplicate CredentialResolver trong `main.py`.
+
+### Decision
+
+- Thêm **Decision 044 — Account Resolver + Account Grant V1: chốt contract trước Multi-account** vào `docs/DECISIONS.md`.
