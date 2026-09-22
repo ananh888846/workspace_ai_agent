@@ -355,5 +355,67 @@ Nguyên tắc an toàn:
 - Service parser: **đã triển khai**.
 - Unit test parser V1: **PASS — 9/9**.
 - Integration helper cho Calendar Write: **đã triển khai**.
-- Test integration helper: **đã tạo, chờ runtime verification local**.
-- E2E Natural Language Create/Update với Google Calendar thật: **chưa đóng**.
+- Integration test helper: **PASS — 4/4**.
+- Combined parser + integration tests: **PASS — 13/13**.
+- E2E Natural Language Create với Google Calendar thật: **PASS**.
+- E2E Natural Language Update với Google Calendar thật: **PASS**.
+- Delete safety (`confirmed=false`): **PASS**, `provider_called=false`.
+- Delete thật (`confirmed=true`): **PASS**, Google Calendar xóa event thành công.
+- **Calendar Natural Language Date/Time V1 — CLOSED / E2E PASS.**
+
+### 16.6 E2E verification thực tế — Natural Language Date/Time V1
+
+E2E được kiểm thử trên Google Calendar thật bằng account `ananh888846@gmail.com`.
+
+#### Create
+
+Request: `Tạo lịch họp ngày 24/09/2026 lúc 09:00`.
+
+- `natural_language_datetime.status = resolved`.
+- `start = 2026-09-24T09:00:00+07:00`.
+- `timezone = Asia/Ho_Chi_Minh`.
+- Google Calendar tạo event thật `vet0dr4i57cobksqmbpgol2jb4`.
+- Event `09:00–10:00` GMT+7, trạng thái `confirmed`.
+
+#### Update
+
+Request: `Cập nhật lịch E2E ngày 24/09/2026 lúc 14:00`.
+
+- `natural_language_datetime.status = resolved`.
+- `start = 2026-09-24T14:00:00+07:00`.
+- Cùng event `vet0dr4i57cobksqmbpgol2jb4` được cập nhật thành `14:00–15:00` GMT+7.
+- UTF-8 tiếng Việt trong summary/description/location được kiểm chứng.
+
+#### Delete safety
+
+Khi `confirmed=false`:
+
+- `calendar.status = confirmation_required`.
+- `calendar.provider_called = false`.
+- `execution.provider_called = false`.
+- Không gọi Google Calendar API.
+
+#### Delete thật
+
+Khi `confirmed=true`:
+
+- `calendar.status = ok`.
+- `calendar.action = delete_event`.
+- `calendar.event_id = vet0dr4i57cobksqmbpgol2jb4`.
+- `calendar.provider_called = true`.
+- Google Calendar xóa event thành công.
+
+Event E2E đã được xóa sau khi hoàn tất verification, không để lại dữ liệu test trên Calendar.
+
+### 16.7 Acceptance gate — CLOSED
+
+1. Parse ngày/giờ tiếng Việt — **PASS**.
+2. Calendar Create bằng natural language — **PASS**.
+3. Calendar Update bằng natural language — **PASS**.
+4. Delete safety không confirmation — **PASS**.
+5. Delete thật có confirmation — **PASS**.
+6. Timezone `Asia/Ho_Chi_Minh` — **PASS**.
+7. UTF-8 tiếng Việt — **PASS**.
+8. Provider Google Calendar API — **PASS**.
+
+**Calendar Natural Language Date/Time V1 — CLOSED / E2E PASS.**
