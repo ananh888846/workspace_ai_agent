@@ -162,7 +162,7 @@ def test_calendar_handler_denied_authorization_does_not_resolve_credential_or_pr
 
     result = CalendarHandler().handle(_state())
 
-    assert result["execution"]["authorization"]["status"] == "deny"
+    assert result["execution"]["authorization"]["status"] == "authorization_denied"
     assert calls == ["authorization"]
 
 
