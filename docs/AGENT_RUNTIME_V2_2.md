@@ -162,3 +162,17 @@ python -m pytest -q
 ```
 
 Baseline trước Phase 3: **94 passed, 2 warnings**. Phase 3 phải đạt toàn bộ regression trước khi chuyển Phase 4.
+
+
+## Phase 3 — Regression compatibility fix
+
+Sau verification local, Phase 3 phát hiện 8 regression failures do test boundaries cũ vẫn patch symbol từ `app.main`, trong khi orchestration đã được chuyển sang `CalendarHandler`.
+
+Đã sửa theo đúng kiến trúc mới:
+- Runtime/API tests patch Account, Authorization, Credential và Calendar execution tại `app.application.capabilities.calendar`.
+- CalendarHandler trả HTTP 400 cho request cần runtime authorization context nhưng thiếu user/organization context.
+- Không đưa compatibility dependency ngược vào FastAPI main.
+
+Mục tiêu là giữ FastAPI là transport boundary và CalendarHandler là application capability boundary, thay vì khôi phục coupling cũ.
+
+**Trạng thái:** chờ chạy lại targeted + full regression.
