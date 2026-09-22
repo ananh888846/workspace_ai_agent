@@ -208,3 +208,73 @@ def test_calendar_read_rejects_invalid_range(monkeypatch) -> None:
         "error": "end_must_be_after_start",
         "provider_called": False,
     }
+
+ 
+def test_calendar_write_accepts_recurrence_argument(monkeypatch) -> None:
+    from types import SimpleNamespace
+    from app.api.chat import execute_google_calendar_write
+    from app.application.core_runtime import ExternalAccount
+
+    captured = {}
+
+    class FakeTool:
+        def execute(self, action, **kwargs):
+            captured.update(kwargs)
+            return SimpleNamespace(
+                id="event-1",
+                summary="Họp",
+                description=None,
+                location=None,
+                status="confirmed",
+                html_link=None,
+                start={"dateTime": "2026-09-24T02:00:00Z"},
+                end={"dateTime": "2026-09-24T03:00:00Z"},
+            )
+
+    monkeypatch.setattr(
+        "app.api.chat.CalendarToolRegistry.resolve",
+        lambda self, **kwargs: FakeTool(),
+    )
+    account = ExternalAccount(
+        id="account-1",
+        user_id="user-1",
+        provider="google",
+        account_type="oauth",
+        external_account_id="calendar-1",
+        display_name="Calendar",
+        email="abc@gmail.com",
+        status="active",
+    )
+    credential = SimpleNamespace(credential_context=object())
+    result = execute_google_calendar_write(
+        account=account,
+        credential_resolution=credential,
+        action="create",
+        summary="Họp",
+        start="2026-09-24T09:00:00+07:00",
+        end="2026-09-24T10:00:00+07:00",
+        recurrence="FREQ=DAILY;COUNT=2",
+    )
+
+    assert result["status"] == "ok"
+    assert captured["event"]["recurrence"] == ["RRULE:FREQ=DAILY;COUNT=2"]
+
+
+def test_credential_result_can_be_reused_without_second_resolution() -> None:
+    from app.api.chat import resolve_google_credential
+
+    class FakeCredential:
+        status = "ready"
+        credential_type = "google_oauth"
+        expires_at = None
+        scopes = ["calendar"]
+
+    result = resolve_google_credential(
+        account=None,
+        authorization={"status": "allow"},
+        credential_resolution=FakeCredential(),
+    )
+
+    assert result["status"] == "ready"
+    assert result["credential_type"] == "google_oauth"
+    assert result["scopes"] == ["calendar"]
