@@ -201,3 +201,20 @@ Nguyên tắc:
 - Output là datetime timezone-aware; provider boundary chịu trách nhiệm chuyển UTC.
 - Khi phase sau có dữ liệu phức tạp, phải phân tích nhu cầu Pydantic và hỏi chủ project trước khi dùng.
 - LangGraph giữ vai trò Super-Graph ở tầng trên cùng; không nhúng LangGraph vào parser chỉ để orchestration một hàm nhỏ.
+
+
+## Decision 036 — Calendar Natural Language Date/Time V1 E2E baseline
+**Status:** Accepted  
+Calendar Natural Language Date/Time V1 được giữ làm regression baseline sau khi hoàn tất runtime verification với Google Calendar thật.
+
+Acceptance đã xác nhận:
+- Natural Language Create và Update đi qua CalendarDateTimeParser.
+- Datetime được resolve thành timezone-aware Asia/Ho_Chi_Minh.
+- Provider boundary tiếp tục chịu trách nhiệm chuẩn hóa UTC.
+- Delete bắt buộc confirmation; thiếu confirmation không gọi provider.
+- Create/Update/Delete thật đã được kiểm chứng với Google Calendar API.
+- Event test sau khi verification đã được xóa.
+
+Ranh giới tiếp theo:
+- Free/Busy và Conflict Detection là capability kế tiếp, không được suy luận từ Natural Language parser.
+- Trước khi dùng LangGraph hoặc Pydantic cho Free/Busy/Conflict Detection phải thực hiện quy trình tại Decision 034.
