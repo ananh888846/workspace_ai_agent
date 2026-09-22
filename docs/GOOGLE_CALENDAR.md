@@ -480,3 +480,33 @@ Quy tắc overlap đã được xác nhận qua E2E: `busy.start < requested_end
 - OAuth scope/migration: **không thay đổi / không cần migration**.
 
 **Calendar Free/Busy + Conflict Detection V1 — CLOSED / E2E PASS.**
+
+
+## Scheduling Assistant V1 — Architecture Accepted
+
+Scheduling Assistant V1 được chốt theo mô hình LangGraph orchestration + SchedulingService domain độc lập.
+
+```text
+LangGraph Super-Graph
+  ↓
+Scheduling Graph
+  ├── classify_request
+  ├── resolve_calendar
+  ├── get_free_busy
+  ├── find_available_slots
+  ├── confirm
+  └── format_result
+  ↓
+SchedulingService
+  ↓
+Calendar Free/Busy
+  ↓
+Calendar Tool / GoogleCalendarAdapter
+  ↓
+Google Calendar API
+```
+
+V1 chỉ tìm khoảng thời gian phù hợp và chưa tự tạo/sửa/xóa event. Không tạo migration database chỉ cho execution state. Không dùng Pydantic mặc định; nếu phát sinh nhu cầu contract mới phải hỏi chủ project trước.
+
+Các baseline Calendar CRUD, Natural Language Date/Time và Free/Busy + Conflict Detection được giữ nguyên để regression.
+
