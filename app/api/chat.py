@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from app.api.schemas import ChatRequest, ChatResponse
 from app.core.datetime import to_utc, to_vietnam_time, utc_now
-from app.application.core_runtime import AccountResolver, AccountSelectionRequiredError, AgentContext, AuthorizationDecision, AuthorizationService, CredentialResolver, ExternalAccount
+from app.application.core_runtime import AccountResolver, AccountSelectionRequiredError, AgentContext, AuthorizationDecision, AuthorizationService, CredentialResolver, ExternalAccount, ResolvedAccount
 from app.infrastructure.database.connection import database_connection
 from app.infrastructure.database.repositories.accounts import PostgresAccountRepository
 from app.infrastructure.database.repositories.permissions import PostgresPermissionRepository
@@ -72,22 +72,23 @@ def resolve_google_account(*, user_id: str, organization_id: str, account_hint: 
     with database_connection() as connection:
         resolver = AccountResolver(PostgresAccountRepository(connection))
         try:
-            account = resolver.resolve(user_id=user_id, organization_id=organization_id, provider="google", account_hint=account_hint)
+            resolved = resolver.resolve(user_id=user_id, organization_id=organization_id, provider="google", account_hint=account_hint)
         except AccountSelectionRequiredError:
             return {"status": "account_selection_required", "provider": "google", "provider_called": False}
         except LookupError as exc:
             return {"status": str(exc), "provider": "google", "provider_called": False}
-    return _account_result(account)
+    return _account_result(resolved)
 
 
-def _account_result(account: ExternalAccount) -> dict:
-    return {"status": "resolved", "provider": account.provider, "account_id": account.id, "external_account_id": account.external_account_id, "display_name": account.display_name, "email": account.email, "account_state": account.status, "provider_called": False}
+def _account_result(resolved: ResolvedAccount) -> dict:
+    account = resolved.account
+    return {"status": "resolved", "provider": account.provider, "account_id": account.id, "external_account_id": account.external_account_id, "display_name": account.display_name, "email": account.email, "account_state": account.status, "access_mode": resolved.access_mode, "account_grant_id": resolved.account_grant_id, "organization_id": resolved.organization_id, "provider_called": False}
 
 
-def authorize_request(*, user_id: str, organization_id: str, capability: str, action: str | None = None, account: ExternalAccount | None = None, target_resource: str | None = None) -> dict:
+def authorize_request(*, user_id: str, organization_id: str, capability: str, action: str | None = None, account: ExternalAccount | None = None, target_resource: str | None = None, resolved_account: ResolvedAccount | None = None) -> dict:
     context = AgentContext(request_id=str(uuid4()), organization_id=organization_id, user_id=user_id, capability=capability, action=action or capability.partition(".")[2], target_account=account.id if account else None, target_resource=target_resource)
     with database_connection() as connection:
-        decision = AuthorizationService(PostgresPermissionRepository(connection)).authorize(context=context, account=account)
+        decision = AuthorizationService(PostgresPermissionRepository(connection)).authorize(context=context, account=account, resolved_account=resolved_account)
     return {"status": "allow" if decision.allowed else "deny", "code": decision.code, "reason": decision.reason, "provider_called": False}
 
 
