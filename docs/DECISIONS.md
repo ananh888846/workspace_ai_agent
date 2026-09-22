@@ -397,3 +397,109 @@ V1 chưa bao gồm:
 - exception dates (EXDATE), recurrence overrides hoặc chỉnh một instance trong series;
 - scheduling assistant tự động tạo recurring event;
 - multi-account recurrence.
+
+
+## Decision 044 — Account Resolver + Account Grant V1: chốt contract trước Multi-account
+**Status:** Accepted — Design Locked, chưa triển khai runtime
+
+Trước khi bắt đầu Multi-account V1, Account Resolver và Account Grant phải dùng một contract thống nhất.
+
+### 1. ResolvedAccount
+
+Account Resolver trả về metadata account đã resolve, không chứa secret:
+- `account`: `ExternalAccount`;
+- `access_mode`: `owner` hoặc `grant`;
+- `account_grant_id`: nullable;
+- `organization_id`;
+- không bao giờ chứa access token, refresh token, client secret hoặc encrypted credential.
+
+Credential chỉ được resolve sau Authorization ALLOW.
+
+### 2. Account selection policy
+
+1. Có `account_hint` → match duy nhất thì resolve.
+2. Nếu có default-account policy hợp lệ → dùng default.
+3. Nếu chỉ có 1 candidate → resolve.
+4. Có nhiều candidate mà chưa xác định được account → `account_selection_required`.
+5. Không có candidate → `account_not_found`.
+
+LLM không được tự chọn account. Khi selection required thì không Authorization protected account, không Credential Resolver và không Provider call.
+
+### 3. Account Grant scope
+
+`account_grants.scope` chỉ là **giới hạn quyền được ủy quyền trên account**, không phải permission độc lập và không được nâng quyền cho user.
+
+```text
+User Capability Permission
+AND Organization Membership
+AND Account Ownership / Active Grant
+AND Grant Lifecycle
+AND Grant Scope nếu access_mode=grant
+AND Resource Permission nếu request có resource
+=
+ALLOW
+```
+
+V1 canonical scope:
+```json
+{"capabilities": ["calendar.read", "calendar.write"]}
+```
+
+Nếu scope rỗng hoặc không chứa capability đang yêu cầu thì grant không đủ điều kiện. Grant scope không thể cấp capability mà user không có.
+
+### 4. Grant lifecycle
+
+```text
+status = active
+AND starts_at IS NULL OR starts_at <= now
+AND expires_at IS NULL OR expires_at > now
+AND revoked_at IS NULL
+```
+
+### 5. Owner vs Grant
+
+- `owner`: account.user_id == current user và organization membership hợp lệ.
+- `grant`: account thuộc user khác và current user có active grant hợp lệ.
+- Owner không cần grant cho account của chính mình.
+- Grant không chuyển ownership và không cấp credential trực tiếp cho grantee.
+
+### 6. Test matrix A01–A20
+
+| ID | Scenario | Expected |
+|---|---|---|
+| A01 | 1 account, không hint | resolved |
+| A02 | 2 accounts, không hint | account_selection_required |
+| A03 | 2 accounts, hint đúng | resolved |
+| A04 | hint không tồn tại | account_not_found |
+| A05 | account user khác, không grant | authorization_denied |
+| A06 | account user khác, active grant | tiếp tục Authorization |
+| A07 | grant expired | authorization_denied |
+| A08 | grant revoked | authorization_denied |
+| A09 | grant chưa bắt đầu | authorization_denied |
+| A10 | grant khác organization | authorization_denied |
+| A11 | owner + capability đúng | allow |
+| A12 | owner + thiếu capability | authorization_denied |
+| A13 | grantee + capability + grant scope đúng | allow |
+| A14 | grantee + capability nhưng scope thiếu | authorization_denied |
+| A15 | authorization allow nhưng credential thiếu | oauth_required |
+| A16 | authorization deny | credential không được resolve |
+| A17 | authorization deny | provider không được gọi |
+| A18 | selection required | credential không được resolve |
+| A19 | nhiều provider account | không có LLM auto-selection |
+| A20 | grant active nhưng account disabled | authorization_denied |
+
+### 7. Side-effect assertions
+
+- Authorization DENY → CredentialResolver call count = 0.
+- Authorization DENY → Provider call count = 0.
+- Selection required → CredentialResolver call count = 0.
+- Selection required → Provider call count = 0.
+- Account resolution chỉ đọc metadata, không đọc credential secret.
+
+### 8. Known runtime findings trước implementation
+
+Review 2026-09-22 phát hiện:
+1. `execute_google_calendar_write()` tham chiếu `recurrence` nhưng signature chưa nhận tham số, trong khi `main.py` đã truyền `recurrence=payload.recurrence`.
+2. `main.py` resolve credential vào `credential_result`, sau đó gọi `resolve_google_credential()` lần nữa để dựng execution response, gây duplicate DB/decrypt work.
+
+Hai finding này sẽ được sửa ở implementation phase; Decision 044 không thay đổi code runtime.
