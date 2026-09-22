@@ -8,3 +8,4 @@ cryptography>=43,<47
 google-auth-oauthlib>=1.2,<2
 google-api-python-client>=2.150,<3
 langgraph>=0.6,<2
+langgraph-cli[inmem]
