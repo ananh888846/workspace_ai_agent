@@ -11,6 +11,7 @@ from app.infrastructure.database.repositories.accounts import PostgresAccountRep
 from app.infrastructure.database.repositories.permissions import PostgresPermissionRepository
 from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
 from app.tools.registry import CalendarToolRegistry
+from app.services.calendar_free_busy import BusyPeriod, CalendarConflictDetector
 
 
 def _repair_mojibake(value: str | None) -> str | None:
@@ -37,6 +38,9 @@ def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | 
     write_words = ("tạo lịch", "tạo cuộc hẹn", "đặt lịch", "thêm lịch", "thêm cuộc hẹn", "sửa lịch", "sửa cuộc hẹn", "cập nhật lịch", "xóa lịch", "xóa cuộc hẹn", "xoá lịch", "xoá cuộc hẹn", "huỷ lịch", "hủy lịch")
     if not any(word in text for word in read_words):
         return "not_classified", None, None
+    free_busy_words = ("rảnh", "bận", "trống", "free busy", "free/busy", "availability")
+    if any(word in text for word in free_busy_words) and not any(word in text for word in write_words):
+        return "calendar", "calendar.read", "free_busy"
     if any(word in text for word in write_words):
         return "calendar", "calendar.write", request.action or _infer_write_action(text)
     return "calendar", "calendar.read", "read"
@@ -175,3 +179,69 @@ def execute_google_calendar_write(*, account: ExternalAccount, credential_resolu
     else:
         result = tool.execute("update_event", credential_context=credential_context, calendar_id=account.external_account_id, event_id=event_id, event=event)
     return {"status": "ok", "action": provider_action, "event": _event_to_response(result), "provider_called": True}
+
+
+
+def _busy_periods_from_provider(data: dict[str, list[dict[str, str]]]) -> list[BusyPeriod]:
+    periods: list[BusyPeriod] = []
+    for calendar_id, busy_items in data.items():
+        for item in busy_items:
+            periods.append(
+                BusyPeriod(
+                    calendar_id=calendar_id,
+                    start=_parse_client_datetime(item["start"]),
+                    end=_parse_client_datetime(item["end"]),
+                )
+            )
+    return periods
+
+
+def execute_google_calendar_free_busy(
+    *, account: ExternalAccount, credential_resolution: object, start: str | None, end: str | None
+) -> dict:
+    """Lấy Free/Busy và kiểm tra conflict cho khoảng thời gian được yêu cầu."""
+    credential_context = getattr(credential_resolution, "credential_context", None)
+    if credential_context is None:
+        raise RuntimeError("google_credential_context_missing")
+    if not start or not end:
+        return {"status": "validation_error", "error": "start_end_required_for_free_busy", "provider_called": False}
+    try:
+        requested_start = _parse_client_datetime(start)
+        requested_end = _parse_client_datetime(end)
+    except (TypeError, ValueError):
+        return {"status": "validation_error", "error": "datetime_must_be_iso8601_with_timezone", "provider_called": False}
+    if requested_end <= requested_start:
+        return {"status": "validation_error", "error": "end_must_be_after_start", "provider_called": False}
+
+    tool = CalendarToolRegistry().resolve(capability="calendar.read", provider=account.provider, action="free_busy")
+    provider_data = tool.execute(
+        "free_busy",
+        credential_context=credential_context,
+        calendar_ids=[account.external_account_id],
+        time_min=requested_start.isoformat().replace("+00:00", "Z"),
+        time_max=requested_end.isoformat().replace("+00:00", "Z"),
+        time_zone="Asia/Ho_Chi_Minh",
+    )
+    busy_periods = _busy_periods_from_provider(provider_data)
+    conflict_result = CalendarConflictDetector().detect(
+        requested_start=requested_start,
+        requested_end=requested_end,
+        busy_periods=busy_periods,
+    )
+    return {
+        "status": "conflict" if conflict_result.has_conflict else "free",
+        "action": "free_busy",
+        "calendar_ids": [account.external_account_id],
+        "requested_start": to_vietnam_time(requested_start).isoformat(),
+        "requested_end": to_vietnam_time(requested_end).isoformat(),
+        "timezone": "Asia/Ho_Chi_Minh",
+        "busy": [
+            {"calendar_id": period.calendar_id, "start": to_vietnam_time(period.start).isoformat(), "end": to_vietnam_time(period.end).isoformat()}
+            for period in busy_periods
+        ],
+        "conflicts": [
+            {"calendar_id": conflict.calendar_id, "start": to_vietnam_time(conflict.start).isoformat(), "end": to_vietnam_time(conflict.end).isoformat()}
+            for conflict in conflict_result.conflicts
+        ],
+        "provider_called": True,
+    }
