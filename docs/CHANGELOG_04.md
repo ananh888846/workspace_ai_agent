@@ -45,6 +45,7 @@
 - `provider_error` bắt buộc `provider_called=true`; có thể đánh dấu `retryable=true` khi provider failure có thể retry an toàn.
 - Thêm `enforce_result_boundary()` làm điểm kiểm tra cuối cho capability result trước API response.
 - Cập nhật [`app/main.py`](../app/main.py) để đưa Calendar capability result qua boundary enforcement.
+- Boundary violation không bị chuyển thành `provider_error` giả.
 - Thêm [`tests/application/test_execution_boundary.py`](../tests/application/test_execution_boundary.py) kiểm tra:
   - provider boundary;
   - retry policy;
@@ -60,3 +61,4 @@
 - `e1191b6136622411269f11170f44ebfa99476793` — enforce boundary cho capability result.
 - `8fe143794f2b1e474e74763a8a6802e50af7bed6` — wire boundary enforcement vào Agent Chat.
 - `1a4df750f4822211108a2b53abba526e00da9cd6` — bổ sung test boundary.
+- `9173a230ca7050506ae4244f78425bc47dc5e953` — giữ boundary violation không bị map thành provider error.
