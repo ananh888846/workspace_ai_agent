@@ -21,6 +21,7 @@ class CalendarToolRegistry:
             "create_event",
             "update_event",
             "delete_event",
+            "free_busy",
         }:
             raise LookupError("calendar_action_not_supported")
         return self._google_calendar
