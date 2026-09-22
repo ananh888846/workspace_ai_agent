@@ -37,14 +37,14 @@ def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | 
     text = request.message.casefold()
     read_words = ("lịch", "calendar", "cuộc hẹn", "sự kiện", "agenda", "schedule")
     write_words = ("tạo lịch", "tạo cuộc hẹn", "đặt lịch", "thêm lịch", "thêm cuộc hẹn", "sửa lịch", "sửa cuộc hẹn", "cập nhật lịch", "xóa lịch", "xóa cuộc hẹn", "xoá lịch", "xoá cuộc hẹn", "huỷ lịch", "hủy lịch")
-    if not any(word in text for word in read_words):
-        return "not_classified", None, None
     scheduling_words = (
         "tìm thời gian", "tìm giờ", "tìm lịch", "xếp lịch", "sắp xếp lịch",
         "lịch trống", "khung giờ", "slot", "thời gian phù hợp",
     )
     if any(word in text for word in scheduling_words) and not any(word in text for word in write_words):
         return "calendar", "calendar.read", "schedule"
+    if not any(word in text for word in read_words):
+        return "not_classified", None, None
     free_busy_words = ("rảnh", "bận", "trống", "free busy", "free/busy", "availability")
     if any(word in text for word in free_busy_words) and not any(word in text for word in write_words):
         return "calendar", "calendar.read", "free_busy"
