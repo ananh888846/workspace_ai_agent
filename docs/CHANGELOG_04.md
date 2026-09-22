@@ -250,3 +250,18 @@ A01–A04 và A11–A14 đã có test coverage trong repository. A15–A20 chưa
 - Không thay đổi Docker Compose.
 - Không tạo migration database.
 - Không triển khai LangGraph Server.
+
+
+## 2026-09-22 — Runtime Architecture V2.2 Phase 1: Agent Runtime + Super-Graph
+
+Đã triển khai phase đầu tiên của Decision 045 sau khi chủ project phê duyệt kiến trúc V2.2.
+
+- Thêm [app/agent_runtime/runtime.py](../app/agent_runtime/runtime.py): Agent Runtime Entry, LangGraph Super-Graph tối thiểu, state không chứa credential/secret và dependency injection cho classification/application execution.
+- Cập nhật [app/main.py](../app/main.py): `/api/v1/agent/chat` vẫn giữ compatibility endpoint và delegate request vào Agent Runtime; Calendar execution hiện tại chưa bị rewrite để bảo toàn regression baseline.
+- Thêm [tests/unit/agent_runtime/test_runtime.py](../tests/unit/agent_runtime/test_runtime.py) kiểm tra routing và secret boundary.
+- Thêm [docs/AGENT_RUNTIME_V2_2.md](./AGENT_RUNTIME_V2_2.md) làm tài liệu implementation phase 1.
+- Cập nhật [docs/ARCHITECTURE.md](./ARCHITECTURE.md) trạng thái Runtime Architecture V2.2 từ PROPOSED sang ACCEPTED và ghi rõ phase 1.
+- Cập nhật [docs/DECISIONS.md](./DECISIONS.md) Decision 045 từ Proposed sang Accepted và ghi implementation phase 1.
+- Không thay đổi Docker Compose.
+- Không tạo migration database.
+- Chưa kết luận PASS runtime/regression trong lượt này; cần verification sau khi pull.
