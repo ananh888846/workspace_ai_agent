@@ -196,3 +196,12 @@ Verification local sau regression compatibility fix còn **1 failure / 96 passed
 Local verification sau commit trước vẫn còn 1 failure: `oauth_required` trả `execution.credential.provider_called = true` dù handler đã dừng trước provider. Đã gia cố bằng cách tạo dict credential mới khi nhánh pre-provider kết thúc, tránh mọi alias/reference có thể làm thay đổi cờ `provider_called` sau phép gán.
 
 **Trạng thái:** chờ verification local lại. Chưa đóng Phase 3.
+
+
+## Phase 3 — OAuth-required test boundary root cause
+
+Đã xác định failure còn lại không nằm ở Execution/Error Boundary production. Runtime test mock sai namespace của `CredentialResolver`: handler sử dụng symbol đã import tại `app.application.capabilities.calendar`, trong khi test mock `app.application.core_runtime.CredentialResolver`.
+
+Đã cập nhật test để mock đúng `app.application.capabilities.calendar.CredentialResolver`, bảo đảm `credential_result.status` mà Handler kiểm tra thực sự là `oauth_required`.
+
+**Trạng thái:** chờ chạy lại targeted + full regression.
