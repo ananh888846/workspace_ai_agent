@@ -50,7 +50,7 @@ def _patch_authorized_runtime(monkeypatch, *, credential_status: str = "ready") 
             )
 
     monkeypatch.setattr(
-        "app.application.core_runtime.CredentialResolver",
+        "app.application.capabilities.calendar.CredentialResolver",
         FakeCredentialResolver,
     )
     monkeypatch.setattr(
