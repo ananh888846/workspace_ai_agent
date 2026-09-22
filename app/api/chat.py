@@ -13,6 +13,21 @@ from app.infrastructure.database.repositories.credentials import PostgresCredent
 from app.tools.registry import CalendarToolRegistry
 
 
+def _repair_mojibake(value: str | None) -> str | None:
+    """Khôi phục chuỗi UTF-8 bị giải mã nhầm thành Latin-1/Windows-1252.
+
+    Chỉ sửa khi chuỗi chứa các dấu hiệu mojibake phổ biến; chuỗi Unicode bình
+    thường được giữ nguyên. Đây là lớp bảo vệ cuối trước khi gửi text tới Google.
+    """
+    if value is None or not any(marker in value for marker in ("Ã", "Â", "â", "ð", "�")):
+        return value
+    try:
+        repaired = value.encode("latin-1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return value
+    return repaired
+
+
 def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | None]:
     if request.capability:
         action = request.action or ("read" if request.capability == "calendar.read" else "write")
@@ -125,12 +140,15 @@ def execute_google_calendar_write(*, account: ExternalAccount, credential_resolu
         tool.execute("delete_event", credential_context=credential_context, calendar_id=account.external_account_id, event_id=event_id)
         return {"status": "ok", "action": "delete_event", "event_id": event_id, "provider_called": True}
     event: dict = {}
-    if summary is not None:
-        event["summary"] = summary
-    if description is not None:
-        event["description"] = description
-    if location is not None:
-        event["location"] = location
+    repaired_summary = _repair_mojibake(summary)
+    repaired_description = _repair_mojibake(description)
+    repaired_location = _repair_mojibake(location)
+    if repaired_summary is not None:
+        event["summary"] = repaired_summary
+    if repaired_description is not None:
+        event["description"] = repaired_description
+    if repaired_location is not None:
+        event["location"] = repaired_location
     if start is not None:
         event["start"] = _google_datetime(start)
     if end is not None:
