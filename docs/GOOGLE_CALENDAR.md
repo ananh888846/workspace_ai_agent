@@ -267,3 +267,55 @@ Không dùng OAuth URL/callback cũ. Không dán access token/refresh token vào
 - Credential có `status=active` vẫn được giải mã nếu còn `refresh_token`; Google Auth có thể làm mới access token khi provider được gọi.
 - Nếu credential đã hết hạn và không còn `refresh_token`, runtime trả `oauth_required`.
 - Đây là trạng thái của access token, không phải trạng thái OAuth account. Không chạy OAuth lại nếu credential active vẫn còn refresh token.
+
+
+## 16. Calendar Intelligence — Natural Language Date/Time V1
+
+### 16.1 Nguyên tắc
+
+Natural Language Date/Time V1 dùng service Python thuần:
+
+```text
+Text người dùng
+  ↓
+CalendarDateTimeParser
+  ↓
+datetime timezone-aware
+  ↓
+Asia/Ho_Chi_Minh
+  ↓
+UTC tại provider boundary
+```
+
+Không dùng Pydantic cho parser V1. Không dùng LangGraph bên trong parser.
+
+### 16.2 Phạm vi V1
+
+Parser hỗ trợ:
+- hôm nay;
+- ngày mai;
+- ngày kia;
+- thứ Hai → Chủ nhật;
+- tuần sau + thứ;
+- ngày `DD/MM` và `DD/MM/YYYY`;
+- `9h`, `09:30`, `2h chiều`;
+- sáng/trưa/chiều/tối;
+- `2 tiếng nữa`, `30 phút nữa`.
+
+Parser yêu cầu reference datetime có timezone nếu caller truyền reference. Không dùng datetime naive.
+
+### 16.3 Ranh giới
+
+Parser không:
+- truy cập Google Calendar;
+- truy cập credential;
+- truy cập authorization;
+- chọn account;
+- tự quyết định conflict;
+- tự tạo/sửa/xóa event.
+
+### 16.4 Runtime status
+
+- Service parser: **đã triển khai**.
+- Unit test cho các trường hợp V1: **đã tạo**.
+- E2E tích hợp Natural Language vào Calendar Create/Read: **chưa đóng**.
