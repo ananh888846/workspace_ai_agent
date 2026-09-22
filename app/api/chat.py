@@ -36,8 +36,8 @@ def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | 
         action = request.action or ("read" if request.capability == "calendar.read" else "write")
         return "calendar", request.capability, action
     text = request.message.casefold()
-    read_words = ("lịch", "calendar", "cuộc hẹn", "sự kiện", "agenda", "schedule")
-    write_words = ("tạo lịch", "tạo cuộc hẹn", "đặt lịch", "thêm lịch", "thêm cuộc hẹn", "sửa lịch", "sửa cuộc hẹn", "cập nhật lịch", "xóa lịch", "xóa cuộc hẹn", "xoá lịch", "xoá cuộc hẹn", "huỷ lịch", "hủy lịch")
+    read_words = ("lịch", "calendar", "cuộc hẹn", "cuộc họp", "họp", "meeting", "sự kiện", "agenda", "schedule")
+    write_words = ("tạo lịch", "tạo cuộc hẹn", "tạo cuộc họp", "tạo họp", "tạo meeting", "đặt lịch", "đặt cuộc họp", "thêm lịch", "thêm cuộc hẹn", "thêm cuộc họp", "sửa lịch", "sửa cuộc hẹn", "sửa cuộc họp", "cập nhật lịch", "cập nhật cuộc hẹn", "cập nhật cuộc họp", "xóa lịch", "xóa cuộc hẹn", "xóa cuộc họp", "xoá lịch", "xoá cuộc hẹn", "xoá cuộc họp", "huỷ lịch", "huỷ cuộc họp", "hủy lịch", "hủy cuộc họp")
     scheduling_words = (
         "tìm thời gian", "tìm giờ", "tìm lịch", "xếp lịch", "sắp xếp lịch",
         "lịch trống", "khung giờ", "slot", "thời gian phù hợp",
