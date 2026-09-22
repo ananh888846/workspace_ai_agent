@@ -545,7 +545,7 @@ A15–A20 vẫn cần runtime/integration verification với CredentialResolver 
 
 
 ## Decision 045 — Runtime Architecture V2.2: FastAPI / Agent Runtime / LangGraph Super-Graph
-**Status:** Proposed — chờ chủ project phê duyệt
+**Status:** Accepted — Phase 1 implemented
 
 ### Bối cảnh
 Runtime hiện tại đã có FastAPI Agent entry và Scheduling Graph, nhưng /api/v1/agent/chat vẫn là application entry chính; LangGraph mới được dùng thực tế cho Scheduling Assistant. langgraph.json là graph configuration/discovery, chưa phải LangGraph Server production.
@@ -587,3 +587,21 @@ Provider
 
 ### Trạng thái phê duyệt
 **CHƯA CHỐT.** Decision này chỉ ghi nhận kiến trúc đề xuất; chưa cho phép triển khai code.
+
+
+### Decision 045 — Implementation Phase 1
+**Status:** Implemented — orchestration seam
+
+Đã triển khai:
+- `app/agent_runtime/runtime.py` làm Agent Runtime Entry.
+- LangGraph Super-Graph gồm `classify_request → execute_route`.
+- `/api/v1/agent/chat` delegate vào Agent Runtime nhưng vẫn giữ compatibility contract.
+- Application callback tiếp tục sở hữu Account Resolver, Authorization, Credential Resolver, Tool và Provider flow.
+- Graph state không chứa credential secret, SQL connection hoặc provider client.
+- Không thêm Agent service vào Docker Compose.
+- Không tạo migration database.
+
+Migration rule:
+- Không rewrite toàn bộ Calendar runtime trong một phase.
+- Calendar V1 tiếp tục là regression baseline.
+- Phase 2 chỉ mở sau khi Phase 1 unit + regression verification PASS.
