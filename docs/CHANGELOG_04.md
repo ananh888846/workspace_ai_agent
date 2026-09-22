@@ -453,3 +453,10 @@ Không thay đổi DB schema/migration, OAuth scope, Docker topology hoặc Exec
 ### Git commit
 
 - `851473cdaacb635a8d442bbaf5be3d7ecfcd1f5a` — fix OAuth-required provider boundary in Calendar Handler.
+
+
+## 2026-09-22 — Hardening lần 2: cô lập credential provider_called cho oauth_required
+
+Local verification sau commit trước vẫn còn 1 failure: `oauth_required` trả `execution.credential.provider_called = true` dù handler đã dừng trước provider. Đã gia cố bằng cách tạo dict credential mới khi nhánh pre-provider kết thúc, tránh mọi alias/reference có thể làm thay đổi cờ `provider_called` sau phép gán.
+
+**Trạng thái:** chờ verification local lại. Chưa đóng Phase 3.
