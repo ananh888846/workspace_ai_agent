@@ -387,3 +387,18 @@ Baseline trước Phase 3: **94 passed, 2 warnings**.
 - `c78a291ebe1dedc0dc3ebdea8e91824b784ec232` — add Calendar Handler tests.
 - `ce144e6d4428d6b02431ba8c5ee6af172edf343f` — isolate credential boundary in Handler test.
 - `ae3cafac2a8600f563bedbf991dde41313039e32` — remove unused Runtime state import.
+
+
+## 2026-09-22 — Sửa 2 regression findings của Calendar Handler Phase 3
+
+Verification local sau khi pull Phase 3 phát hiện 2 vấn đề tương thích:
+
+- `tests/unit/application/test_calendar_handler.py`: assertion cũ mong đợi alias `deny`, trong khi Execution Contract V1 chuẩn hóa thành canonical status `authorization_denied`. Đã đồng bộ test với contract chuẩn.
+- `tests/api/test_calendar_natural_language.py`: test cũ vẫn import `_natural_language_calendar_start` từ `app.main`. Phase 3 đã chuyển helper vào `CalendarHandler`; đã giữ compatibility alias tại `app.main` để không phá test/API nội bộ hiện hữu.
+- Không thay đổi database schema, OAuth scope hoặc Docker topology.
+- Chưa ghi nhận Phase 3 PASS; cần chạy lại targeted tests và full regression sau khi pull các commit sửa lỗi.
+
+### Git commits
+
+- `39919c065d6a16f0eac8d8ba45871ce16fe71a49` — fix Calendar Handler authorization status assertion.
+- `fe99b62a08478db205c0fa0491482ceef994f0de` — preserve natural-language Calendar helper compatibility.
