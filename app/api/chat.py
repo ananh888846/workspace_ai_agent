@@ -131,16 +131,73 @@ def _event_to_response(event: object) -> dict:
     }
 
 
-def execute_google_calendar_read(*, account: ExternalAccount, credential_resolution: object) -> dict:
+def execute_google_calendar_read(
+    *,
+    account: ExternalAccount,
+    credential_resolution: object,
+    start: str | None = None,
+    end: str | None = None,
+) -> dict:
+    """Lê event trong khoảng thời gian yêu cầu, có fallback về hôm nay."""
     credential_context = getattr(credential_resolution, "credential_context", None)
     if credential_context is None:
         raise RuntimeError("google_credential_context_missing")
+
     now = to_vietnam_time(utc_now())
-    time_min = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    time_max = time_min + timedelta(days=1)
-    tool = CalendarToolRegistry().resolve(capability="calendar.read", provider=account.provider, action="list_events")
-    events = tool.execute("list_events", credential_context=credential_context, calendar_id=account.external_account_id, time_min=time_min.isoformat(), time_max=time_max.isoformat(), max_results=50)
-    return {"status": "ok", "action": "list_events", "calendar_id": account.external_account_id, "events": [_event_to_response(event) for event in events], "provider_called": True}
+    default_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    default_end = default_start + timedelta(days=1)
+
+    try:
+        if start and end:
+            time_min = _parse_client_datetime(start)
+            time_max = _parse_client_datetime(end)
+        elif start:
+            time_min = _parse_client_datetime(start)
+            time_max = time_min + timedelta(days=1)
+        elif end:
+            time_max = _parse_client_datetime(end)
+            time_min = time_max - timedelta(days=1)
+        else:
+            time_min = default_start
+            time_max = default_end
+    except (TypeError, ValueError):
+        return {
+            "status": "validation_error",
+            "action": "list_events",
+            "error": "datetime_must_be_iso8601_with_timezone",
+            "provider_called": False,
+        }
+
+    if time_max <= time_min:
+        return {
+            "status": "validation_error",
+            "action": "list_events",
+            "error": "end_must_be_after_start",
+            "provider_called": False,
+        }
+
+    tool = CalendarToolRegistry().resolve(
+        capability="calendar.read",
+        provider=account.provider,
+        action="list_events",
+    )
+    events = tool.execute(
+        "list_events",
+        credential_context=credential_context,
+        calendar_id=account.external_account_id,
+        time_min=time_min.isoformat(),
+        time_max=time_max.isoformat(),
+        max_results=50,
+    )
+    return {
+        "status": "ok",
+        "action": "list_events",
+        "calendar_id": account.external_account_id,
+        "requested_start": to_vietnam_time(time_min).isoformat(),
+        "requested_end": to_vietnam_time(time_max).isoformat(),
+        "events": [_event_to_response(event) for event in events],
+        "provider_called": True,
+    }
 
 
 def execute_google_calendar_write(*, account: ExternalAccount, credential_resolution: object, action: str, event_id: str | None = None, summary: str | None = None, start: str | None = None, end: str | None = None, description: str | None = None, location: str | None = None, confirmed: bool = False) -> dict:
