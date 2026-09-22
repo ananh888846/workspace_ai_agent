@@ -8,7 +8,7 @@ from app.api.chat import authorize_request, classify_chat_request, resolve_googl
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
 from app.application.capabilities.calendar import calendar_handler
-from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies, AgentRuntimeState
+from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
 
