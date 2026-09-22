@@ -149,7 +149,10 @@ class CalendarDateTimeParser:
         return reference_date + timedelta(days=days_ahead)
 
     def _parse_time(self, text: str) -> time | None:
-        match = re.search(r"\b(\d{1,2})(?::(\d{2}))?\s*h\s*(sáng|trưa|chiều|tối)?\b", text)
+        match = re.search(
+            r"\b(\d{1,2})(?:(?::|h)\s*(\d{2}))?\s*(?:h\s*)?(sáng|trưa|chiều|tối)?\b",
+            text,
+        )
         if not match:
             return None
 
