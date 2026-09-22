@@ -458,3 +458,70 @@ Acceptance:
 - Không tạo migration và không thay đổi OAuth scope: **PASS**.
 
 Free/Busy tiếp tục là service domain độc lập; LangGraph chỉ là Super-Graph ở tầng orchestration tổng thể và Pydantic không được thêm cho V1.
+
+
+## Calendar Scheduling Assistant V1 — Architecture Accepted
+
+Scheduling Assistant V1 là capability đầu tiên đưa LangGraph vào orchestration thực tế nhưng giữ domain logic độc lập.
+
+### Luồng mục tiêu
+
+```text
+User / API
+   ↓
+LangGraph Super-Graph
+   ↓
+Scheduling Graph
+   ├── classify_request
+   ├── resolve_calendar
+   ├── get_free_busy
+   ├── find_available_slots
+   ├── confirm
+   └── format_result
+   ↓
+SchedulingService
+   ↓
+Calendar Free/Busy capability
+   ↓
+Calendar Tool / Provider boundary
+   ↓
+Google Calendar API
+```
+
+### Graph State V1
+
+State tối thiểu:
+- request context;
+- user/session/device context;
+- intent/action;
+- timezone;
+- requested search window;
+- duration cần tìm;
+- candidate calendar/account metadata;
+- authorization result;
+- busy periods;
+- available slots;
+- conflicts;
+- confirmation state;
+- execution/error metadata.
+
+### Boundary rules
+
+- LangGraph chỉ điều phối state, node, edge và control flow.
+- `SchedulingService` không import LangGraph.
+- `SchedulingService` không gọi provider trực tiếp.
+- Authorization vẫn thuộc Application layer.
+- Credential chỉ được resolve sau Authorization ALLOW.
+- Free/Busy tiếp tục dùng capability `calendar.read` + action `free_busy`.
+- Provider-specific logic tiếp tục nằm ở Tool/Provider layer.
+- Không đưa SQL/Qdrant trực tiếp vào Graph node.
+- Không để LLM tự quyết định identity, account hoặc permission.
+
+### V1 không có side effect
+
+Scheduling Assistant V1 chỉ tìm và trả slot. Việc tạo/sửa event sẽ là phase riêng và khi có side effect phải đi qua confirmation policy hiện hành.
+
+### Database
+
+V1 không tạo migration chỉ để lưu scheduling state. Graph state là execution state; persistence mới chỉ được thêm khi có yêu cầu nghiệp vụ rõ ràng.
+
