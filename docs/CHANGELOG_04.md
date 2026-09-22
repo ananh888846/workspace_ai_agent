@@ -62,3 +62,16 @@
 - `8fe143794f2b1e474e74763a8a6802e50af7bed6` — wire boundary enforcement vào Agent Chat.
 - `1a4df750f4822211108a2b53abba526e00da9cd6` — bổ sung test boundary.
 - `9173a230ca7050506ae4244f78425bc47dc5e953` — giữ boundary violation không bị map thành provider error.
+
+## 2026-09-22 — Runtime HTTP Verification cho Execution Error Boundary V1
+
+- Thêm `tests/runtime/test_execution_error_boundary_runtime.py`.
+- Dùng FastAPI `TestClient` gọi trực tiếp `POST /api/v1/agent/chat`.
+- Bao phủ 5 nhánh runtime:
+  - `account_not_found`;
+  - `authorization_denied`;
+  - `oauth_required`;
+  - `validation_error` và xác nhận provider không bị gọi;
+  - `provider_error` và xác nhận provider đã được đánh dấu đã gọi.
+- Provider boundary được mô phỏng tại application execution boundary; không tạo/sửa/xóa Google Calendar event thật.
+- Chưa ghi nhận E2E PASS cho đến khi bộ test được chạy trên môi trường local của máy triển khai.
