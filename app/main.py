@@ -13,6 +13,7 @@ from app.api.chat import (
     classify_chat_request,
     execute_google_calendar_read,
     execute_google_calendar_free_busy,
+    execute_google_calendar_scheduling,
     execute_google_calendar_write,
     resolve_google_account,
     resolve_google_credential,
@@ -40,6 +41,10 @@ class AgentChatRequest(BaseModel):
     description: str | None = None
     location: str | None = None
     confirmed: bool = False
+    search_start: str | None = None
+    search_end: str | None = None
+    duration_minutes: int = Field(default=60, ge=1, le=1440)
+    max_results: int = Field(default=5, ge=1, le=20)
 
 def _natural_language_calendar_start(message: str, explicit_start: str | None) -> str | None:
     """Chuẩn hóa start từ câu tiếng Việt khi request chưa truyền start rõ ràng."""
@@ -139,6 +144,15 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
     try:
         if capability == "calendar.read" and action == "read":
             body["calendar"] = execute_google_calendar_read(account=account, credential_resolution=credential_result)
+        elif capability == "calendar.read" and action == "schedule":
+            body["calendar"] = execute_google_calendar_scheduling(
+                account=account,
+                credential_resolution=credential_result,
+                search_start=payload.search_start or payload.start,
+                search_end=payload.search_end or payload.end,
+                duration_minutes=payload.duration_minutes,
+                max_results=payload.max_results,
+            )
         elif capability == "calendar.read" and action == "free_busy":
             body["calendar"] = execute_google_calendar_free_busy(account=account, credential_resolution=credential_result, start=payload.start, end=payload.end)
         elif capability == "calendar.write" and action in {"create", "update", "delete"}:
