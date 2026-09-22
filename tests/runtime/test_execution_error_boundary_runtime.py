@@ -23,11 +23,11 @@ def _resolved_account() -> dict:
 
 def _patch_authorized_runtime(monkeypatch, *, credential_status: str = "ready") -> None:
     monkeypatch.setattr(
-        "app.main.resolve_google_account",
+        "app.application.capabilities.calendar.resolve_google_account",
         lambda **kwargs: _resolved_account(),
     )
     monkeypatch.setattr(
-        "app.main.authorize_request",
+        "app.application.capabilities.calendar.authorize_request",
         lambda **kwargs: {
             "status": "allow",
             "code": "allow",
@@ -54,7 +54,7 @@ def _patch_authorized_runtime(monkeypatch, *, credential_status: str = "ready") 
         FakeCredentialResolver,
     )
     monkeypatch.setattr(
-        "app.main.resolve_google_credential",
+        "app.application.capabilities.calendar.resolve_google_credential",
         lambda **kwargs: (
             {
                 "status": "ready",
@@ -76,7 +76,7 @@ def _patch_authorized_runtime(monkeypatch, *, credential_status: str = "ready") 
 
 def test_runtime_account_not_found_error_boundary(monkeypatch) -> None:
     monkeypatch.setattr(
-        "app.main.resolve_google_account",
+        "app.application.capabilities.calendar.resolve_google_account",
         lambda **kwargs: {
             "status": "account_not_found",
             "provider": "google",
@@ -106,11 +106,11 @@ def test_runtime_account_not_found_error_boundary(monkeypatch) -> None:
 
 def test_runtime_authorization_denied_error_boundary(monkeypatch) -> None:
     monkeypatch.setattr(
-        "app.main.resolve_google_account",
+        "app.application.capabilities.calendar.resolve_google_account",
         lambda **kwargs: _resolved_account(),
     )
     monkeypatch.setattr(
-        "app.main.authorize_request",
+        "app.application.capabilities.calendar.authorize_request",
         lambda **kwargs: {
             "status": "deny",
             "code": "authorization_denied",
@@ -194,7 +194,7 @@ def test_runtime_provider_error_boundary_marks_provider_called(monkeypatch) -> N
     def fake_calendar_read(**kwargs):
         raise RuntimeError("simulated provider timeout")
 
-    monkeypatch.setattr("app.main.execute_google_calendar_read", fake_calendar_read)
+    monkeypatch.setattr("app.application.capabilities.calendar.execute_google_calendar_read", fake_calendar_read)
 
     response = client.post(
         "/api/v1/agent/chat",
