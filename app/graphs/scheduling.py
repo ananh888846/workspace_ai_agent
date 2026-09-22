@@ -105,3 +105,23 @@ def run_scheduling_graph(
         "max_results": max_results,
     }
     return build_scheduling_graph(dependencies=dependencies).invoke(initial)
+
+
+# ==========================================
+# PHẦN HỖ TRỢ LANGGRAPH STUDIO (LOCAL DEV)
+# ==========================================
+def _dummy_resolve_calendar(state: SchedulingState) -> list[str]:
+    return ["primary"]
+
+
+def _dummy_get_free_busy(state: SchedulingState, calendar_ids: list[str]) -> list[Any]:
+    return []
+
+
+# Biến này để LangGraph Studio nhận diện đồ thị
+graph = build_scheduling_graph(
+    dependencies=SchedulingGraphDependencies(
+        resolve_calendar=_dummy_resolve_calendar,
+        get_free_busy=_dummy_get_free_busy,
+    )
+)
