@@ -138,3 +138,17 @@
 - Không tạo migration database.
 - Chưa ghi nhận runtime PASS; cần chạy test local sau khi pull.
 - Decision kiến trúc được ghi tại [docs/DECISIONS.md](./DECISIONS.md) — Decision 043.
+
+
+## 2026-09-22 — Runtime Verification Calendar Recurrence V1
+
+- `tests/services/test_calendar_recurrence.py`: **8 passed**.
+- Regression `tests/application tests/unit/api tests/runtime`: **32 passed, 2 warnings**.
+- Recurrence validation được xác nhận không làm hỏng Execution Contract/Error Boundary.
+- Không có failure.
+- 2 warnings là dependency warnings đã biết:
+  - Starlette/TestClient dùng deprecated AnyIO BlockingPortal alias.
+  - Google API Core cảnh báo grpcio 1.81.1 sẽ cần >=1.83.0 từ tháng 10/2026 cho PQC.
+- Không tạo migration.
+- Chưa thực hiện E2E mutation trên Google Calendar trong lượt verification này.
+- **Calendar Recurrence V1 — UNIT + REGRESSION PASS.**
