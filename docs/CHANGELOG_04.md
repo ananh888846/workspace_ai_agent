@@ -488,3 +488,29 @@ Verification cuối:
 Phase 3 hoàn tất. Không có DB migration, OAuth scope hoặc Docker topology thay đổi trong phase này.
 
 **Next phase:** E2E natural-language Agent tests với Google Calendar thật, theo đúng flow Runtime → LangGraph → CalendarHandler → Account → Authorization → Credential → Calendar Tool → Google Calendar.
+
+
+## 2026-09-22 — Phase 4A: E2E Agent + Google Calendar real provider
+
+Đã mở Phase 4 sau khi Phase 3 CLOSED / VERIFIED.
+
+- Thêm [tests/e2e/test_calendar_agent_google.py](../tests/e2e/test_calendar_agent_google.py).
+- E2E chạy opt-in bằng `RUN_GOOGLE_CALENDAR_E2E=1`; không ảnh hưởng regression mặc định.
+- Kiểm tra create/read/delete qua Agent Runtime và Google Calendar thật.
+- Kiểm tra delete chưa confirmation không gọi provider.
+- Dùng `WORKSPACE_E2E_USER_ID`, `WORKSPACE_E2E_ORGANIZATION_ID`, tùy chọn `WORKSPACE_E2E_ACCOUNT_HINT`.
+- Không đưa credential secret vào test.
+- Chưa kết luận Phase 4 PASS; cần chủ project pull và chạy E2E với account Google đã có credential hợp lệ.
+
+### Git commit
+
+- `fe18a852062023e7dbfa340e1f65bfd38265f9f0` — `test: add opt-in Google Calendar Agent E2E baseline`
+
+### Next verification
+
+```powershell
+python -m pytest tests/e2e/test_calendar_agent_google.py -q
+python -m pytest -q
+```
+
+Nếu E2E PASS, phase tiếp theo là bổ sung test/implementation cho natural-language extraction đầy đủ thay vì suy luận rằng parser hiện tại đã hỗ trợ toàn bộ câu tự nhiên.
