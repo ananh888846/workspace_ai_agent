@@ -97,3 +97,68 @@ python -m pytest -q
 ```
 
 Chỉ khi cả hai suite PASS mới ghi nhận Phase 2 đã verified.
+
+
+## Runtime V2.2 — Phase 3: Calendar Application Handler
+
+### Trạng thái
+**Implemented — chờ verification local**
+
+Phase 3 tách orchestration của Calendar capability khỏi FastAPI entry:
+
+```text
+FastAPI
+  ↓
+Agent Runtime
+  ↓
+LangGraph Super-Graph
+  ↓
+CalendarHandler
+  ↓
+Account Resolver
+  ↓
+Authorization
+  ↓
+Credential Resolver
+  ↓
+Calendar execution / Tool
+  ↓
+Provider
+```
+
+### Thành phần
+
+- `app/application/capabilities/calendar.py`
+  - là Application Handler của Calendar;
+  - nhận `AgentRuntimeState`;
+  - thực hiện Account → Authorization → Credential;
+  - dispatch `calendar.read` / `calendar.write`;
+  - áp dụng Execution/Error Boundary trước response;
+  - không lưu credential/secret trong Graph state.
+- `app/main.py`
+  - chỉ còn FastAPI transport, request schema, OAuth HTTP endpoints và Agent Runtime wiring;
+  - không còn `_execute_agent_chat()`;
+  - Calendar routes được đăng ký trực tiếp vào `calendar_handler.handle`.
+- `app/api/chat.py`
+  - Phase 3 chưa rewrite toàn bộ Calendar provider execution functions để tránh thay đổi hành vi Calendar V1;
+  - các function execution hiện hữu được Handler gọi như execution adapter trong bước chuyển tiếp.
+
+### Nguyên tắc không thay đổi
+
+- Không thay đổi DB schema/migration.
+- Không thay đổi OAuth scope.
+- Không thêm Agent service/Docker service.
+- Không để LangGraph truy cập SQL, credential secret hoặc provider API.
+- Không rewrite Calendar CRUD, Free/Busy, Scheduling, Recurrence.
+- Giữ compatibility endpoint `POST /api/v1/agent/chat`.
+
+### Verification gate
+
+Sau khi pull:
+
+```powershell
+python -m pytest tests/unit/application/test_calendar_handler.py tests/unit/agent_runtime -q
+python -m pytest -q
+```
+
+Baseline trước Phase 3: **94 passed, 2 warnings**. Phase 3 phải đạt toàn bộ regression trước khi chuyển Phase 4.
