@@ -622,3 +622,37 @@ Super-Graph phải route capability bằng graph node/edge thay vì để một 
 
 ### Migration rule
 Phase 2 không rewrite Calendar execution. Calendar V1 tiếp tục là regression baseline. Việc tách handler/application capability boundary sâu hơn sẽ thực hiện ở phase kế tiếp.
+
+
+## Decision 047 — Runtime V2.2 Phase 3: Calendar Application Handler
+
+**Trạng thái: Accepted — Implemented, chờ verification local**
+
+### Quyết định
+
+Tách orchestration của Calendar capability khỏi `app/main.py` thành:
+
+- `app/application/capabilities/calendar.py` — `CalendarHandler`.
+
+Agent Runtime/LangGraph chỉ chịu trách nhiệm classification + routing + orchestration. CalendarHandler là application boundary cho capability và thực hiện thứ tự:
+
+`Account Resolver → Authorization → Credential Resolver → Calendar execution`.
+
+### Ràng buộc
+
+1. Handler nhận `AgentRuntimeState`, không nhận credential/secret từ Graph state.
+2. Authorization phải thành công trước Credential Resolver.
+3. Authorization deny hoặc account selection required không được gọi provider.
+4. Calendar business logic tiếp tục nằm ở service/tool/provider hiện hữu.
+5. Không tạo migration, không đổi OAuth scope, không đổi Docker topology.
+6. `POST /api/v1/agent/chat` tiếp tục là compatibility endpoint.
+7. Phase 3 không rewrite Calendar V1; chỉ di chuyển application orchestration.
+8. FastAPI `main.py` không còn chứa Calendar execution orchestration.
+
+### Lý do
+
+Giảm trách nhiệm của FastAPI entry, tạo capability boundary ổn định để các capability tiếp theo có thể đăng ký Handler riêng mà không phình `main.py`.
+
+### Verification gate
+
+Phải chạy targeted Calendar Handler + Agent Runtime tests và full regression. Chỉ sau khi PASS mới mở Phase 4.
