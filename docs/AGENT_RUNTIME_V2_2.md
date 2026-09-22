@@ -205,3 +205,13 @@ Local verification sau commit trước vẫn còn 1 failure: `oauth_required` tr
 Đã cập nhật test để mock đúng `app.application.capabilities.calendar.CredentialResolver`, bảo đảm `credential_result.status` mà Handler kiểm tra thực sự là `oauth_required`.
 
 **Trạng thái:** chờ chạy lại targeted + full regression.
+
+## Phase 3 — VERIFIED
+
+Ngày 2026-09-22, Phase 3 đã PASS toàn bộ verification local:
+- `tests/unit/application/test_calendar_handler.py tests/unit/agent_runtime`: **6 passed**;
+- `python -m pytest -q`: **97 passed, 0 failed, 2 warnings**.
+
+Đã xác nhận CalendarHandler là application capability boundary; FastAPI không còn giữ orchestration Calendar cũ. OAuth-required là pre-provider error và test boundary đã mock đúng dependency namespace.
+
+**Phase 3 status: CLOSED / VERIFIED.**
