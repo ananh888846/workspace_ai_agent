@@ -503,3 +503,13 @@ Review 2026-09-22 phát hiện:
 2. `main.py` resolve credential vào `credential_result`, sau đó gọi `resolve_google_credential()` lần nữa để dựng execution response, gây duplicate DB/decrypt work.
 
 Hai finding này sẽ được sửa ở implementation phase; Decision 044 không thay đổi code runtime.
+
+ 
+### Decision 044 — Implementation update 2026-09-22
+**Status:** Runtime fix implemented; Multi-account contract remains design-locked.
+
+Đã xử lý hai finding đã ghi ở trên:
+1. `execute_google_calendar_write()` nhận `recurrence` đúng với request flow và truyền RRULE đã normalize tới Calendar Tool.
+2. Credential được resolve đúng một lần trong `main.py`; kết quả `credential_result` được tái sử dụng để dựng execution contract, không gọi CredentialResolver lần thứ hai.
+
+Test coverage đã bổ sung cho recurrence runtime signature và việc tái sử dụng credential resolution.
