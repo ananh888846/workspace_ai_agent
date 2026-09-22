@@ -82,7 +82,7 @@ def resolve_google_account(*, user_id: str, organization_id: str, account_hint: 
 
 def _account_result(resolved: ResolvedAccount) -> dict:
     account = resolved.account
-    return {"status": "resolved", "provider": account.provider, "account_id": account.id, "external_account_id": account.external_account_id, "display_name": account.display_name, "email": account.email, "account_state": account.status, "access_mode": resolved.access_mode, "account_grant_id": resolved.account_grant_id, "organization_id": resolved.organization_id, "provider_called": False}
+    return {"status": "resolved", "provider": account.provider, "account_id": account.id, "external_account_id": account.external_account_id, "display_name": account.display_name, "email": account.email, "account_state": account.status, "access_mode": resolved.access_mode, "account_grant_id": resolved.account_grant_id, "organization_id": resolved.organization_id, "_resolved_account": resolved, "provider_called": False}
 
 
 def authorize_request(*, user_id: str, organization_id: str, capability: str, action: str | None = None, account: ExternalAccount | None = None, target_resource: str | None = None, resolved_account: ResolvedAccount | None = None) -> dict:
