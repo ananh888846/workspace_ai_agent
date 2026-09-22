@@ -12,6 +12,7 @@ from app.infrastructure.database.repositories.permissions import PostgresPermiss
 from app.infrastructure.database.repositories.credentials import PostgresCredentialRepository
 from app.tools.registry import CalendarToolRegistry
 from app.services.calendar_free_busy import BusyPeriod, CalendarConflictDetector
+from app.services.calendar_recurrence import CalendarRecurrenceService
 from app.graphs.scheduling import SchedulingGraphDependencies, run_scheduling_graph
 
 
@@ -211,6 +212,12 @@ def execute_google_calendar_write(*, account: ExternalAccount, credential_resolu
         return {"status": "validation_error", "error": "event_id_required", "provider_called": False}
     if action == "create" and (not summary or not start or not end):
         return {"status": "validation_error", "error": "summary_start_end_required", "provider_called": False}
+    normalized_recurrence = None
+    if recurrence is not None:
+        try:
+            normalized_recurrence = CalendarRecurrenceService().parse(recurrence).to_rrule()
+        except ValueError as exc:
+            return {"status": "validation_error", "error": str(exc), "provider_called": False}
     for datetime_value in (start, end):
         if datetime_value is not None:
             try:
@@ -238,6 +245,8 @@ def execute_google_calendar_write(*, account: ExternalAccount, credential_resolu
         event["start"] = _google_datetime(start)
     if end is not None:
         event["end"] = _google_datetime(end)
+    if normalized_recurrence is not None:
+        event["recurrence"] = [normalized_recurrence]
     if action == "create":
         result = tool.execute("create_event", credential_context=credential_context, calendar_id=account.external_account_id, event=event)
     else:
