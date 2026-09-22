@@ -68,12 +68,15 @@ class AgentRuntime:
             )
 
         if "default" not in handlers:
-            graph.add_node("execute_unsupported", lambda state: {
-                "result": {
-                    "status": "unsupported_action",
-                    "provider_called": False,
-                }
-            })
+            graph.add_node(
+                "execute_unsupported",
+                lambda state: {
+                    "result": {
+                        "status": "unsupported_action",
+                        "provider_called": False,
+                    }
+                },
+            )
 
         graph.add_edge(START, "classify_request")
         graph.add_edge("classify_request", "route_request")
@@ -84,10 +87,7 @@ class AgentRuntime:
                 return f"execute_{route.replace('.', '_')}"
             return "execute_unsupported"
 
-        graph.add_conditional_edges(
-            "route_request",
-            next_node,
-        )
+        graph.add_conditional_edges("route_request", next_node)
 
         for route_name in handlers:
             graph.add_edge(f"execute_{route_name.replace('.', '_')}", END)
