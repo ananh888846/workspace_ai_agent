@@ -177,41 +177,29 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
 
     try:
         if capability == "calendar.read" and action == "read":
-            body["calendar"] = execute_google_calendar_read(
-                account=account,
-                credential_resolution=credential_result,
-                start=payload.start,
-                end=payload.end,
-            )
+            body["calendar"] = execute_google_calendar_read(account=account, credential_resolution=credential_result, start=payload.start, end=payload.end)
         elif capability == "calendar.read" and action == "schedule":
-            body["calendar"] = execute_google_calendar_scheduling(
-                account=account,
-                credential_resolution=credential_result,
-                search_start=payload.search_start or payload.start,
-                search_end=payload.search_end or payload.end,
-                duration_minutes=payload.duration_minutes,
-                max_results=payload.max_results,
-            )
+            body["calendar"] = execute_google_calendar_scheduling(account=account, credential_resolution=credential_result, search_start=payload.search_start or payload.start, search_end=payload.search_end or payload.end, duration_minutes=payload.duration_minutes, max_results=payload.max_results)
         elif capability == "calendar.read" and action == "free_busy":
             body["calendar"] = execute_google_calendar_free_busy(account=account, credential_resolution=credential_result, start=payload.start, end=payload.end)
         elif capability == "calendar.write" and action in {"create", "update", "delete"}:
             natural_start = _natural_language_calendar_start(payload.message, payload.start)
-            body["execution"]["natural_language_datetime"] = {
-                "status": "resolved" if natural_start else "not_used",
-                "start": natural_start,
-                "timezone": "Asia/Ho_Chi_Minh" if natural_start else None,
-            }
+            body["execution"]["natural_language_datetime"] = {"status": "resolved" if natural_start else "not_used", "start": natural_start, "timezone": "Asia/Ho_Chi_Minh" if natural_start else None}
             body["calendar"] = execute_google_calendar_write(account=account, credential_resolution=credential_result, action=action, event_id=payload.event_id, summary=payload.summary, start=natural_start, end=payload.end, description=payload.description, location=payload.location, confirmed=payload.confirmed)
         else:
             body["calendar"] = {"status": "unsupported_action", "action": action, "provider_called": False}
-
-        body["calendar"] = enforce_result_boundary(body["calendar"])
-        provider_called = body["calendar"].get("provider_called", False)
-        body["execution"]["provider_called"] = provider_called
-        body["execution"]["account"]["provider_called"] = provider_called
-        body["execution"]["authorization"]["provider_called"] = provider_called
-        body["execution"]["credential"]["provider_called"] = provider_called
+    except ValueError as exc:
+        # Không biến lỗi provider-boundary thành provider_error giả.
+        if str(exc).startswith("provider_called_must_"):
+            raise
+        body["calendar"] = {"status": "validation_error", "error": str(exc), "provider_called": False}
     except Exception as exc:
         body["calendar"] = {"status": "provider_error", "error": str(exc), "provider_called": True}
-        body["execution"]["provider_called"] = True
+
+    body["calendar"] = enforce_result_boundary(body["calendar"])
+    provider_called = body["calendar"].get("provider_called", False)
+    body["execution"]["provider_called"] = provider_called
+    body["execution"]["account"]["provider_called"] = provider_called
+    body["execution"]["authorization"]["provider_called"] = provider_called
+    body["execution"]["credential"]["provider_called"] = provider_called
     return JSONResponse(content=body, media_type="application/json; charset=utf-8")
