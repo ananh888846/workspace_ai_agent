@@ -312,6 +312,38 @@ Mới triển khai
 
 Điều này không có nghĩa mọi thay đổi Python đều phải chờ hỏi; chỉ áp dụng khi quyết định kỹ thuật mới có ảnh hưởng đến việc sử dụng LangGraph/Pydantic.
 
+## 11.6 Calendar Super-Graph và Calendar Service
+
+Calendar được triển khai theo hai tầng:
+
+- **Hiện tại:** Calendar Intelligence dùng service Python thuần, không bắt buộc LangGraph và không dùng Pydantic cho bước Natural Language Date/Time V1.
+- **Tương lai:** LangGraph Super-Graph nằm ở tầng trên cùng để điều phối yêu cầu giữa các capability; Calendar Date/Time Parser vẫn là service domain độc lập.
+- Parser không được truy cập Google Calendar API, credential hoặc authorization.
+- Parser chỉ nhận text + reference datetime và trả kết quả datetime timezone-aware.
+- Chuẩn timezone của parser là `Asia/Ho_Chi_Minh`; trước khi ghi/provider boundary phải chuyển về UTC.
+- Khi dữ liệu đầu vào/đầu ra của các phase sau trở nên phức tạp, việc dùng Pydantic phải được phân tích và hỏi chủ project trước.
+
+Luồng mục tiêu:
+
+```text
+User
+ ↓
+LangGraph Super-Graph
+ ↓
+Calendar Capability
+ ↓
+Calendar Service
+ ├── Natural Language Date/Time
+ ├── Free/Busy
+ ├── Conflict Detection
+ ├── Scheduling
+ └── Recurrence
+ ↓
+Authorization / Tool / Provider boundary
+ ↓
+Google Calendar API
+```
+
 ## 12. Audit
 
 Operation nhạy cảm phải truy được request_id, user, session/device, capability/action, account, resource/package, tool, result và thời gian. Agent Run/Graph Run và Tool Run nên được liên kết để có thể truy vết toàn bộ execution path.
@@ -323,6 +355,26 @@ Operation nhạy cảm phải truy được request_id, user, session/device, ca
 - Không viết comment/docstring tiếng Anh mới trong code Python nếu có thể diễn đạt rõ bằng tiếng Việt.
 - Khi sửa file Python có comment/docstring tiếng Anh, ưu tiên chuyển phần ghi chú liên quan sang tiếng Việt trong cùng thay đổi.
 - Quy tắc này áp dụng cho code mới và các phần code được chỉnh sửa về sau.
+
+## 13.1 Calendar Natural Language Date/Time V1
+
+Bước đầu tiên của Calendar Intelligence dùng Python thuần để giảm phụ thuộc và giữ service nhẹ.
+
+Phạm vi V1:
+- hôm nay, ngày mai, ngày kia;
+- thứ trong tuần và `tuần sau`;
+- ngày dạng `DD/MM` hoặc `DD/MM/YYYY`;
+- giờ dạng `9h`, `09:30`, `2h chiều`;
+- sáng/trưa/chiều/tối;
+- tương đối `2 tiếng nữa`, `30 phút nữa`;
+- kết quả luôn timezone-aware theo `Asia/Ho_Chi_Minh`.
+
+Không thuộc V1:
+- recurrence;
+- free/busy;
+- conflict detection;
+- tự chọn lịch tối ưu;
+- suy đoán mơ hồ thay người dùng.
 
 ## 14. Quy tắc thay đổi
 
