@@ -83,3 +83,25 @@
 - Không có test failure.
 - Không tạo/sửa/xóa Google Calendar event thật và không thay đổi OAuth thật.
 - **Execution Error Boundary V1 được xác nhận PASS qua runtime verification và regression suite.**
+
+
+## 2026-09-22 — Hoàn thiện Scheduling Assistant V1
+
+- Hoàn thiện `app/graphs/scheduling.py` theo Decision 041:
+  - `classify_request`;
+  - `resolve_calendar`;
+  - `get_free_busy`;
+  - `find_available_slots`;
+  - `confirm` ở trạng thái `not_required` vì V1 không có side effect;
+  - `format_result`.
+- Graph state bổ sung `timezone`, `conflicts` và `confirmation_state`.
+- Giữ nguyên nguyên tắc LangGraph chỉ orchestration; dependency provider được inject từ Application boundary.
+- Hoàn thiện `app/services/scheduling.py`:
+  - thêm `find_conflicts()`;
+  - chuẩn hóa/clipping busy period theo search window;
+  - giữ SchedulingService độc lập với LangGraph, credential, SQL, Qdrant và provider.
+- Cập nhật `app/api/chat.py` để trả `conflicts` và `confirmation_state` trong Scheduling result.
+- Bổ sung unit test cho conflict clipping và Scheduling Graph state.
+- Không thêm Pydantic mới cho Scheduling domain.
+- Không tạo migration database.
+- Chưa ghi nhận runtime PASS; cần chạy test local sau khi pull.
