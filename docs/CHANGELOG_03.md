@@ -180,3 +180,12 @@
 - [app/providers/google/calendar/adapter.py](../app/providers/google/calendar/adapter.py) sử dụng Google Calendar API freeBusy.query thông qua Google Calendar client hiện tại.
 - Adapter chuyển lỗi theo từng calendar từ provider thành provider error thay vì coi calendar lỗi là rảnh.
 - Đây vẫn là code-level preparation; **CHƯA runtime verify và CHƯA E2E PASS**.
+
+
+## 2026-09-22 — Chuẩn hóa runtime routing cho Scheduling Assistant V1
+
+- Sửa [app/main.py](../app/main.py): request Calendar đã được phân loại sẽ đi vào runtime AccountResolver/Authorization boundary ngay cả khi client không truyền `capability` hoặc `action` tường minh.
+- Ngăn trường hợp câu tự nhiên như `Tìm thời gian trống 1 tiếng ngày mai` bị trả về `not_evaluated` trước khi Scheduling Assistant có cơ hội thực thi.
+- Bổ sung [tests/unit/api/test_chat_api.py](../tests/unit/api/test_chat_api.py): xác nhận natural-language scheduling request có context sẽ thực sự đi vào runtime account resolution.
+- Không thay đổi LangGraph, Pydantic, OAuth scope, database schema hoặc provider boundary.
+- Đây là code fix + test coverage; **CHƯA E2E PASS** với Google Calendar thật.
