@@ -1,3 +1,13 @@
+## 2026-09-22 — Chốt thiết kế Scheduling Assistant V1
+
+- Chủ project đã chốt thiết kế Scheduling Assistant V1 theo mô hình **LangGraph orchestration + Domain Service độc lập + Tool boundary + Provider**.
+- Cập nhật [docs/DECISIONS.md](./DECISIONS.md): thêm **Decision 041 — Scheduling Assistant V1**.
+- Cập nhật [docs/ARCHITECTURE.md](./ARCHITECTURE.md): bổ sung graph flow, state và boundary rules cho Scheduling Assistant V1.
+- Cập nhật [docs/GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md): bổ sung thiết kế Scheduling Assistant V1.
+- Thêm [docs/SCHEDULING_ASSISTANT_V1.md](./SCHEDULING_ASSISTANT_V1.md): đặc tả thiết kế V1 trước khi triển khai code.
+- V1 chưa tạo migration database và chưa có side effect tạo/sửa/xóa event.
+- Chưa đánh dấu runtime PASS; đây là **architecture/design accepted**, chưa phải implementation verification.
+
 
 ## 2026-09-22 — Calendar Free/Busy + Conflict Detection V1 CLOSED / E2E PASS
 
