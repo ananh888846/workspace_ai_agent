@@ -147,8 +147,8 @@ def test_calendar_read_uses_explicit_date_range(monkeypatch) -> None:
         end="2026-09-25T00:00:00+07:00",
     )
     assert result["status"] == "ok"
-    assert captured["time_min"] == "2026-09-24T00:00:00+00:00"
-    assert captured["time_max"] == "2026-09-25T00:00:00+00:00"
+    assert captured["time_min"] == "2026-09-23T17:00:00+00:00"
+    assert captured["time_max"] == "2026-09-24T17:00:00+00:00"
     assert result["requested_start"] == "2026-09-24T07:00:00+07:00"
     assert result["requested_end"] == "2026-09-25T07:00:00+07:00"
 
