@@ -71,15 +71,21 @@ class SchedulingService:
 
         slots: list[AvailableSlot] = []
         cursor = search_start
+
         for period in merged:
-            if period.start - cursor >= duration:
+            while period.start - cursor >= duration:
                 slots.append(AvailableSlot(start=cursor, end=cursor + duration))
                 if len(slots) >= max_results:
                     return slots
+                cursor += duration
+
             if period.end > cursor:
                 cursor = period.end
 
-        if search_end - cursor >= duration:
+        while search_end - cursor >= duration:
             slots.append(AvailableSlot(start=cursor, end=cursor + duration))
+            if len(slots) >= max_results:
+                return slots
+            cursor += duration
 
-        return slots[:max_results]
+        return slots
