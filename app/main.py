@@ -47,6 +47,7 @@ class AgentChatRequest(BaseModel):
     search_end: str | None = None
     duration_minutes: int = Field(default=60, ge=1, le=1440)
     max_results: int = Field(default=5, ge=1, le=20)
+    recurrence: str | None = None
 
 
 def _natural_language_calendar_start(message: str, explicit_start: str | None) -> str | None:
@@ -185,7 +186,7 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
         elif capability == "calendar.write" and action in {"create", "update", "delete"}:
             natural_start = _natural_language_calendar_start(payload.message, payload.start)
             body["execution"]["natural_language_datetime"] = {"status": "resolved" if natural_start else "not_used", "start": natural_start, "timezone": "Asia/Ho_Chi_Minh" if natural_start else None}
-            body["calendar"] = execute_google_calendar_write(account=account, credential_resolution=credential_result, action=action, event_id=payload.event_id, summary=payload.summary, start=natural_start, end=payload.end, description=payload.description, location=payload.location, confirmed=payload.confirmed)
+            body["calendar"] = execute_google_calendar_write(account=account, credential_resolution=credential_result, action=action, event_id=payload.event_id, summary=payload.summary, start=natural_start, end=payload.end, description=payload.description, location=payload.location, confirmed=payload.confirmed, recurrence=payload.recurrence)
         else:
             body["calendar"] = {"status": "unsupported_action", "action": action, "provider_called": False}
     except ValueError as exc:
