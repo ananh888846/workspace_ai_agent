@@ -69,7 +69,7 @@ def test_authorization_runtime_wiring(monkeypatch) -> None:
         assert kwargs["account"].id == "01a0c387-8f30-767d-acb4-ccf9edc0f22b"
         return {"status": "allow", "code": "allow", "reason": "authorized", "provider_called": False}
 
-    monkeypatch.setattr("app.main.resolve_google_account", fake_resolve)
+    monkeypatch.setattr("app.application.capabilities.calendar.resolve_google_account", fake_resolve)
     monkeypatch.setattr("app.application.capabilities.calendar.authorize_request", fake_authorize)
     response = client.post(
         "/api/v1/agent/chat",
@@ -101,7 +101,7 @@ def test_natural_language_scheduling_enters_runtime(monkeypatch) -> None:
         calls.append((user_id, organization_id, account_hint))
         return {"status": "not_found", "provider_called": False}
 
-    monkeypatch.setattr("app.main.resolve_google_account", fake_resolve)
+    monkeypatch.setattr("app.application.capabilities.calendar.resolve_google_account", fake_resolve)
     response = client.post(
         "/api/v1/agent/chat",
         headers={
