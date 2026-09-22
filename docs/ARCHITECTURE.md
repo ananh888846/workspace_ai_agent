@@ -441,3 +441,20 @@ Nguyên tắc:
 - LangGraph vẫn là Super-Graph ở tầng orchestration tổng thể.
 - Không tạo database migration cho Free/Busy V1.
 - Ưu tiên API/SDK chính thức của provider trước third-party library.
+
+## Calendar Free/Busy V1 — CLOSED / E2E PASS
+
+Free/Busy và Conflict Detection V1 đã hoàn tất runtime verification với Google Calendar thật.
+
+Acceptance:
+- ConflictDetector unit tests: **5/5 PASS**.
+- Create event test: **PASS**.
+- FreeBusy `13:00–16:00`: **PASS / conflict** với busy `14:00–15:00`.
+- FreeBusy `14:30–15:30`: **PASS / conflict**.
+- Boundary `15:00–16:00`: **PASS / free**.
+- Delete event test: **PASS**.
+- Timezone `Asia/Ho_Chi_Minh`: **PASS**.
+- Provider thực sự được gọi: **PASS**.
+- Không tạo migration và không thay đổi OAuth scope: **PASS**.
+
+Free/Busy tiếp tục là service domain độc lập; LangGraph chỉ là Super-Graph ở tầng orchestration tổng thể và Pydantic không được thêm cho V1.
