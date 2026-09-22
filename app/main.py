@@ -19,6 +19,7 @@ from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
+from app.services.calendar_datetime import CalendarDateTimeParser
 
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase2c")
 
@@ -37,6 +38,25 @@ class AgentChatRequest(BaseModel):
     description: str | None = None
     location: str | None = None
     confirmed: bool = False
+
+def _natural_language_calendar_start(message: str, explicit_start: str | None) -> str | None:
+    """Chuẩn hóa start từ câu tiếng Việt khi request chưa truyền start rõ ràng."""
+    if explicit_start:
+        return explicit_start
+
+    normalized = message.casefold()
+    markers = (
+        "hôm nay", "ngày mai", "ngày kia", "mai", "tuần", "thứ ",
+        "giờ", "h", "phút", "tiếng", "/",
+    )
+    if not any(marker in normalized for marker in markers):
+        return None
+
+    try:
+        parsed = CalendarDateTimeParser().parse(message)
+    except ValueError:
+        return None
+    return parsed.value.isoformat()
 
 
 @app.get("/auth/google/start")
@@ -117,7 +137,13 @@ def agent_chat(payload: AgentChatRequest, x_user_id: str | None = Header(default
         if capability == "calendar.read" and action == "read":
             body["calendar"] = execute_google_calendar_read(account=account, credential_resolution=credential_result)
         elif capability == "calendar.write" and action in {"create", "update", "delete"}:
-            body["calendar"] = execute_google_calendar_write(account=account, credential_resolution=credential_result, action=action, event_id=payload.event_id, summary=payload.summary, start=payload.start, end=payload.end, description=payload.description, location=payload.location, confirmed=payload.confirmed)
+            natural_start = _natural_language_calendar_start(payload.message, payload.start)
+            body["execution"]["natural_language_datetime"] = {
+                "status": "resolved" if natural_start else "not_used",
+                "start": natural_start,
+                "timezone": "Asia/Ho_Chi_Minh" if natural_start else None,
+            }
+            body["calendar"] = execute_google_calendar_write(account=account, credential_resolution=credential_result, action=action, event_id=payload.event_id, summary=payload.summary, start=natural_start, end=payload.end, description=payload.description, location=payload.location, confirmed=payload.confirmed)
         else:
             body["calendar"] = {"status": "unsupported_action", "action": action, "provider_called": False}
         provider_called = body["calendar"].get("provider_called", False)
