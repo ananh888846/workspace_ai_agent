@@ -15,8 +15,10 @@
 9. Provider-specific logic nằm trong Provider/Tool layer.
 10. Muốn đổi kiến trúc phải cập nhật Decision Log.
 11. Mọi timestamp lưu trong PostgreSQL phải theo UTC; khi trả dữ liệu cho người dùng/API phải chuyển sang múi giờ hiển thị đã quy định, mặc định GMT+7 (`Asia/Ho_Chi_Minh`).
-12. **LangGraph là framework orchestration chuẩn của Agent Runtime production; Graph kiểm soát luồng chạy, nhưng không sở hữu Authorization hoặc business logic của Provider.**
-13. **Pydantic chỉ được dùng chọn lọc tại các boundary cần validation, normalization, serialization hoặc contract ổn định; không bắt buộc cho mọi Tool hoặc hàm nội bộ.**
+12. **LangGraph là framework orchestration duy nhất được chốt cho Agent Runtime production của toàn project.**
+13. **LangChain và CrewAI không thuộc kiến trúc chuẩn của project và không được dùng cho runtime production.**
+14. **Pydantic chỉ được dùng chọn lọc tại các boundary cần validation, normalization, serialization hoặc contract ổn định; không bắt buộc cho mọi Tool hoặc hàm nội bộ.**
+15. **Trước khi triển khai bất kỳ phần mới nào cần LangGraph hoặc Pydantic, phải hỏi ý kiến chủ project. Nếu phát hiện phương án/framework tốt hơn, phải đề xuất và chờ chủ project chốt trước khi triển khai.**
 
 ## 2. V2.1 — Tenant, Resource, Session, Task và Multi-Agent
 
@@ -227,16 +229,30 @@ SQL giữ metadata, ownership, access, version/checksum và mapping. Retrieval p
 
 ## 11. Agent Orchestration và Framework
 
-**LangGraph là lựa chọn chuẩn cho orchestration của toàn project trong production.**
+### 11.1 Framework duy nhất
 
-LangGraph chịu trách nhiệm:
+**LangGraph là framework orchestration duy nhất được chốt cho toàn bộ Workspace AI Agent trong production.**
+
+**Không dùng LangChain. Không dùng CrewAI.**
+
+Không thêm LangChain/CrewAI làm dependency, abstraction layer, agent runtime hoặc orchestration framework trong bất kỳ capability nào.
+
+Nếu sau này có framework mới được xem xét, framework đó chỉ được dùng sau khi:
+1. đề xuất được trình bày cho chủ project;
+2. so sánh với LangGraph và kiến trúc hiện tại;
+3. chủ project chấp thuận;
+4. Decision Log được cập nhật.
+
+### 11.2 LangGraph chịu trách nhiệm
+
 - điều phối graph/node/edge và thứ tự thực thi;
 - quản lý state của Agent Run;
 - rẽ nhánh theo kết quả classification, authorization, validation, confirmation và tool execution;
 - hỗ trợ retry/error/interrupt/resume khi workflow cần;
 - tạo execution trace rõ ràng.
 
-LangGraph **không** sở hữu:
+### 11.3 LangGraph không sở hữu
+
 - Authorization policy;
 - Credential storage/resolution;
 - Provider-specific business logic;
@@ -245,7 +261,19 @@ LangGraph **không** sở hữu:
 
 Tool vẫn là boundary hành động; Provider Adapter vẫn là boundary external API.
 
-**Pydantic được dùng chọn lọc tại boundary dữ liệu**, đặc biệt khi dữ liệu đến từ LLM, HTTP/API hoặc Tool cần contract input/output ổn định. Các helper nội bộ, phép chuyển đổi đơn giản và dữ liệu đã được kiểm soát không bắt buộc tạo Pydantic model.
+### 11.4 Pydantic dùng chọn lọc
+
+**Pydantic không phải framework bắt buộc cho mọi Tool.**
+
+Chỉ dùng Pydantic khi một boundary thực sự cần:
+- validation;
+- normalization;
+- serialization/deserialization;
+- input/output contract ổn định;
+- schema rõ ràng cho dữ liệu đến từ LLM/HTTP;
+- bảo vệ thao tác nhạy cảm có nhiều tham số.
+
+Không tạo Pydantic model chỉ để thay thế type hint hoặc làm code dài hơn.
 
 Ví dụ phù hợp:
 - Calendar Create/Update input;
@@ -257,6 +285,32 @@ Ví dụ không cần ép dùng:
 - `to_utc(datetime)`;
 - hàm normalize text đơn giản;
 - helper nội bộ chỉ nhận một kiểu dữ liệu rõ ràng.
+
+### 11.5 Quyền quyết định trước khi dùng LangGraph/Pydantic
+
+**Mỗi lần chuẩn bị triển khai một phần mới mà có lựa chọn kỹ thuật liên quan trực tiếp đến LangGraph hoặc Pydantic, phải hỏi ý kiến chủ project trước.**
+
+Quy trình bắt buộc:
+
+~~~text
+Yêu cầu mới
+   ↓
+Có cần LangGraph/Pydantic không?
+   ↓
+Nếu CÓ
+   ↓
+Phân tích phương án
+   ↓
+Có phương án tốt hơn không?
+   ├── Có → đề xuất + so sánh
+   └── Không → trình bày phương án đề xuất
+   ↓
+Chủ project chốt
+   ↓
+Mới triển khai
+~~~
+
+Điều này không có nghĩa mọi thay đổi Python đều phải chờ hỏi; chỉ áp dụng khi quyết định kỹ thuật mới có ảnh hưởng đến việc sử dụng LangGraph/Pydantic.
 
 ## 12. Audit
 
@@ -297,6 +351,8 @@ Google OAuth thuộc infrastructure/application integration boundary. OAuth stat
 
 Blueprint V2.1 đã được cập nhật thêm tenant/resource hierarchy, device-resource binding, activity session, task/work order, agent-to-agent communication và anomaly detection.
 
-**Orchestration decision:** LangGraph được chốt làm framework orchestration production toàn project. **Pydantic:** dùng chọn lọc tại các data boundary cần contract/validation/normalization; không áp dụng bắt buộc cho mọi Tool/hàm.
+**Framework decision:** toàn project chỉ dùng **LangGraph + Pydantic theo nhu cầu** cho orchestration/data contracts; **LangChain và CrewAI bị loại khỏi kiến trúc chuẩn**.
+
+**Quyền quyết định:** trước mỗi triển khai mới có ảnh hưởng trực tiếp đến việc dùng LangGraph/Pydantic, phải hỏi ý kiến chủ project; nếu có phương án tốt hơn phải đề xuất để chủ project chốt.
 
 Database V2.1 001 → 050 đã CLOSED; Agent/Knowledge application runtime vẫn chưa triển khai.
