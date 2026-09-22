@@ -125,3 +125,16 @@
 - Không tạo/sửa/xóa Google Calendar event thật trong các suite trên.
 - Không thay đổi OAuth scope và không tạo migration database.
 - **Scheduling Assistant V1 được xác nhận PASS qua unit/domain verification và regression suite.**
+
+
+## 2026-09-22 — Triển khai Calendar Recurrence V1
+
+- Thêm [app/services/calendar_recurrence.py](../app/services/calendar_recurrence.py): parse, validate và chuẩn hóa RRULE.
+- Hỗ trợ DAILY, WEEKLY, MONTHLY, YEARLY; INTERVAL; COUNT; UNTIL; BYDAY.
+- Cập nhật [app/api/chat.py](../app/api/chat.py) để validate recurrence trước khi Google Calendar provider được gọi.
+- Cập nhật [app/main.py](../app/main.py) để nhận field recurrence cho Calendar create/update.
+- Bổ sung [tests/services/test_calendar_recurrence.py](../tests/services/test_calendar_recurrence.py).
+- Không dùng LangGraph/Pydantic cho recurrence domain service.
+- Không tạo migration database.
+- Chưa ghi nhận runtime PASS; cần chạy test local sau khi pull.
+- Decision kiến trúc được ghi tại [docs/DECISIONS.md](./DECISIONS.md) — Decision 043.
