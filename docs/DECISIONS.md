@@ -665,3 +665,19 @@ Verification local phát hiện:
 - một test API cũ import `_natural_language_calendar_start` từ `app.main` sau khi helper đã được chuyển vào `CalendarHandler`.
 
 Đã sửa test contract và giữ compatibility alias tại `app.main`. Phase 3 vẫn ở trạng thái **chờ verification lại**; chưa được đóng PASS.
+
+
+## Decision 047 — Regression boundary compatibility after Calendar Handler extraction
+
+**Trạng thái:** Implemented — chờ verification local lại
+
+Sau khi pull Phase 3 và chạy full regression, phát hiện các test runtime cũ vẫn mock symbol tại `app.main` trong khi CalendarHandler đã sở hữu application boundary. Ngoài ra, request thiếu runtime context cần trả HTTP 400 thay vì để ValueError thoát khỏi FastAPI.
+
+Quyết định xử lý:
+- Test runtime/API được cập nhật để mock đúng boundary tại `app.application.capabilities.calendar`.
+- `CalendarHandler` trả HTTP 400 khi request cần authorization context nhưng thiếu `X-User-ID` hoặc `X-Organization-ID`.
+- Không đưa compatibility alias ngược vào `main.py` cho các dependency đã chuyển boundary; test phải phản ánh kiến trúc mới.
+- Không thay đổi DB schema, OAuth scope hoặc Docker topology.
+- Không thay đổi Execution Contract.
+
+Verification gate vẫn giữ nguyên: targeted tests + full regression phải PASS trước khi đóng Phase 3.
