@@ -40,6 +40,8 @@ def test_postgres_account_repository_maps_account_metadata_without_credentials()
             "Personal Google",
             "user@example.com",
             "active",
+            None,
+            None,
         )
     ])
 
@@ -93,3 +95,32 @@ def test_account_repository_returns_grant_metadata_without_credentials():
     assert accounts[0].account_grant_id == "grant-1"
     assert accounts[0].grant_scope == {"capabilities": ["calendar.read"]}
     assert accounts[0].organization_id == "org-1"
+
+
+def test_account_repository_returns_grant_metadata_without_credentials():
+    connection = FakeConnection([
+        (
+            "acc-2",
+            "owner-1",
+            "google",
+            "google",
+            "google-2",
+            "Shared Google",
+            "shared@example.com",
+            "active",
+            "grant-1",
+            {"capabilities": ["calendar.read"]},
+        )
+    ])
+
+    accounts = PostgresAccountRepository(connection).find_candidates(
+        user_id="grantee-1",
+        organization_id="org-1",
+        provider="google",
+    )
+
+    assert accounts[0].access_mode == "grant"
+    assert accounts[0].account_grant_id == "grant-1"
+    assert accounts[0].grant_scope == {"capabilities": ["calendar.read"]}
+    assert accounts[0].organization_id == "org-1"
+    assert "account_credentials" not in connection.cursor_obj.executed[0]
