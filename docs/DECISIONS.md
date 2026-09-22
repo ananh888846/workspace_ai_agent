@@ -218,3 +218,32 @@ Acceptance đã xác nhận:
 Ranh giới tiếp theo:
 - Free/Busy và Conflict Detection là capability kế tiếp, không được suy luận từ Natural Language parser.
 - Trước khi dùng LangGraph hoặc Pydantic cho Free/Busy/Conflict Detection phải thực hiện quy trình tại Decision 034.
+
+
+## Decision 037 — Calendar Free/Busy V1 không dùng Pydantic
+**Status:** Accepted  
+Free/Busy và Conflict Detection V1 dùng Python type/dataclass cho internal contract. Không thêm Pydantic nếu chưa có nhu cầu rõ ràng về validation, normalization, serialization hoặc contract phức tạp.
+
+- BusyPeriod, Conflict và ConflictResult là domain data structures.
+- ConflictDetector là deterministic Python service.
+- Nếu contract sau này trở thành Tool/Graph/API boundary phức tạp, phải phân tích lại và hỏi chủ project trước khi thêm Pydantic.
+
+## Decision 038 — Calendar Free/Busy V1 giữ OAuth scope hiện tại
+**Status:** Accepted  
+Free/Busy V1 tiếp tục sử dụng capability calendar.read và OAuth scope Calendar hiện tại. Không tạo capability/permission mới và không yêu cầu OAuth lại chỉ để triển khai Free/Busy V1.
+
+- Runtime action là free_busy dưới calendar.read.
+- Chưa tạo migration DB cho permission mới.
+- Nếu sau này cần least-privilege scope riêng cho FreeBusy, phải thiết kế OAuth migration riêng và hỏi chủ project trước.
+
+## Decision 039 — Ưu tiên API/SDK chính thức của Provider
+**Status:** Accepted  
+Khi tích hợp provider, Workspace AI Agent phải ưu tiên API và thư viện SDK/client chính thức do chính provider phát hành trước khi xem xét thư viện bên thứ ba.
+
+Thứ tự ưu tiên:
+1. Official API/SDK của provider.
+2. Python standard library hoặc thư viện nền tảng đã có.
+3. Thư viện chuyên dụng chính thức của provider.
+4. Third-party library chỉ khi có lý do kỹ thuật rõ ràng.
+
+Không thêm dependency bên thứ ba nếu API/SDK chính thức đã đáp ứng yêu cầu.
