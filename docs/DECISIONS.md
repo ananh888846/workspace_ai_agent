@@ -826,3 +826,36 @@ Protected action phải tiếp tục qua Application Authorization và các capa
 
 ### 11. Implementation gate
 Decision 049 chỉ khóa architecture/design. Chưa tạo migration, Identity API, Face Recognition runtime, Luckfox/ESP32 runtime hoặc NAS integration. Các implementation phase phải review schema/ERD/tenant integrity trước migration.
+
+
+## Decision 050 — Local-First / Self-Hosted Agent
+**Status:** Accepted — Architectural Invariant
+
+Workspace AI Agent về lâu dài phải có khả năng chạy hoàn toàn trên hạ tầng local/self-hosted.
+
+### Core local
+- Agent Runtime;
+- PostgreSQL;
+- Qdrant;
+- local LLM/Ollama;
+- Conversation/Memory/Knowledge;
+- Authorization;
+- local NAS/object storage khi cần;
+- local Edge/Home Assistant integration.
+
+### Cloud boundary
+Google, Zalo, Facebook, Instagram, cloud LLM và cloud storage chỉ là provider/integration tùy chọn. Cloud không phải source of truth của Identity/Authorization và không phải dependency bắt buộc của Agent Core.
+
+### Data-local
+Dữ liệu mặc định được xử lý/lưu local. Chỉ truyền dữ liệu ra external provider khi capability cần và Authorization cho phép.
+
+### Security
+- Edge không bypass Agent Authorization.
+- LLM không quyết định Identity/Authorization.
+- Provider-specific logic nằm trong Provider boundary.
+- Local deployment vẫn phải giữ security boundary.
+
+### Deferred
+Offline provider queue, HA/local cluster, mTLS toàn hệ thống, offline sync conflict resolution, local/cloud model routing policy và các Identity/Evidence runtime domain chỉ triển khai khi hệ thống mở rộng.
+
+Chi tiết: [docs/LOCAL_FIRST_SELF_HOSTED_V1.md](./LOCAL_FIRST_SELF_HOSTED_V1.md).

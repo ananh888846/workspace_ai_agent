@@ -725,9 +725,9 @@ Các invariant bắt buộc:
 15. Human bị disable/revoke phải không được tạo protected interaction mới.
 16. Side effect chỉ được thực hiện sau Authorization ALLOW.
 
-## 29. Status
+## 29. Local-first / Self-hosted invariant\n\nWorkspace AI Agent phải có khả năng chạy hoàn toàn trên hạ tầng local/self-hosted. Agent Core, PostgreSQL, Qdrant, local LLM, Memory, Knowledge và Authorization không được phụ thuộc bắt buộc vào cloud. Cloud chỉ là provider/integration tùy chọn. Chi tiết tại [docs/LOCAL_FIRST_SELF_HOSTED_V1.md](./LOCAL_FIRST_SELF_HOSTED_V1.md).\n\nCác phần mở rộng như offline queue, HA, mTLS toàn hệ thống, NAS runtime và central biometric storage được deferred cho phase mở rộng.\n\n## 30. Status
 
-**IDENTITY_ARCHITECTURE_V1 = ACCEPTED — DESIGN LOCKED**
+**IDENTITY_ARCHITECTURE_V1 = ACCEPTED — DESIGN LOCKED**\n\nERD V1 đã được review và chốt. Identity migrations/API/runtime vẫn deferred cho phase tương ứng.
 
 Đã chốt các boundary:
 
