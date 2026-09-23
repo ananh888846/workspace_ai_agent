@@ -747,3 +747,20 @@ Trong tài liệu này, mọi tham chiếu đến "Laravel Web", "Laravel projec
 ```
 https://github.com/ananh888846/workspace_ai_agent_web
 ```
+
+
+## 37. Implementation Status — Server-to-Server Authentication
+
+Ngày 2026-09-23:
+
+Đã implement:
+
+- `AGENT_SERVER_TOKEN` trong Agent settings.
+- Dependency xác thực server-to-server cho `/api/v1/agent/chat`.
+- `Authorization: Bearer <token>` bắt buộc.
+- Token được so sánh constant-time và không được ghi vào log/response/context.
+- `X-Request-Id` bắt buộc và phải là UUID.
+- `X-User-Id` và `X-Organization-Id` bắt buộc sau khi authentication thành công.
+- Structured error cho 401/400/422 và lỗi nội bộ.
+
+Lưu ý: implementation đã được commit vào repository nhưng chưa được đánh dấu runtime PASS cho đến khi test suite được chạy trong môi trường thực tế.
