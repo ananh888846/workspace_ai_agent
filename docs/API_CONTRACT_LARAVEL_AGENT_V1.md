@@ -812,3 +812,27 @@ Không ghi PASS cho các mục trên chỉ vì tài liệu đã được commit.
 9. Sau khi API boundary ổn định mới xây Chat UI.
 
 **API CONTRACT V1 — LOCKED FOR IMPLEMENTATION.**
+
+## Laravel Web Project — Repository chính thức
+
+Laravel Web là project/repository độc lập:
+
+**Repository:** `ananh888846/workspace_ai_agent_web`
+
+**GitHub:** https://github.com/ananh888846/workspace_ai_agent_web
+
+Agent repository này không chứa source code Laravel.
+
+Mọi implementation phía Laravel của contract này phải được thực hiện trong repository trên.
+
+Topology:
+
+```
+workspace_ai_agent
+        ↑
+        │ HTTPS API
+        ↓
+workspace_ai_agent_web
+```
+
+Tên project/repository Laravel được chốt chính thức là `workspace_ai_agent_web`.
