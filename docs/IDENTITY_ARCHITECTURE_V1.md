@@ -682,6 +682,12 @@ Schema implementation phase sau phải xem xét tối thiểu các domain:
 
 Không được tạo bảng chỉ vì tên xuất hiện trong blueprint. Trước migration phải review với DATABASE_V2_DETAILED.md, ERD và tenant-integrity contract.
 
+## 26A. ERD V1
+
+Thiết kế dữ liệu chi tiết được tách thành [docs/IDENTITY_ERD_V1.md](./IDENTITY_ERD_V1.md). Tài liệu ERD phân biệt rõ bảng đã có cần reuse với bảng Identity mới, đồng thời khóa tenant integrity và acceptance-test contract trước migration.
+
+**Trạng thái ERD:** PROPOSED — READY FOR REVIEW. Chưa tạo migration.
+
 ## 27. API Direction
 
 Identity API implementation phase sau phải tách tối thiểu:
