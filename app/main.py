@@ -136,14 +136,16 @@ _agent_runtime = AgentRuntime(
 @app.post("/api/v1/agent/chat")
 def agent_chat(
     payload: AgentChatRequest,
-    x_user_id: str | None = Header(default=None),
-    x_organization_id: str | None = Header(default=None),
+    server_context: dict[str, str] = Depends(require_agent_server_context),
 ) -> dict:
     context = {
-        "user_id": x_user_id,
-        "organization_id": x_organization_id,
+        "request_id": server_context["request_id"],
+        "user_id": server_context["user_id"],
+        "organization_id": server_context["organization_id"],
     }
-    return _agent_runtime.run(request=payload, context=context)
+    result = _agent_runtime.run(request=payload, context=context)
+    result["request_id"] = server_context["request_id"]
+    return result
 
 
 # Compatibility helper: các test/API nội bộ cũ vẫn có thể import helper từ app.main.
