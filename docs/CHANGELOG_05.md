@@ -38,3 +38,40 @@
 - Implement Laravel login/session.
 - Implement `WorkspaceAiAgentClient` theo API contract.
 - Sau đó mới triển khai Chat UI và Google Account connection flow.
+## 2026-09-23 — Chốt API Contract Laravel Web ↔ Agent V1
+
+- Thêm `docs/API_CONTRACT_LARAVEL_AGENT_V1.md`.
+- Chốt endpoint `POST /api/v1/agent/chat` là HTTP boundary chuẩn giữa Laravel Web và Workspace AI Agent.
+- Chốt server-to-server Bearer authentication V1.
+- Chốt request headers:
+  - `Authorization`;
+  - `Content-Type`;
+  - `X-Request-Id`;
+  - `X-User-Id`;
+  - `X-Organization-Id`.
+- Chốt core request fields:
+  - `message`;
+  - `conversation_id`;
+  - `account_hint`;
+  - `capability`;
+  - `action`;
+  - `target_resource`.
+- Chốt Calendar V1 extension fields hiện có.
+- Chốt capability/action contract cho Calendar read/write/schedule/free_busy.
+- Chốt execution order: classify → route → account → authorization → credential → provider.
+- Chốt provider không được gọi nếu Authorization deny hoặc credential chưa ready.
+- Chốt execution envelope và `provider_called`.
+- Chốt OAuth-required state không được gọi provider.
+- Chốt structured error/status contract: 400/401/403/404/409/422/429/502/504.
+- Chốt Request ID xuyên Laravel → Agent → execution boundary.
+- Chốt timeout, retry và Idempotency-Key cho side-effect.
+- Chốt backward-compatibility rules cho API V1.
+- Ghi rõ các mục là contract target nhưng chưa được coi là runtime-verified:
+  - response `request_id`;
+  - server-to-server authentication middleware/dependency;
+  - structured HTTP error envelope;
+  - Idempotency-Key persistence/handling;
+  - timeout/retry policy trong Laravel client.
+- Không thay đổi database schema.
+- Không tạo Laravel project trong repository Agent.
+- Không thay đổi Google OAuth scope.
