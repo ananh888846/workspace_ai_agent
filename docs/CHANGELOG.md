@@ -1,3 +1,16 @@
+## 2026-09-23 — Identity Architecture V1 locked
+
+- Thêm [docs/IDENTITY_ARCHITECTURE_V1.md](./IDENTITY_ARCHITECTURE_V1.md) làm contract kiến trúc cho Identity Layer.
+- Chốt Principal gồm Human, Device và Service; Device Identity tách khỏi Human Identity.
+- Chốt Credential, External Identity, Interaction Session và Edge Authentication là các boundary riêng.
+- Chốt ESP32/Luckfox có thể xác thực device, nhận diện Human tại Edge và tạo Interaction Session.
+- Chốt trường hợp không xác thực được Human: Edge tạo Evidence, binary lưu tại NAS/object storage, PostgreSQL giữ metadata/reference.
+- Chốt Agent/Policy quyết định hành động tiếp theo; Edge không bypass Authorization.
+- Chốt LLM không quyết định identity/permission và Authentication không đồng nghĩa Authorization.
+- Ghi [Decision 049](./DECISIONS.md) về Identity Architecture V1.
+- Chưa tạo migration, Identity API hoặc runtime implementation.
+- **Status:** Identity Architecture V1 = **ACCEPTED — DESIGN LOCKED**.
+
 ## 2026-09-21 — Documentation V2.1 current-state synchronization
 
 - Đồng bộ trạng thái Database V2.1: Migration 001 → 050 verified trên PostgreSQL 18.6; DBR-001 → DBR-007 CLOSED; RV-001 → RV-014 PASS.
