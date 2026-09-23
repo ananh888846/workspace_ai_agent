@@ -361,3 +361,11 @@
 - Đổi fixture test sang resource riêng `at_system_admin_test` với hai action `read/write`, vẫn kiểm tra đúng invariant: role test phải map đủ toàn bộ Permission catalog trong transaction.
 - Không thay đổi production Permission catalog, User, Role hoặc Organization.
 - Trạng thái: **IMPLEMENTED_GITHUB — LOCAL VERIFICATION PENDING**.
+
+
+## 2026-09-23 — Fix System Administrator V1 acceptance mapping
+
+- Acceptance lần 2 phát hiện fixture đã tạo thêm 2 Permission, làm catalog có 4 Permission nhưng role test chỉ map 2 Permission fixture.
+- Sửa acceptance để `system_admin` map toàn bộ Permission catalog hiện tại, đúng với invariant của bootstrap production.
+- Không thay đổi Permission production; test vẫn chạy trong transaction và kết thúc bằng `ROLLBACK`.
+- Trạng thái: **IMPLEMENTED_GITHUB — LOCAL VERIFICATION PENDING**.
