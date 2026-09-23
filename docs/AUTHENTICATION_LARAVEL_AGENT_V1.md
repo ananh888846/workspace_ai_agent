@@ -724,3 +724,26 @@ Nếu phát sinh mâu thuẫn:
 - có thể triển khai Laravel và Agent trên hai server khác nhau.
 
 **Chưa chốt implementation framework cụ thể cho Laravel authentication package/UI.** Việc chọn package chỉ thực hiện khi bắt đầu tạo project Laravel riêng.
+## Laravel Web Project
+
+Laravel Web là project/repository độc lập:
+
+**Repository:** `ananh888846/workspace_ai_agent_web`
+
+**GitHub:** https://github.com/ananh888846/workspace_ai_agent_web
+
+Agent repository này **không chứa source code Laravel**. Laravel Web sẽ gọi Workspace AI Agent qua API contract đã chốt.
+
+Topology:
+
+```
+workspace_ai_agent
+    ← HTTPS API →
+workspace_ai_agent_web
+```
+
+Trong tài liệu này, mọi tham chiếu đến "Laravel Web", "Laravel project" hoặc "workspace_ai_web" đều được hiểu là repository:
+
+```
+https://github.com/ananh888846/workspace_ai_agent_web
+```
