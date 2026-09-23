@@ -757,3 +757,72 @@ Phase 4A kiểm chứng pipeline/provider trước với request tự nhiên ở
 
 ### Provider reference
 Google Calendar Events API hỗ trợ create/list/delete event; test của project phải đi qua Tool/Provider hiện hữu thay vì gọi Google API trực tiếp trong test.
+
+
+## Decision 049 — Identity Architecture V1: Principal, Credential, Interaction Session, Evidence
+**Status:** Accepted — Design Locked
+
+Workspace AI Agent sử dụng Identity Layer riêng, không đồng nhất Human, Device và Service.
+
+### 1. Principal
+V1 gồm:
+- Human Principal;
+- Device Principal;
+- Service Principal.
+
+Device không phải User.
+
+### 2. Credential
+Credential là bằng chứng xác thực Principal:
+- Human: Password/Passkey/External OAuth;
+- Device: Device Key/Certificate;
+- Service: server-to-server credential.
+
+Password provider của Human chưa được chốt trong Decision này. Không tạo Web-only credential source để thay thế Agent Identity.
+
+### 3. External Identity
+Một Human có thể liên kết nhiều External Identity/External Account, ví dụ Google, Zalo, Facebook và Instagram. External Identity không tạo User mới.
+
+### 4. Edge Device
+ESP32/Luckfox là Device Principal và Interaction Endpoint. Device Authentication và Human Authentication là hai trạng thái độc lập.
+
+### 5. Interaction Session
+Một Interaction Session liên kết:
+- Human nếu xác thực được;
+- Device đang tương tác;
+- Organization context nếu có;
+- authentication method/status;
+- request và lifecycle metadata.
+
+Agent không được tin tuyệt đối vào user identity do Edge gửi; phải kiểm tra Device/Human/Organization trust relationship phù hợp.
+
+### 6. Face Recognition
+Face Recognition là authentication/identification method, không phải authorization. Nhận diện thành công không tự cấp permission.
+
+### 7. Unknown Person và Evidence
+Nếu Edge không xác thực được Human, Edge tạo event/evidence và có thể lưu binary vào NAS/object storage. PostgreSQL chỉ giữ metadata/reference/integrity/ownership/retention context.
+
+Unknown person không được tự suy diễn thành malicious person.
+
+### 8. Agent Decision
+Agent/Policy quyết định hành động tiếp theo dựa trên identity context, device context, evidence và authorization.
+
+Agent có thể yêu cầu lấy Evidence từ storage khi workflow thực sự cần; không bắt buộc truyền raw image/video cho mọi event.
+
+### 9. Authorization boundary
+Authentication thành công không đồng nghĩa Authorization thành công.
+
+Protected action phải tiếp tục qua Application Authorization và các capability/account/resource/package checks hiện hành. Edge không được bypass authorization.
+
+### 10. Security invariants
+- Device Identity ≠ Human Identity.
+- Authentication ≠ Authorization.
+- LLM không quyết định identity hoặc permission.
+- Credential secret không vào prompt/Graph state/audit/response.
+- Evidence binary không lưu trực tiếp trong PostgreSQL.
+- Evidence access phải qua authorization context.
+- Cross-organization device/session/evidence access phải bị chặn.
+- Side effect chỉ được thực hiện sau Authorization ALLOW.
+
+### 11. Implementation gate
+Decision 049 chỉ khóa architecture/design. Chưa tạo migration, Identity API, Face Recognition runtime, Luckfox/ESP32 runtime hoặc NAS integration. Các implementation phase phải review schema/ERD/tenant integrity trước migration.
