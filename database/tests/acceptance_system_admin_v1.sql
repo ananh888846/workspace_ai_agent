@@ -32,8 +32,8 @@ BEGIN
 
   INSERT INTO permissions(id, resource, action, description)
   VALUES
-    (v_permission_a, 'calendar', 'read', 'AT permission A'),
-    (v_permission_b, 'calendar', 'write', 'AT permission B');
+    (v_permission_a, 'at_system_admin_test', 'read', 'AT permission A'),
+    (v_permission_b, 'at_system_admin_test', 'write', 'AT permission B');
 
   INSERT INTO role_permissions(role_id, permission_id)
   SELECT v_role_id, id
