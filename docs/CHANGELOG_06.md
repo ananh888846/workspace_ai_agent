@@ -78,3 +78,5 @@ Browser không được biết hoặc gửi Agent server token.
 - Chỉ thay đổi repository `ananh888846/workspace_ai_agent`.
 - Không đặt source Laravel vào Agent repository.
 - Laravel Web chính thức vẫn là `ananh888846/workspace_ai_agent_web`.
+
+- Bổ sung server authentication cho `GET /auth/google/start`; Google OAuth callback vẫn là provider callback và không yêu cầu Laravel Bearer token.
