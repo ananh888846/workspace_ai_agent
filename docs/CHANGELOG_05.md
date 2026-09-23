@@ -75,3 +75,11 @@
 - Không thay đổi database schema.
 - Không tạo Laravel project trong repository Agent.
 - Không thay đổi Google OAuth scope.
+
+## 2026-09-23 — Chốt repository Laravel Web
+
+- Chốt repository Laravel Web chính thức: `ananh888846/workspace_ai_agent_web`.
+- GitHub: https://github.com/ananh888846/workspace_ai_agent_web
+- Không đặt source Laravel trong repository `workspace_ai_agent`.
+- `workspace_ai_agent` chỉ cung cấp Agent/API boundary.
+- `workspace_ai_agent_web` là nơi triển khai Laravel Client, login/session và Chat UI sau khi Agent API boundary được verify.
