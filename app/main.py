@@ -40,11 +40,10 @@ class AgentChatRequest(BaseModel):
 def google_oauth_start(
     account_id: str,
     capability: str = "calendar.read",
-    x_user_id: str | None = Header(default=None),
-    x_organization_id: str | None = Header(default=None),
+    server_context: dict[str, str] = Depends(require_agent_server_context),
 ) -> RedirectResponse:
-    if not x_user_id or not x_organization_id:
-        raise HTTPException(status_code=400, detail="x_user_id and x_organization_id are required")
+    x_user_id = server_context["user_id"]
+    x_organization_id = server_context["organization_id"]
     if capability not in {"calendar.read", "calendar.write"}:
         raise HTTPException(status_code=400, detail="unsupported_calendar_capability")
     account = resolve_google_account(
