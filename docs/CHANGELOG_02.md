@@ -353,3 +353,11 @@
 - Thêm [docs/SYSTEM_ADMIN_V1.md](./SYSTEM_ADMIN_V1.md) làm runbook triển khai và liên kết sang Laravel Web.
 - Không tạo User Admin thật, password hoặc secret trong GitHub.
 - Trạng thái: **IMPLEMENTED_GITHUB — LOCAL VERIFICATION PENDING**.
+
+
+## 2026-09-23 — Fix System Administrator V1 acceptance fixture
+
+- Acceptance test `database/tests/acceptance_system_admin_v1.sql` không được dùng lại `calendar.read/write` của Calendar Test User vì Permission catalog có unique constraint trên `(resource, action)`.
+- Đổi fixture test sang resource riêng `at_system_admin_test` với hai action `read/write`, vẫn kiểm tra đúng invariant: role test phải map đủ toàn bộ Permission catalog trong transaction.
+- Không thay đổi production Permission catalog, User, Role hoặc Organization.
+- Trạng thái: **IMPLEMENTED_GITHUB — LOCAL VERIFICATION PENDING**.
