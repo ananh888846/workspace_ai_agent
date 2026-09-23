@@ -898,3 +898,70 @@ Guest Access chỉ được mở sau khi có:
 - local runtime verification.
 
 Decision này không thay đổi Authentication V1 của Human User và không thay thế Decision 049/050.
+
+
+## Decision 052 — Web Administrator dùng Human User + Full Authorization
+**Status:** Accepted — Design Locked
+
+Web Administrator V1 không tạo một loại Principal đặc biệt và không tạo một User model riêng cho quản trị Web.
+
+### Mô hình chốt
+
+Một Human User bình thường trong Agent Identity sẽ được cấp một Role quản trị có toàn bộ Permission cần thiết cho phạm vi quản trị hệ thống.
+
+```
+Human User
+   ↓
+Role: system_admin
+   ↓
+All approved system permissions
+```
+
+User này vẫn là User bình thường về mặt Identity. Quyền quản trị đến từ Authorization, không đến từ tên, email hoặc một loại User đặc biệt.
+
+### Nguyên tắc
+
+1. Không dùng `Calendar Test User` làm Administrator.
+2. Tạo một Agent User riêng cho Administrator.
+3. User Administrator vẫn thuộc mô hình Human User thông thường.
+4. Quyền quản trị được cấp qua Role/Permission.
+5. Không hard-code email Administrator trong Agent Authorization.
+6. Không tạo bảng `web_admin_users` hoặc một Identity source riêng cho Web.
+7. Laravel Web chỉ ánh xạ `auth_users.agent_user_id` tới Agent User đã tồn tại.
+8. Các User khác về sau có thể được cấp Role/Permission khác nhau mà không thay đổi Identity model.
+9. Full authorization chỉ áp dụng trong phạm vi Permission đã được định nghĩa; không đồng nghĩa bỏ qua Authorization boundary.
+10. LLM không quyết định quyền quản trị.
+
+### Dữ liệu V1 dự kiến
+
+- 01 Agent Human User riêng cho Web Administrator.
+- 01 Role quản trị hệ thống, tên đề xuất: `system_admin`.
+- Role này được gán các Permission quản trị cần thiết sau khi Permission catalog được review.
+- Administrator có Organization membership phù hợp với tenant quản trị.
+
+### Security boundary
+
+```
+Browser
+  ↓
+Laravel Authentication
+  ↓
+auth_users.agent_user_id
+  ↓
+Agent Authentication Context
+  ↓
+Authorization
+  ↓
+system_admin permissions
+```
+
+Không có đường tắt từ Laravel session tới quyền quản trị.
+
+### Phạm vi hiện tại
+
+Decision này chốt **mô hình Identity + Authorization**, chưa tự động cấp mọi Permission hiện có trong database nếu Permission đó chưa được xác định là quyền quản trị hệ thống.
+
+Bước implementation tiếp theo là review Permission catalog hiện tại, xác định bộ Permission hệ thống, sau đó tạo User/Role/Organization data theo cách idempotent.
+
+Không dùng Administrator để thay thế Guest Principal. Guest Access tiếp tục tuân theo Decision 051.
+
