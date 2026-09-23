@@ -836,3 +836,28 @@ workspace_ai_agent_web
 ```
 
 Tên project/repository Laravel được chốt chính thức là `workspace_ai_agent_web`.
+
+
+## 38. Implementation Status — Agent API Boundary
+
+Ngày 2026-09-23:
+
+Đã implement trong `workspace_ai_agent`:
+
+- Server-to-server Bearer authentication bằng `AGENT_SERVER_TOKEN`.
+- Kiểm tra `Authorization: Bearer ...` bằng so sánh constant-time.
+- Bắt buộc `X-Request-Id` và kiểm tra UUID.
+- Bắt buộc `X-User-Id` và `X-Organization-Id` sau khi server authentication thành công.
+- Tạo execution context từ trusted server request; token không được đưa vào context.
+- Success response của `/api/v1/agent/chat` có `request_id`.
+- Structured HTTP error envelope cho HTTP exception, validation error và internal error.
+- Không trả exception detail nguyên bản đối với lỗi nội bộ.
+- Thêm unit/API boundary tests cho authentication và structured response/error.
+
+Chưa coi là runtime-verified trong môi trường deployment thật. Cần chạy test suite sau khi pull code.
+
+Còn lại trong contract target:
+
+- Idempotency-Key persistence/handling cho side-effect.
+- Retry policy thực tế ở Laravel client.
+- Runtime verification end-to-end Laravel → Agent trên môi trường triển khai.
