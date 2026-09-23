@@ -47,8 +47,7 @@ def test_chat_returns_structured_success_and_request_id(monkeypatch):
 
 
 def test_chat_auth_failure_uses_structured_error(monkeypatch):
-    monkeypatch.setenv("AGENT_SERVER_TOKEN", "test-secret")
-    get_settings.cache_clear()
+    monkeypatch.setattr("app.api.security.get_settings", lambda: type("S", (), {"agent_server_token": "test-secret"})())
 
     client = TestClient(app)
     request_id = "123e4567-e89b-12d3-a456-426614174000"
