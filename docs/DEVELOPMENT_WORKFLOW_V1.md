@@ -1,6 +1,6 @@
 # QUY TRÌNH PHÁT TRIỂN V1
 
-**Cập nhật:** 2026-09-23 09:35 (GMT+7, TP.HCM)
+**Cập nhật:** 2026-09-23 09:58 (GMT+7, TP.HCM)
 
 ## 1. Mục đích
 
@@ -27,18 +27,37 @@ Mọi thay đổi quan trọng phải đi theo đúng thứ tự:
 - Kiểm tra code hiện tại, schema/database, API contract, cấu hình, test và tài liệu liên quan.
 - Xác định ranh giới repository và dependency trước khi sửa.
 
-### Bước 2 — Thực hiện code trên GitHub
+### Bước 2 — Thông báo trước khi sửa GitHub
+
+Trước **bất kỳ thao tác tạo, sửa hoặc xóa file/code trên GitHub**, bắt buộc phải thông báo cho người dùng repository/project đang được sửa.
+
+Thông báo tối thiểu phải gồm:
+
+- Project/repository.
+- Branch.
+- Mục đích thay đổi.
+
+Mẫu:
+
+> 🔵 **ĐANG SỬA GITHUB:** `workspace_ai_agent_web`  
+> **Repository:** `ananh888846/workspace_ai_agent_web`  
+> **Branch:** `feature/laravel-login-v1`  
+> **Mục đích:** triển khai thay đổi đã được phê duyệt.
+
+Nếu thay đổi có thể ảnh hưởng đến repository còn lại, phải nêu rõ trước khi thực hiện.
+
+### Bước 3 — Thực hiện code trên GitHub
 
 - Chỉ sửa repository và branch đã được xác định.
 - Không sửa repository còn lại chỉ để làm cho test chạy được.
 
-### Bước 3 — Đồng bộ tài liệu
+### Bước 4 — Đồng bộ tài liệu
 
 Nếu thay đổi làm ảnh hưởng đến kiến trúc, hành vi, API, cấu hình, bảo mật, database hoặc vận hành thì phải cập nhật tài liệu **trong cùng đợt thay đổi**.
 
 Tài liệu phải mô tả đúng implementation đã commit, không mô tả một trạng thái dự kiến trong tương lai.
 
-### Bước 4 — Báo trạng thái GitHub
+### Bước 5 — Báo trạng thái GitHub
 
 Phải báo rõ cho người dùng:
 
@@ -51,13 +70,13 @@ Phải nói rõ:
 
 > **ĐÃ CẬP NHẬT GITHUB — KÉO CODE VỀ LOCAL TRƯỚC KHI TEST.**
 
-### Bước 5 — Kéo về local
+### Bước 6 — Kéo về local
 
 Người dùng đồng bộ branch đã thay đổi về local.
 
 Không được coi thay đổi trên GitHub là đã kiểm thử local cho đến khi đúng commit đã được kéo về local.
 
-### Bước 6 — Kiểm tra local
+### Bước 7 — Kiểm tra local
 
 - Xác nhận branch và commit.
 - Kiểm tra `git status` và diff liên quan.
@@ -65,7 +84,7 @@ Không được coi thay đổi trên GitHub là đã kiểm thử local cho đ�
 - Chỉ chạy migration/cập nhật cấu hình khi cần và sau khi kiểm tra tác động.
 - Chạy unit test, integration test, smoke test, API test, browser test hoặc end-to-end test phù hợp.
 
-### Bước 7 — Báo cáo kiểm tra
+### Bước 8 — Báo cáo kiểm tra
 
 Phải báo:
 
@@ -77,7 +96,7 @@ Phải báo:
 
 Không được tuyên bố hoàn thành chỉ vì code đã tồn tại trên GitHub.
 
-### Bước 8 — Chốt
+### Bước 9 — Chốt
 
 Một thay đổi chỉ có trạng thái `FINAL` khi code và tài liệu đã đồng bộ, commit tương ứng đã được kiểm tra local thành công, hoặc người dùng đã chấp nhận rõ ràng một ngoại lệ có ghi nhận.
 
