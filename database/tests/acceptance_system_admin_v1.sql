@@ -35,10 +35,11 @@ BEGIN
     (v_permission_a, 'at_system_admin_test', 'read', 'AT permission A'),
     (v_permission_b, 'at_system_admin_test', 'write', 'AT permission B');
 
+  -- system_admin phải được map toàn bộ Permission catalog hiện tại,
+  -- không chỉ các Permission fixture của acceptance test.
   INSERT INTO role_permissions(role_id, permission_id)
   SELECT v_role_id, id
-  FROM permissions
-  WHERE id IN (v_permission_a, v_permission_b);
+  FROM permissions;
 
   INSERT INTO user_roles(user_id, role_id)
   VALUES (v_user_id, v_role_id);
