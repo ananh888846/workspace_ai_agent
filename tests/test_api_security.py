@@ -30,8 +30,7 @@ def test_server_token_allows_context(monkeypatch):
     [None, "Bearer wrong-secret", "Basic test-secret", "Bearer "],
 )
 def test_invalid_server_auth_is_401(monkeypatch, authorization):
-    monkeypatch.setenv("AGENT_SERVER_TOKEN", "test-secret")
-    get_settings.cache_clear()
+    monkeypatch.setattr("app.api.security.get_settings", lambda: type("S", (), {"agent_server_token": "test-secret"})())
 
     with pytest.raises(HTTPException) as exc:
         require_agent_server_context(
