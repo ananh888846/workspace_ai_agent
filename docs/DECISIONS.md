@@ -859,3 +859,42 @@ Dữ liệu mặc định được xử lý/lưu local. Chỉ truyền dữ li�
 Offline provider queue, HA/local cluster, mTLS toàn hệ thống, offline sync conflict resolution, local/cloud model routing policy và các Identity/Evidence runtime domain chỉ triển khai khi hệ thống mở rộng.
 
 Chi tiết: [docs/LOCAL_FIRST_SELF_HOSTED_V1.md](./LOCAL_FIRST_SELF_HOSTED_V1.md).
+
+
+## Decision 051 — Guest Access V1 Deferred
+**Status:** Deferred — Design gate not yet opened
+
+Guest Access V1 chưa triển khai runtime chính thức ở phase hiện tại.
+
+### Lý do
+Guest không được mô hình hóa đơn giản thành một User giả có UUID tạm thời. Khi Knowledge và Resource Authorization hoàn thiện, Guest có thể cần quyền riêng theo:
+- loại tài liệu;
+- visibility/publication state của Knowledge;
+- Organization/resource scope;
+- capability/function;
+- rate limit và abuse policy;
+- session/interaction context.
+
+### Nguyên tắc chốt
+1. Không dùng một Agent user hiện có làm Guest.
+2. Không dùng Organization hiện có của user/owner làm Guest context chỉ để làm cho request chạy được.
+3. Không tạo Guest principal/database record chỉ để bypass Authorization hiện tại.
+4. Guest không được tự động có quyền đọc Knowledge chỉ vì endpoint Chat là public.
+5. Guest access phải đi qua Authorization policy riêng khi phase này được mở.
+6. Knowledge retrieval phải áp dụng access scope trước/trong Qdrant retrieval theo Decision 021.
+7. LLM không được quyết định Guest được phép truy cập tài liệu/chức năng nào.
+
+### Web boundary hiện tại
+Laravel Web có thể giữ public Chat boundary ở mức route/UI, nhưng phần Guest identity/authorization đang được xem là **provisional** và chưa được coi là runtime đã verified hoặc production-ready.
+
+Không cấu hình AGENT_CHAT_GUEST_ORGANIZATION_ID và không dùng user/organization hiện có làm Guest context cho đến khi Guest Access contract được thiết kế và chốt.
+
+### Gate để mở lại
+Guest Access chỉ được mở sau khi có:
+- Knowledge visibility/access model;
+- Resource/Capability authorization contract cho Guest;
+- principal/session model phù hợp;
+- acceptance tests chứng minh Guest không truy cập private/user/org-protected data ngoài policy;
+- local runtime verification.
+
+Decision này không thay đổi Authentication V1 của Human User và không thay thế Decision 049/050.

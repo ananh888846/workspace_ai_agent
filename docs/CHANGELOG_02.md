@@ -322,3 +322,14 @@
 - Callback giải mã state, lấy lại đúng verifier và gửi verifier khi đổi authorization code lấy credential.
 - Không lưu PKCE verifier hoặc OAuth token vào file; state chỉ tồn tại trong vòng đời OAuth và credential sau callback vẫn được mã hóa trong PostgreSQL.
 - Không tạo Migration 052.
+
+
+## 2026-09-23 — Guest Access V1 deferred
+
+- Chốt **Guest Access V1 = Deferred**; chưa mở implementation/runtime gate.
+- Không dùng `Calendar Test User` hoặc Organization hiện có làm Guest context.
+- Không tạo Guest principal/database record chỉ để bypass Authorization.
+- Guest về sau phải có policy riêng theo Knowledge visibility, Resource/Capability access và session context.
+- Public Chat route/UI có thể tồn tại ở Web boundary, nhưng Guest identity/authorization hiện tại chỉ là provisional và chưa được xem là production-ready/runtime verified.
+- `AGENT_CHAT_GUEST_ORGANIZATION_ID` không được cấu hình cho đến khi Guest Access contract được chốt.
+- Bước tiếp theo ưu tiên: hoàn thiện Knowledge V1 access/visibility contract trước khi mở Guest Access.
