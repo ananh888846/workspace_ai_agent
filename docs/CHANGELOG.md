@@ -1,3 +1,16 @@
+## 2026-09-23 13:00:00 +07:00 — Identity ERD V1 design
+
+- Thêm [docs/IDENTITY_ERD_V1.md](./IDENTITY_ERD_V1.md) làm thiết kế ERD Identity V1 trước migration.
+- Đối chiếu schema hiện tại và xác định reuse: users, organization_members, user_accounts, account_credentials, devices, device_users, user_sessions, account_grants.
+- Thiết kế mới: device_credentials, interaction_sessions, authentication_events, evidence, evidence_storage_objects.
+- Không tạo bảng principals polymorphic và không tạo external_identities trùng với user_accounts.
+- Tách rõ User Session, Interaction Session và Activity Session.
+- Khóa logical distinction giữa candidate identity và authenticated identity trong Authentication Event.
+- Khóa Evidence/NAS boundary: PostgreSQL chỉ giữ metadata/reference/integrity; binary nằm ngoài PostgreSQL.
+- Đề xuất migration plan 052 → 056 sau khi ERD được chốt; chưa tạo migration hoặc runtime.
+- Cập nhật [docs/IDENTITY_ARCHITECTURE_V1.md](./IDENTITY_ARCHITECTURE_V1.md) để tham chiếu ERD.
+- **Status:** Identity ERD V1 = **PROPOSED — READY FOR REVIEW**.
+
 ## 2026-09-23 — Identity Architecture V1 locked
 
 - Thêm [docs/IDENTITY_ARCHITECTURE_V1.md](./IDENTITY_ARCHITECTURE_V1.md) làm contract kiến trúc cho Identity Layer.
