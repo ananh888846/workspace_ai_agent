@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from app.config.settings import get_settings
 from app.main import app
 
 
@@ -22,8 +21,7 @@ class _FakeRuntime:
 
 
 def test_chat_returns_structured_success_and_request_id(monkeypatch):
-    monkeypatch.setenv("AGENT_SERVER_TOKEN", "test-secret")
-    get_settings.cache_clear()
+    monkeypatch.setattr("app.api.security.get_settings", lambda: type("S", (), {"agent_server_token": "test-secret"})())
 
     import app.main as main_module
 
