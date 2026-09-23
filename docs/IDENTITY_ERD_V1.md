@@ -637,7 +637,7 @@ Sau khi ERD được chốt, migration có thể là:
 
 Nếu cần ALTER để bổ sung composite UNIQUE/FK cho tenant integrity, có thể tách migration hậu 056.
 
-**Chưa tạo các migration này trong bước ERD.**
+**Chưa tạo các migration này. Migration 052 → 056 chỉ mở khi Identity runtime capability thực sự được triển khai và migration gate được duyệt.**
 
 ## 20. Acceptance Test Contract trước migration
 
@@ -744,6 +744,6 @@ Mô hình canonical:
            ↓
        Agent Action
 
-**Status:** PROPOSED — READY FOR REVIEW
+**Status:** ACCEPTED — DESIGN LOCKED
 
 Chưa tạo migration. Chưa thay đổi application/runtime.
