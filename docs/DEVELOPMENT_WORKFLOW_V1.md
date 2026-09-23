@@ -1,88 +1,129 @@
-# DEVELOPMENT_WORKFLOW_V1
+# QUY TRÌNH PHÁT TRIỂN V1
 
-## Purpose
+**Cập nhật:** 2026-09-23 09:35 (GMT+7, TP.HCM)
 
-This document defines the mandatory development workflow for `workspace_ai_agent` and its integration with `workspace_ai_agent_web`.
+## 1. Mục đích
 
-## Repository boundaries
+Tài liệu này quy định quy trình bắt buộc khi phát triển `workspace_ai_agent` và tích hợp với `workspace_ai_agent_web`.
+
+## 2. Ranh giới hai repository
 
 ### `workspace_ai_agent`
 
-This repository is the Agent/Core system and its PostgreSQL-backed domain. For Web integration work, it is treated as **read-only unless the user explicitly authorizes a change**.
+Đây là hệ thống Agent/Core và miền dữ liệu PostgreSQL của Agent. Trong các công việc tích hợp Web, repository này được xem là **chỉ đọc**, trừ khi người dùng cho phép sửa rõ ràng.
 
-Do not add, remove, or modify Agent code, database schema, migrations, APIs, authentication behavior, or documentation without explicit approval.
+Không được tự ý thêm, xóa hoặc sửa code Agent, schema database, migration, API, cơ chế authentication hoặc tài liệu của Agent.
 
 ### `workspace_ai_agent_web`
 
-This repository is the Web/Laravel implementation surface. Web changes must integrate with the existing Agent contracts rather than silently changing the Agent repository.
+Đây là repository triển khai Web/Laravel. Thay đổi Web phải tích hợp theo contract hiện có của Agent, không âm thầm thay đổi repository Agent để làm cho Web chạy được.
 
-## Mandatory workflow
+## 3. Quy trình bắt buộc
 
-Every material change follows this order:
+Mọi thay đổi quan trọng phải đi theo đúng thứ tự:
 
-1. **Analyze**
-   - Inspect the current code, database/schema contracts, APIs, configuration, tests, and relevant documentation.
-   - Identify repository boundaries and dependencies before changing anything.
+### Bước 1 — Phân tích
 
-2. **Implement on GitHub**
-   - Make the approved code change in the appropriate repository/branch.
-   - Do not modify the other repository merely to make a test pass.
+- Kiểm tra code hiện tại, schema/database, API contract, cấu hình, test và tài liệu liên quan.
+- Xác định ranh giới repository và dependency trước khi sửa.
 
-3. **Synchronize documentation**
-   - Update the relevant documentation in the same change when behavior, architecture, API, configuration, security, database, or operational procedures change.
-   - Documentation must describe the implementation that is actually committed, not a planned future state.
+### Bước 2 — Thực hiện code trên GitHub
 
-4. **Report GitHub state to the user**
-   - Clearly identify repository, branch, commit, and the files/behavior changed.
-   - Explicitly state: **GITHUB UPDATED — PULL TO LOCAL BEFORE TESTING.**
+- Chỉ sửa repository và branch đã được xác định.
+- Không sửa repository còn lại chỉ để làm cho test chạy được.
 
-5. **Pull to local**
-   - The user synchronizes the changed branch to the local working copy.
-   - Do not treat a GitHub change as locally tested until the user has pulled/fetched the corresponding commit.
+### Bước 3 — Đồng bộ tài liệu
 
-6. **Local verification**
-   - Confirm branch and commit.
-   - Inspect `git status` and the relevant diff.
-   - Install/update dependencies only when required.
-   - Apply migrations/configuration only when required and only after checking their impact.
-   - Run the relevant unit, integration, smoke, API, browser, or end-to-end tests.
+Nếu thay đổi làm ảnh hưởng đến kiến trúc, hành vi, API, cấu hình, bảo mật, database hoặc vận hành thì phải cập nhật tài liệu **trong cùng đợt thay đổi**.
 
-7. **Verify and report**
-   - Report the exact commit tested locally, commands run, test results, failures, and known limitations.
-   - Do not claim a feature is complete merely because it exists on GitHub.
+Tài liệu phải mô tả đúng implementation đã commit, không mô tả một trạng thái dự kiến trong tương lai.
 
-8. **Close / Chốt**
-   - A change is `FINAL` only after the implementation is documented and the corresponding local verification has passed, or the user explicitly accepts a documented exception.
+### Bước 4 — Báo trạng thái GitHub
 
-## Status lifecycle
+Phải báo rõ cho người dùng:
 
-Use these states for material work:
+- repository;
+- branch;
+- commit;
+- file/hành vi đã thay đổi.
 
-- `PROPOSED` — design/analysis only.
-- `IMPLEMENTED_GITHUB` — code committed on GitHub; not locally verified.
-- `LOCAL_VERIFIED` — corresponding commit pulled and tests passed locally.
-- `FINAL` — implementation, documentation, and verification are complete.
-- `BLOCKED` — verification or an architectural dependency prevents completion.
+Phải nói rõ:
 
-## Database and authentication safety
+> **ĐÃ CẬP NHẬT GITHUB — KÉO CODE VỀ LOCAL TRƯỚC KHI TEST.**
 
-- Never introduce a second source of truth for Agent users without explicit approval.
-- Never create a local SQLite authentication database for the Web project when the approved architecture requires Agent PostgreSQL/API contracts.
-- Do not copy Agent users into a Web-only credential table unless explicitly approved.
-- Do not bypass an Agent API/security boundary by modifying the Agent repository merely to simplify Web implementation.
+### Bước 5 — Kéo về local
 
-## Change discipline
+Người dùng đồng bộ branch đã thay đổi về local.
 
-Before each change, state which repository is being modified and why. If a requirement cannot be implemented without changing the other repository, stop and request approval instead of making the change implicitly.
+Không được coi thay đổi trên GitHub là đã kiểm thử local cho đến khi đúng commit đã được kéo về local.
 
-## Definition of done
+### Bước 6 — Kiểm tra local
 
-A change is considered done only when:
+- Xác nhận branch và commit.
+- Kiểm tra `git status` và diff liên quan.
+- Chỉ cài/cập nhật dependency khi cần.
+- Chỉ chạy migration/cập nhật cấu hình khi cần và sau khi kiểm tra tác động.
+- Chạy unit test, integration test, smoke test, API test, browser test hoặc end-to-end test phù hợp.
 
-- the correct repository was changed;
-- repository boundaries were respected;
-- relevant docs were synchronized;
-- the user was told to pull the GitHub commit;
-- the corresponding commit was tested locally;
-- test results and limitations were recorded; and
-- the user explicitly accepts any remaining exception.
+### Bước 7 — Báo cáo kiểm tra
+
+Phải báo:
+
+- commit chính xác đã test;
+- các lệnh đã chạy;
+- kết quả test;
+- lỗi còn lại;
+- giới hạn hoặc điều kiện chưa kiểm tra được.
+
+Không được tuyên bố hoàn thành chỉ vì code đã tồn tại trên GitHub.
+
+### Bước 8 — Chốt
+
+Một thay đổi chỉ có trạng thái `FINAL` khi code và tài liệu đã đồng bộ, commit tương ứng đã được kiểm tra local thành công, hoặc người dùng đã chấp nhận rõ ràng một ngoại lệ có ghi nhận.
+
+## 4. Vòng đời trạng thái
+
+- `PROPOSED` — mới phân tích/đề xuất.
+- `IMPLEMENTED_GITHUB` — đã commit trên GitHub nhưng chưa kiểm tra local.
+- `LOCAL_VERIFIED` — đúng commit đã được kéo về local và test đạt.
+- `FINAL` — code, tài liệu và kiểm tra đã hoàn tất.
+- `BLOCKED` — bị chặn bởi lỗi kiểm tra hoặc dependency/kiến trúc cần quyết định.
+
+## 5. Quy tắc database và authentication
+
+- Không tạo nguồn dữ liệu User thứ hai cho Agent nếu chưa được cho phép.
+- Không tạo SQLite riêng cho authentication Web khi kiến trúc được duyệt yêu cầu PostgreSQL/API của Agent.
+- Không copy User của Agent sang bảng credential riêng của Web nếu chưa được cho phép.
+- Không vượt qua ranh giới API/bảo mật của Agent bằng cách sửa repository Agent chỉ để đơn giản hóa việc triển khai Web.
+
+## 6. Quy tắc ngôn ngữ và thời gian cho tài liệu Markdown
+
+Tất cả file `.md` trong hai repository phải tuân thủ:
+
+1. **Ưu tiên tiếng Việt.** Nội dung phải viết bằng tiếng Việt nếu có thể diễn đạt rõ ràng.
+2. Tiếng Anh chỉ dùng khi thuật ngữ kỹ thuật, tên API/code, tên sản phẩm, tên thư viện hoặc cách diễn đạt tiếng Việt có thể gây mơ hồ.
+3. Không dịch các identifier như class, function, variable, route, table, column, command, environment variable và code.
+4. Mỗi file `.md` phải có dòng thời gian cập nhật theo mẫu:
+
+   `**Cập nhật:** YYYY-MM-DD HH:mm (GMT+7, TP.HCM)`
+
+5. Khi sửa nội dung file `.md`, phải cập nhật lại timestamp.
+6. Múi giờ chuẩn của tài liệu là `Asia/Ho_Chi_Minh` / `GMT+7`.
+
+## 7. Kỷ luật thay đổi
+
+Trước mỗi thay đổi phải xác định repository nào được sửa và lý do.
+
+Nếu một yêu cầu không thể thực hiện mà không sửa repository còn lại, phải dừng và hỏi người dùng. Không được tự ý sửa repository còn lại.
+
+## 8. Điều kiện hoàn thành
+
+Một thay đổi chỉ được coi là hoàn thành khi:
+
+- sửa đúng repository;
+- tôn trọng ranh giới giữa hai repository;
+- tài liệu liên quan đã được đồng bộ;
+- người dùng đã được báo phải kéo commit GitHub về local;
+- đúng commit đã được kiểm tra local;
+- kết quả và giới hạn kiểm tra đã được ghi nhận;
+- và mọi ngoại lệ còn lại đã được người dùng chấp nhận rõ ràng.
