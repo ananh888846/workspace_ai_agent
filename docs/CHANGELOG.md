@@ -1,3 +1,12 @@
+## 2026-09-23 13:30:00 +07:00 — Chốt Identity ERD và Local-First/Self-Hosted
+
+- Merge [Identity ERD V1](./IDENTITY_ERD_V1.md) sau review; trạng thái chuyển từ PROPOSED sang **ACCEPTED — DESIGN LOCKED**.
+- Cập nhật [docs/IDENTITY_ARCHITECTURE_V1.md](./IDENTITY_ARCHITECTURE_V1.md) để khóa ERD và Local-First invariant.
+- Thêm [docs/LOCAL_FIRST_SELF_HOSTED_V1.md](./LOCAL_FIRST_SELF_HOSTED_V1.md) làm architectural invariant cho deployment local/self-hosted.
+- Cập nhật [docs/DECISIONS.md](./DECISIONS.md) với Decision 050.
+- Xác định cloud provider là optional integration; Agent Core phải hoạt động độc lập Internet cho các capability local.
+- Ghi rõ các phần chưa cần thiết (Identity migrations 052–056, device auth runtime, interaction/evidence runtime, NAS runtime, offline queue/HA/mTLS...) là **DEFERRED — triển khai sau khi hệ thống mở rộng**.
+- Không thay đổi Agent runtime/database trong phase này.
 ## 2026-09-23 13:00:00 +07:00 — Identity ERD V1 design
 
 - Thêm [docs/IDENTITY_ERD_V1.md](./IDENTITY_ERD_V1.md) làm thiết kế ERD Identity V1 trước migration.
