@@ -333,3 +333,13 @@
 - Public Chat route/UI có thể tồn tại ở Web boundary, nhưng Guest identity/authorization hiện tại chỉ là provisional và chưa được xem là production-ready/runtime verified.
 - `AGENT_CHAT_GUEST_ORGANIZATION_ID` không được cấu hình cho đến khi Guest Access contract được chốt.
 - Bước tiếp theo ưu tiên: hoàn thiện Knowledge V1 access/visibility contract trước khi mở Guest Access.
+
+
+## 2026-09-23 — Web Administrator V1 design locked
+
+- Chốt Web Administrator là **Human User bình thường + Role/Permission quản trị**, không tạo Principal/User type đặc biệt.
+- Không dùng `Calendar Test User` hoặc `Local Calendar Test` cho Web Administrator.
+- Sẽ tạo một Agent User riêng và cấp Role quản trị sau khi review Permission catalog.
+- Laravel Web chỉ lưu mapping `auth_users.agent_user_id`; không tạo Identity source thứ hai.
+- Guest Access vẫn Deferred theo Decision 051.
+- Chưa tạo User/Role/Organization data thật trong database ở bước này.
