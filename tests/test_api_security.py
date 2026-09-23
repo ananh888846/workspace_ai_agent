@@ -4,7 +4,6 @@ import pytest
 from fastapi import HTTPException
 
 from app.api.security import require_agent_server_context
-from app.config.settings import get_settings
 
 
 def _call(*, token: str | None, request_id: str = "123e4567-e89b-12d3-a456-426614174000"):
@@ -17,8 +16,7 @@ def _call(*, token: str | None, request_id: str = "123e4567-e89b-12d3-a456-42661
 
 
 def test_server_token_allows_context(monkeypatch):
-    monkeypatch.setenv("AGENT_SERVER_TOKEN", "test-secret")
-    get_settings.cache_clear()
+    monkeypatch.setattr("app.api.security.get_settings", lambda: type("S", (), {"agent_server_token": "test-secret"})())
 
     result = _call(token="test-secret")
 
