@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
@@ -11,8 +12,13 @@ from app.application.capabilities.calendar import CalendarHandler, calendar_hand
 from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
+from app.api.errors import http_exception_handler, unhandled_exception_handler, validation_exception_handler
+from app.api.security import require_agent_server_context
 
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase3")
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 
 
 class AgentChatRequest(BaseModel):
