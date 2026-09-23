@@ -167,6 +167,7 @@ class CalendarHandler:
             "conversation_id": response.conversation_id,
             "message": response.message,
             "execution": response.execution,
+            "request_id": (state.get("context") or {}).get("request_id"),
         }
         body["execution"] = build_execution_contract(
             intent=state["intent"],
