@@ -965,3 +965,21 @@ Bước implementation tiếp theo là review Permission catalog hiện tại, x
 
 Không dùng Administrator để thay thế Guest Principal. Guest Access tiếp tục tuân theo Decision 051.
 
+
+
+## Decision 053 — System Administrator V1 Bootstrap
+**Status:** Accepted — Implementation GitHub
+
+- Web Administrator là Human User bình thường, không có Principal/User type đặc biệt.
+- Role chuẩn là `system_admin`.
+- `system_admin` dùng các bảng authorization hiện có: `roles`, `permissions`, `role_permissions`, `user_roles`.
+- Bootstrap gắn **toàn bộ Permission catalog hiện có tại thời điểm chạy** vào `system_admin` bằng explicit mapping.
+- Không dùng wildcard permission và không sửa Authorization runtime để tạo bypass.
+- Admin vẫn phải có Organization membership; role không thay thế tenant eligibility.
+- Bootstrap tạo hoặc dùng Organization loại `system` riêng cho Admin và không dùng `Local Calendar Test`.
+- Nếu email User đã tồn tại, bootstrap giữ nguyên User ID và không remap identity.
+- Password Web/Laravel và provider credential không thuộc Agent bootstrap SQL.
+- Khi Permission mới được duyệt/thêm vào catalog, bootstrap phải được chạy lại hoặc mapping phải được cập nhật để Admin nhận Permission mới.
+- Không tạo migration schema mới cho bước này vì toàn bộ bảng identity/authorization cần thiết đã tồn tại từ Migration 001 → 009.
+- Guest Access vẫn Deferred theo Decision 051.
+- Bước tiếp theo: local verification, sau đó map `admin_user_id` vào Laravel Web Authentication V1.

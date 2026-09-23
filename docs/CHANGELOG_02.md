@@ -343,3 +343,13 @@
 - Laravel Web chỉ lưu mapping `auth_users.agent_user_id`; không tạo Identity source thứ hai.
 - Guest Access vẫn Deferred theo Decision 051.
 - Chưa tạo User/Role/Organization data thật trong database ở bước này.
+
+
+## 2026-09-23 20:00 (GMT+7, TP.HCM) — System Administrator V1 bootstrap
+
+- Thêm [scripts/bootstrap_system_admin_v1.sql](../scripts/bootstrap_system_admin_v1.sql) để tạo hoặc tái sử dụng Human User Admin, Organization quản trị, role `system_admin`, membership và explicit role-permission mapping.
+- Bootstrap gắn toàn bộ Permission catalog hiện có cho `system_admin`; không dùng wildcard và không bypass Authorization.
+- Thêm [database/tests/acceptance_system_admin_v1.sql](../database/tests/acceptance_system_admin_v1.sql) để kiểm tra User/Organization/Role/Permission mapping và tenant membership boundary.
+- Thêm [docs/SYSTEM_ADMIN_V1.md](./SYSTEM_ADMIN_V1.md) làm runbook triển khai và liên kết sang Laravel Web.
+- Không tạo User Admin thật, password hoặc secret trong GitHub.
+- Trạng thái: **IMPLEMENTED_GITHUB — LOCAL VERIFICATION PENDING**.
