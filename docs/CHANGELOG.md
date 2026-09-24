@@ -1,3 +1,11 @@
+## 2026-09-24 05:00:00 +07:00 — Align API/runtime tests with server authentication contract
+
+- Sửa tests/unit/api/test_chat_api.py để các test contract cần runtime context gửi đầy đủ Bearer token, X-Request-Id và identity headers.
+- Giữ riêng test account_hint_requires_context để kiểm tra lỗi 400 khi thiếu user/organization context sau khi authentication hợp lệ.
+- Bổ sung account_state vào fake account để khớp execution contract hiện tại.
+- Đồng bộ tests/runtime/test_execution_error_boundary_runtime.py với server-to-server authentication contract.
+- Không thay đổi production security boundary hoặc bypass authentication.
+
 ## 2026-09-24 19:24:00 +07:00 — Fix API/runtime tests for server-to-server authentication
 
 - Đồng bộ tests/unit/api/test_chat_api.py và tests/runtime/test_execution_error_boundary_runtime.py với security contract hiện tại: Bearer token hợp lệ, X-Request-Id UUID và identity headers khi runtime cần user/organization context.
