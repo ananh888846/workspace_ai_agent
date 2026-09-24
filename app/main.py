@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
-from app.api.chat import authorize_request, classify_chat_request, resolve_google_account
+from app.api.chat import authorize_request, build_chat_response, classify_chat_request, resolve_google_account
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
 from app.application.capabilities.calendar import CalendarHandler, calendar_handler
@@ -127,15 +127,30 @@ def _classify_agent_request(payload: AgentChatRequest) -> tuple[str, str | None,
 
 
 def _unsupported_handler(state: dict) -> dict:
+    # Requests carrying an explicit account hint still use the account-resolution
+    # boundary even when no capability was classified yet.
+    payload = state.get("request")
+    if payload is not None and getattr(payload, "account_hint", None):
+        return calendar_handler.handle(state)
+
+    from app.application.execution_contract import build_execution_contract
+
+    response = build_chat_response(
+        ChatRequest(
+            message=payload.message if payload is not None else "",
+            conversation_id=payload.conversation_id if payload is not None else None,
+        )
+    )
     return {
         "status": "unsupported_action",
+        "conversation_id": response.conversation_id,
         "message": "Capability chưa được hỗ trợ bởi runtime hiện tại.",
-        "execution": {
-            "intent": state.get("intent", "not_classified"),
-            "capability": state.get("capability"),
-            "action": state.get("action"),
-            "provider_called": False,
-        },
+        "execution": build_execution_contract(
+            intent=state.get("intent", "not_classified"),
+            capability=state.get("capability"),
+            action=state.get("action"),
+            provider_called=False,
+        ),
         "provider_called": False,
     }
 
