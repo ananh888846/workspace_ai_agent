@@ -3,6 +3,9 @@ from types import SimpleNamespace
 
 os.environ["AGENT_SERVER_TOKEN"] = "test-agent-server-token"
 
+from app.config.settings import get_settings
+get_settings.cache_clear()
+
 from fastapi.testclient import TestClient
 
 from app.main import app
