@@ -1,3 +1,13 @@
+## 2026-09-24 — Standalone Ollama LLM runtime verified
+
+- Thêm [docs/LLM.md](./LLM.md) ghi nhận LLM layer độc lập và smoke-test procedure.
+- Verify Ollama local API `/api/tags` và model `qwen2.5:1.5b`.
+- Verify prompt tiếng Việt trực tiếp qua Ollama CLI.
+- Verify `OllamaProvider.generate()` thực tế qua `127.0.0.1:11434`.
+- Verify `LLMResolver(mode="local")` gọi thành công Ollama provider.
+- Chạy `python -m pytest -q tests/unit/llm`: **9 passed**.
+- Giữ explicit boundary: **chưa nhúng LLM vào Calendar, AgentRuntime hoặc scheduling/LangGraph flow**.
+
 ## 2026-09-24 19:43:12 +07:00 — Fix final API security test fixture
 
 - Sửa test `test_identity_headers_are_required_after_authentication` để patch trực tiếp `app.api.security.get_settings`, đồng nhất với các security tests còn lại.
