@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from app.providers.meta.credentials import MetaCredentialContext
+
 
 class ThreadsProviderError(RuntimeError):
     """Normalized provider error raised by the Threads client."""
@@ -12,15 +14,8 @@ class ThreadsProviderError(RuntimeError):
         self.code = code
 
 
-@dataclass(frozen=True)
-class ThreadsCredentialContext:
-    """Credential context produced by the credential boundary.
-
-    The connector accepts an already-authorized access token. It never reads
-    account_credentials or resolves secrets itself.
-    """
-
-    access_token: str
+# Backward-compatible provider name; the actual credential boundary is MetaCredentialContext.
+ThreadsCredentialContext = MetaCredentialContext
 
 
 class ThreadsClient:
