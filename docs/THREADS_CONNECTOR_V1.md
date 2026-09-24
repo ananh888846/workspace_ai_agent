@@ -9,7 +9,7 @@ The Backend now contains a read-oriented Threads provider boundary for Knowledge
 
 Implemented:
 - Threads HTTP client boundary;
-- already-authorized Threads credential context;\n- provider-scoped Meta credential repository;
+- already-authorized Threads credential context;\n- provider-scoped Meta credential repository;\n- Threads → KnowledgeIngestion composition service;
 - owned Threads post listing;
 - single Thread fetch;
 - paginated reply fetch;
