@@ -240,3 +240,35 @@ E2E được bật bằng `RUN_GOOGLE_CALENDAR_E2E=1`, vì vậy regression mặ
 
 ### Lưu ý
 Phase 4A cố ý kiểm chứng provider/runtime boundary trước. Natural-language extraction đầy đủ cho “ngày mai”, “tuần này”, “chiều mai rảnh 1 tiếng” và “kéo dài 1 tiếng” là phần tiếp theo sau khi baseline real-provider PASS.
+
+
+## Phase H1 — Multi-Hybrid LLM V1: Provider Contract + Resolver
+
+**Trạng thái:** Implemented — chờ verification local
+
+Phase H1 tạo LLM boundary độc lập với Agent Runtime và Calendar:
+
+```text
+Agent / Application
+        ↓
+LLMResolver
+        ↓
+LLMProvider
+```
+
+Đã thêm:
+- `app/llm/providers.py`: provider-neutral contract, request/response types và provider errors.
+- `app/llm/resolver.py`: ba mode `local`, `cloud`, `hybrid`.
+- `tests/unit/llm/test_resolver.py`: kiểm tra local-only, cloud-only, local-first/fallback và cấu hình cloud bắt buộc.
+- Settings/env cho `LLM_MODE` và cloud provider config.
+
+H1 chưa kết nối provider thật vào Agent Runtime. Ollama adapter và cloud adapter là H2/H3. Vì vậy Calendar và LangGraph execution hiện tại không bị rewrite.
+
+### Verification gate
+
+```powershell
+python -m pytest tests/unit/llm -q
+python -m pytest -q
+```
+
+Chỉ sau khi cả hai PASS mới đóng H1.
