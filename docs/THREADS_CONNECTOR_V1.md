@@ -1,6 +1,6 @@
 # Threads Source Connector V1 — Implementation
 
-> Status: IMPLEMENTED — UNIT TESTS ADDED — LIVE PROVIDER SMOKE TEST NOT RUN
+> Status: CREDENTIAL BOUNDARY IMPLEMENTED — UNIT TESTS ADDED — LIVE PROVIDER SMOKE TEST NOT RUN
 > Date: 2026-09-24
 > Architecture source of truth: workspace-ai-agent-ecosystem / ARCHITECTURE/THREADS_CONNECTOR_CONTRACT_V1.md
 
@@ -9,7 +9,7 @@ The Backend now contains a read-oriented Threads provider boundary for Knowledge
 
 Implemented:
 - Threads HTTP client boundary;
-- already-authorized credential context;
+- already-authorized Threads credential context;\n- provider-scoped Meta credential repository;
 - owned Threads post listing;
 - single Thread fetch;
 - paginated reply fetch;
@@ -26,12 +26,12 @@ Implemented:
 - tests/unit/providers/test_threads_connector.py
 
 ## Security boundary
-The connector does not read account_credentials, decrypt credentials, perform authorization, select accounts, call Agent Runtime, call LLM, call Qdrant or create Knowledge versions.
+The connector does not read account_credentials, decrypt credentials, perform authorization, select accounts, call Agent Runtime, call LLM, call Qdrant or create Knowledge versions.\n\nCredential resolution is now provider-scoped: the Meta repository verifies user_accounts.provider = threads before returning an access-token-only MetaCredentialContext. Credential resolution remains behind the existing CredentialResolver and cannot run after a denied AuthorizationDecision.
 The connector receives ThreadsCredentialContext only after the application authorization/credential boundary.
 
 ## Runtime boundary
 The connector is intentionally not registered in app/main.py or AgentRuntime yet.
-A production ingestion composition root still needs to connect:
+The credential boundary is now implemented. A production ingestion composition root still needs to connect:
 AccountResolver → AuthorizationService → CredentialResolver → ThreadsSourceConnector → KnowledgeIngestionService.
 This is deliberate: connector code is implemented before production wiring so the authorization and ingestion runtime can be composed without bypassing existing security boundaries.
 
@@ -50,7 +50,7 @@ Verified by source inspection:
 - cursor is returned separately from canonical Knowledge identity.
 
 Not yet verified:
-- real Threads OAuth configuration;
+- real Threads OAuth configuration;\n- runtime composition against a real Meta credential row;
 - real authorized account;
 - live API request;
 - live provider rate-limit behavior;
