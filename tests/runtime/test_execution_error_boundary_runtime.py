@@ -1,4 +1,7 @@
+import os
 from types import SimpleNamespace
+
+os.environ["AGENT_SERVER_TOKEN"] = "test-agent-server-token"
 
 from fastapi.testclient import TestClient
 
@@ -6,6 +9,15 @@ from app.main import app
 
 
 client = TestClient(app)
+
+
+def _headers(*, user_id: str, organization_id: str) -> dict[str, str]:
+    return {
+        "Authorization": "Bearer test-agent-server-token",
+        "X-Request-Id": "11111111-1111-4111-8111-111111111111",
+        "X-User-ID": user_id,
+        "X-Organization-ID": organization_id,
+    }
 
 
 def _resolved_account() -> dict:
@@ -86,7 +98,7 @@ def test_runtime_account_not_found_error_boundary(monkeypatch) -> None:
 
     response = client.post(
         "/api/v1/agent/chat",
-        headers={"X-User-ID": "runtime-user", "X-Organization-ID": "runtime-org"},
+        headers=_headers(user_id="runtime-user", organization_id="runtime-org"),
         json={
             "message": "Đọc lịch",
             "capability": "calendar.read",
