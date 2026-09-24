@@ -1,4 +1,5 @@
 import os
+import pytest
 from types import SimpleNamespace
 
 os.environ["AGENT_SERVER_TOKEN"] = "test-agent-server-token"
@@ -14,6 +15,7 @@ from app.main import app
 client = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
 def _configure_test_server_auth(monkeypatch):
     monkeypatch.setattr(
         "app.api.security.get_settings",
