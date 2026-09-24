@@ -92,6 +92,18 @@ def test_authorization_runtime_wiring(monkeypatch) -> None:
 
     monkeypatch.setattr("app.application.capabilities.calendar.resolve_google_account", fake_resolve)
     monkeypatch.setattr("app.application.capabilities.calendar.authorize_request", fake_authorize)
+    class FakeCredentialResolver:
+        def __init__(self, repository):
+            pass
+
+        def resolve(self, *, decision, account):
+            from app.application.core_runtime import CredentialResolution
+            return CredentialResolution(status="oauth_required")
+
+    monkeypatch.setattr(
+        "app.application.capabilities.calendar.CredentialResolver",
+        FakeCredentialResolver,
+    )
     response = client.post(
         "/api/v1/agent/chat",
         headers=_headers(user_id="user-1", organization_id="org-1"),
