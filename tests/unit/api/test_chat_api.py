@@ -12,6 +12,13 @@ from app.main import app
 client = TestClient(app)
 
 
+def _configure_test_server_auth(monkeypatch):
+    monkeypatch.setattr(
+        "app.api.security.get_settings",
+        lambda: type("S", (), {"agent_server_token": "test-agent-server-token"})(),
+    )
+
+
 def _headers(*, user_id: str | None = None, organization_id: str | None = None) -> dict[str, str]:
     headers = {
         "Authorization": "Bearer test-agent-server-token",
