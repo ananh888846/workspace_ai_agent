@@ -244,7 +244,7 @@ Phase 4A cố ý kiểm chứng provider/runtime boundary trước. Natural-lang
 
 ## Phase H1 — Multi-Hybrid LLM V1: Provider Contract + Resolver
 
-**Trạng thái:** Implemented — chờ verification local
+**Trạng thái:** Implemented — H2 Ollama adapter, chờ verification local
 
 Phase H1 tạo LLM boundary độc lập với Agent Runtime và Calendar:
 
@@ -272,3 +272,29 @@ python -m pytest -q
 ```
 
 Chỉ sau khi cả hai PASS mới đóng H1.
+
+
+## Phase H2 — Ollama Provider Adapter
+
+**Trạng thái:** Implemented — chờ verification local
+
+H2 nối cấu hình Ollama hiện tại vào LLM boundary mà không rewrite Agent Runtime.
+
+Đã thêm:
+- `app/llm/ollama.py`: adapter HTTP tới Ollama `/api/generate`, `stream=false`.
+- `app/llm/factory.py`: tạo `LLMResolver` từ `Settings` và Ollama config.
+- `tests/unit/llm/test_ollama.py`: request/response và lỗi HTTP/network.
+- `tests/unit/llm/test_factory.py`: kiểm tra wiring Settings → OllamaProvider → Resolver.
+
+H2 vẫn giữ `LLM_MODE=local` làm mặc định. Cloud provider chưa được gọi; H3 sẽ thêm adapter cloud.
+
+### Verification gate
+
+Chạy **local** sau khi pull code:
+
+```powershell
+python -m pytest tests/unit/llm -q
+python -m pytest -q
+```
+
+Nếu cả hai PASS, H2 mới được đánh dấu VERIFIED.
