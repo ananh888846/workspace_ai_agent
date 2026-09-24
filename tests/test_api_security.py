@@ -59,8 +59,10 @@ def test_missing_request_id_is_400(monkeypatch):
 
 
 def test_identity_headers_are_required_after_authentication(monkeypatch):
-    monkeypatch.setenv("AGENT_SERVER_TOKEN", "test-secret")
-    get_settings.cache_clear()
+    monkeypatch.setattr(
+        "app.api.security.get_settings",
+        lambda: type("S", (), {"agent_server_token": "test-secret"})(),
+    )
 
     with pytest.raises(HTTPException) as exc:
         require_agent_server_context(
