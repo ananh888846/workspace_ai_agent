@@ -1,3 +1,10 @@
+## 2026-09-24 — Standalone Ollama error boundary coverage
+
+- Bổ sung unit tests cho HTTP error, connection/unavailable, invalid JSON và missing response từ Ollama.
+- Bổ sung test `LLMResolver(mode="hybrid")` fallback sang cloud khi local Ollama unavailable.
+- Không thay đổi production LLM adapter/resolver contract.
+- Chưa chạy runtime suite trong bước này; cần verify local bằng `python -m pytest -q tests/unit/llm`.
+
 ## 2026-09-24 — Standalone Ollama system prompt runtime verified
 
 - Verify `OllamaProvider.generate()` với `system_prompt` thực tế trên Ollama local.
