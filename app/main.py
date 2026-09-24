@@ -126,13 +126,27 @@ def _classify_agent_request(payload: AgentChatRequest) -> tuple[str, str | None,
     return classify_chat_request(request)
 
 
+def _unsupported_handler(state: dict) -> dict:
+    return {
+        "status": "unsupported_action",
+        "message": "Capability chưa được hỗ trợ bởi runtime hiện tại.",
+        "execution": {
+            "intent": state.get("intent", "not_classified"),
+            "capability": state.get("capability"),
+            "action": state.get("action"),
+            "provider_called": False,
+        },
+        "provider_called": False,
+    }
+
+
 _agent_runtime = AgentRuntime(
     AgentRuntimeDependencies(
         classify=_classify_agent_request,
         route_handlers={
             "calendar.read": calendar_handler.handle,
             "calendar.write": calendar_handler.handle,
-            "default": calendar_handler.handle,
+            "default": _unsupported_handler,
         },
     )
 )
@@ -151,6 +165,16 @@ def agent_chat(
     result = _agent_runtime.run(request=payload, context=context)
     result["request_id"] = server_context["request_id"]
     return result
+
+
+# Backward-compatible endpoint for the Laravel V1 client.
+# Canonical API remains /api/v1/agent/chat.
+@app.post("/api/agent/chat")
+def agent_chat_legacy(
+    payload: AgentChatRequest,
+    server_context: dict[str, str] = Depends(require_agent_server_context),
+) -> dict:
+    return agent_chat(payload=payload, server_context=server_context)
 
 
 # Compatibility helper: các test/API nội bộ cũ vẫn có thể import helper từ app.main.
