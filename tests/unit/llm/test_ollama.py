@@ -66,3 +66,27 @@ def test_ollama_provider_maps_connection_error(monkeypatch: pytest.MonkeyPatch) 
 
     with pytest.raises(LLMProviderUnavailableError, match="ollama_unavailable"):
         OllamaProvider("http://localhost:11434", "qwen2.5:1.5b").generate("hello")
+
+
+def test_ollama_provider_maps_invalid_json(monkeypatch: pytest.MonkeyPatch) -> None:
+    class InvalidResponse(FakeResponse):
+        def read(self):
+            return b"not-json"
+
+    def fake_urlopen(request, timeout):
+        return InvalidResponse({})
+
+    monkeypatch.setattr("app.llm.ollama.urlopen", fake_urlopen)
+
+    with pytest.raises(LLMProviderError, match="ollama_invalid_response"):
+        OllamaProvider("http://localhost:11434", "qwen2.5:1.5b").generate("hello")
+
+
+def test_ollama_provider_maps_missing_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_urlopen(request, timeout):
+        return FakeResponse({"done": True})
+
+    monkeypatch.setattr("app.llm.ollama.urlopen", fake_urlopen)
+
+    with pytest.raises(LLMProviderError, match="ollama_response_missing"):
+        OllamaProvider("http://localhost:11434", "qwen2.5:1.5b").generate("hello")
