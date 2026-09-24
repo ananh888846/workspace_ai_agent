@@ -1,3 +1,10 @@
+## 2026-09-24 19:24:00 +07:00 — Fix API/runtime tests for server-to-server authentication
+
+- Đồng bộ tests/unit/api/test_chat_api.py và tests/runtime/test_execution_error_boundary_runtime.py với security contract hiện tại: Bearer token hợp lệ, X-Request-Id UUID và identity headers khi runtime cần user/organization context.
+- Giữ nguyên production security boundary trong app/api/security.py; không bypass authentication trong test.
+- Dùng token giả chỉ trong test process, không ghi secret thật vào repository.
+- Không thay đổi database, authorization logic hoặc provider runtime.
+
 ## 2026-09-23 13:30:00 +07:00 — Chốt Identity ERD và Local-First/Self-Hosted
 
 - Merge [Identity ERD V1](./IDENTITY_ERD_V1.md) sau review; trạng thái chuyển từ PROPOSED sang **ACCEPTED — DESIGN LOCKED**.
