@@ -97,7 +97,22 @@ Test sử dụng model `qwen2.5:1.5b`, Ollama local tại `127.0.0.1:11434`, v�
 
 `tests/unit/llm/test_factory.py` kiểm tra factory tạo đúng Ollama provider và cấu hình model.
 
-## 7. Explicit non-integration boundary
+## 7. Error boundary
+
+Ollama adapter maps transport/provider failures thành các lỗi contract rõ ràng:
+
+| Failure | Error |
+|---|---|
+| HTTP 4xx/5xx | `LLMProviderError("ollama_http_<status>")` |
+| Connection refused / network / timeout / OS error | `LLMProviderUnavailableError("ollama_unavailable")` |
+| JSON hoặc UTF-8 response không hợp lệ | `LLMProviderError("ollama_invalid_response")` |
+| Response không có field string `response` | `LLMProviderError("ollama_response_missing")` |
+
+`LLMResolver` ở `hybrid` mode sẽ fallback từ local sang cloud khi local provider lỗi; `local` mode không tự fallback sang provider khác.
+
+Các unit tests tương ứng đã được bổ sung trong `tests/unit/llm/test_ollama.py` và `tests/unit/llm/test_resolver.py`.
+
+## 8. Explicit non-integration boundary
 
 Tại trạng thái verified này:
 
@@ -107,7 +122,7 @@ Tại trạng thái verified này:
 - **Không** thay đổi Google OAuth hoặc credential flow.
 - LLM được kiểm thử như một subsystem độc lập.
 
-## 8. Smoke-test commands
+## 9. Smoke-test commands
 
 Kiểm tra Ollama:
 
