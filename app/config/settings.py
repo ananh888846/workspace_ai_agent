@@ -85,7 +85,7 @@ class Settings:
         "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/google/callback"
     )
     google_oauth_state_secret: str = _env("GOOGLE_OAUTH_STATE_SECRET")
-    google_credential_encryption_key: str = _env("GOOGLE_CREDENTIAL_ENCRYPTION_KEY")
+    # Provider-neutral key for non-Google account credentials.\n    credential_encryption_key: str = _env(\n        "CREDENTIAL_ENCRYPTION_KEY", _env("GOOGLE_CREDENTIAL_ENCRYPTION_KEY")\n    )\n    google_credential_encryption_key: str = _env("GOOGLE_CREDENTIAL_ENCRYPTION_KEY")
 
     google_calendar_read_scope: str = _env(
         "GOOGLE_CALENDAR_READ_SCOPE",
