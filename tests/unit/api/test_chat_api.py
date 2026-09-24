@@ -1,8 +1,24 @@
+import os
+
+os.environ["AGENT_SERVER_TOKEN"] = "test-agent-server-token"
+
 from fastapi.testclient import TestClient
 
 from app.main import app
 
 client = TestClient(app)
+
+
+def _headers(*, user_id: str | None = None, organization_id: str | None = None) -> dict[str, str]:
+    headers = {
+        "Authorization": "Bearer test-agent-server-token",
+        "X-Request-Id": "11111111-1111-4111-8111-111111111111",
+    }
+    if user_id is not None:
+        headers["X-User-ID"] = user_id
+    if organization_id is not None:
+        headers["X-Organization-ID"] = organization_id
+    return headers
 
 
 def test_health() -> None:
@@ -11,7 +27,7 @@ def test_health() -> None:
 
 
 def test_agent_chat_contract_creates_conversation_id() -> None:
-    response = client.post("/api/v1/agent/chat", json={"message": "Tôi có những tài khoản Google nào?"})
+    response = client.post("/api/v1/agent/chat", headers=_headers(), json={"message": "Tôi có những tài khoản Google nào?"})
     assert response.status_code == 200
     body = response.json()
     assert body["conversation_id"]
@@ -22,6 +38,7 @@ def test_agent_chat_contract_creates_conversation_id() -> None:
 def test_account_hint_requires_context() -> None:
     response = client.post(
         "/api/v1/agent/chat",
+        headers=_headers(),
         json={"message": "Dùng tài khoản abc@gmail.com", "account_hint": "abc@gmail.com"},
     )
     assert response.status_code == 400
@@ -43,7 +60,7 @@ def test_account_resolution_runtime_wiring(monkeypatch) -> None:
     monkeypatch.setattr("app.application.capabilities.calendar.resolve_google_account", fake_resolve)
     response = client.post(
         "/api/v1/agent/chat",
-        headers={"X-User-ID": "user-1", "X-Organization-ID": "org-1"},
+        headers=_headers(user_id="user-1", organization_id="org-1"),
         json={"message": "Dùng tài khoản abc@gmail.com", "account_hint": "abc@gmail.com"},
     )
     assert response.status_code == 200
@@ -120,10 +137,10 @@ def test_natural_language_scheduling_enters_runtime(monkeypatch) -> None:
     monkeypatch.setattr("app.application.capabilities.calendar.resolve_google_account", fake_resolve)
     response = client.post(
         "/api/v1/agent/chat",
-        headers={
-            "X-User-ID": "01a0c387-8eb5-7df5-aaa1-fcb8d3684ccc",
-            "X-Organization-ID": "01a0c387-8eaa-7147-8cf8-5e284268b30a",
-        },
+        headers=_headers(
+            user_id="01a0c387-8eb5-7df5-aaa1-fcb8d3684ccc",
+            organization_id="01a0c387-8eaa-7147-8cf8-5e284268b30a",
+        ),
         json={"message": "Tìm thời gian trống 1 tiếng ngày mai"},
     )
     assert response.status_code == 200
