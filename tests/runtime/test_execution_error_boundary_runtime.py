@@ -133,7 +133,7 @@ def test_runtime_authorization_denied_error_boundary(monkeypatch) -> None:
 
     response = client.post(
         "/api/v1/agent/chat",
-        headers={"X-User-ID": "runtime-user", "X-Organization-ID": "runtime-org"},
+        headers=_headers(user_id="runtime-user", organization_id="runtime-org"),
         json={
             "message": "Đọc lịch",
             "capability": "calendar.read",
@@ -156,7 +156,7 @@ def test_runtime_oauth_required_error_boundary(monkeypatch) -> None:
 
     response = client.post(
         "/api/v1/agent/chat",
-        headers={"X-User-ID": "runtime-user", "X-Organization-ID": "runtime-org"},
+        headers=_headers(user_id="runtime-user", organization_id="runtime-org"),
         json={
             "message": "Đọc lịch",
             "capability": "calendar.read",
@@ -179,7 +179,7 @@ def test_runtime_validation_error_boundary_never_calls_provider(monkeypatch) -> 
 
     response = client.post(
         "/api/v1/agent/chat",
-        headers={"X-User-ID": "runtime-user", "X-Organization-ID": "runtime-org"},
+        headers=_headers(user_id="runtime-user", organization_id="runtime-org"),
         json={
             "message": "Đọc lịch",
             "capability": "calendar.read",
@@ -210,7 +210,7 @@ def test_runtime_provider_error_boundary_marks_provider_called(monkeypatch) -> N
 
     response = client.post(
         "/api/v1/agent/chat",
-        headers={"X-User-ID": "runtime-user", "X-Organization-ID": "runtime-org"},
+        headers=_headers(user_id="runtime-user", organization_id="runtime-org"),
         json={
             "message": "Đọc lịch",
             "capability": "calendar.read",
