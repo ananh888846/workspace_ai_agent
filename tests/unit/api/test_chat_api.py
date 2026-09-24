@@ -27,7 +27,7 @@ def test_health() -> None:
 
 
 def test_agent_chat_contract_creates_conversation_id() -> None:
-    response = client.post("/api/v1/agent/chat", headers=_headers(), json={"message": "Tôi có những tài khoản Google nào?"})
+    response = client.post(\n        "/api/v1/agent/chat",\n        headers=_headers(user_id="contract-user", organization_id="contract-org"),\n        json={"message": "Tôi có những tài khoản Google nào?"},\n    )
     assert response.status_code == 200
     body = response.json()
     assert body["conversation_id"]
@@ -90,7 +90,7 @@ def test_authorization_runtime_wiring(monkeypatch) -> None:
     monkeypatch.setattr("app.application.capabilities.calendar.authorize_request", fake_authorize)
     response = client.post(
         "/api/v1/agent/chat",
-        headers={"X-User-ID": "user-1", "X-Organization-ID": "org-1"},
+        headers=_headers(user_id="user-1", organization_id="org-1"),
         json={
             "message": "Đọc lịch",
             "account_hint": "abc@gmail.com",
