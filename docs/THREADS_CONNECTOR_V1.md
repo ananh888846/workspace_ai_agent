@@ -1,6 +1,6 @@
 # Threads Source Connector V1 — Implementation
 
-> Status: CREDENTIAL BOUNDARY IMPLEMENTED — UNIT TESTS ADDED — LIVE PROVIDER SMOKE TEST NOT RUN
+> Status: CREDENTIAL BOUNDARY IMPLEMENTED — COMPOSITION IMPLEMENTED — LIVE PROVIDER SMOKE TEST PREPARED — NOT RUN
 > Date: 2026-09-24
 > Architecture source of truth: workspace-ai-agent-ecosystem / ARCHITECTURE/THREADS_CONNECTOR_CONTRACT_V1.md
 
@@ -61,8 +61,8 @@ Not yet verified:
 2. Compose AccountResolver + AuthorizationService + CredentialResolver + ThreadsSourceConnector.
 3. Connect connector output to KnowledgeIngestionService.
 4. Add integration tests proving authorization denial prevents provider calls.
-5. Run controlled live Threads smoke test with a valid app/account.
+5. Run `RUN_THREADS_LIVE_SMOKE=1` with a valid `THREADS_SMOKE_ACCESS_TOKEN`.\n7. Verify ingestion persistence and idempotency.
 6. Verify ingestion persistence and idempotency.
-7. Update ecosystem status from IMPLEMENTED/CHƯA XÁC MINH to VERIFIED only after runtime evidence.
+8. Update ecosystem status from IMPLEMENTED/CHƯA XÁC MINH to VERIFIED only after runtime evidence.
 
 Facebook remains blocked on capability verification and is not implemented by this change.
