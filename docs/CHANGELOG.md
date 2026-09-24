@@ -554,3 +554,13 @@ Chốt triển khai Multi-Hybrid LLM V1 theo mô hình tối giản: `local`, `c
 - Bổ sung cấu hình [`docs/CONFIGURATION.md`](CONFIGURATION.md) và [`.env.example`](../.env.example) cho `LLM_MODE` và cloud provider.
 - Không tạo migration/DB table; không thay đổi Authorization, Calendar hoặc LangGraph state contract.
 - Verification gate: `python -m pytest tests/unit/llm -q` và `python -m pytest -q`.
+
+
+## 2026-09-24 14:48:20 +07:00 — Multi-Hybrid LLM V1 — H2 Ollama Provider Adapter
+
+- Thêm Ollama provider adapter tại [`app/llm/ollama.py`](../app/llm/ollama.py).
+- Thêm factory [`app/llm/factory.py`](../app/llm/factory.py) để wiring Settings → OllamaProvider → LLMResolver.
+- Thêm tests [`tests/unit/llm/test_ollama.py`](../tests/unit/llm/test_ollama.py) và [`tests/unit/llm/test_factory.py`](../tests/unit/llm/test_factory.py).
+- Không thêm dependency Ollama SDK; adapter dùng HTTP API chuẩn bằng Python stdlib.
+- Không tạo migration/DB table và chưa thay đổi Authorization/Calendar/LangGraph state.
+- Verification được thực hiện **local**, không dùng GitHub Actions làm test gate.
