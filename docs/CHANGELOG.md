@@ -1,3 +1,9 @@
+## 2026-09-24 19:43:12 +07:00 — Fix final API security test fixture
+
+- Sửa test `test_identity_headers_are_required_after_authentication` để patch trực tiếp `app.api.security.get_settings`, đồng nhất với các security tests còn lại.
+- Giữ nguyên thứ tự kiểm tra production: server token hợp lệ trước, sau đó mới kiểm tra `X-Request-ID` và identity headers.
+- Full suite trước thay đổi: 115 passed, 1 failed, 2 skipped.
+
 ## 2026-09-24 19:41:59 +07:00 — Fix full-suite authentication test isolation
 
 - Xác định nguyên nhân các test nhận HTTP 401 trong full suite: `Settings` dùng default field được evaluate khi module import, nên `get_settings.cache_clear()` không làm thay đổi `agent_server_token` đã được nạp trước đó.
