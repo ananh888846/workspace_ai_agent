@@ -1,3 +1,10 @@
+## 2026-09-24 19:41:59 +07:00 — Fix full-suite authentication test isolation
+
+- Xác định nguyên nhân các test nhận HTTP 401 trong full suite: `Settings` dùng default field được evaluate khi module import, nên `get_settings.cache_clear()` không làm thay đổi `agent_server_token` đã được nạp trước đó.
+- Cập nhật runtime/chat tests dùng autouse fixture để patch `app.api.security.get_settings` với test token, giữ nguyên server-to-server authentication production.
+- Cập nhật API security tests dùng patch trực tiếp `get_settings` thay vì phụ thuộc biến môi trường sau import.
+- Tiếp tục verification bằng `python -m pytest -q` trước khi chuyển sang `workspace_ai_agent_web`.
+
 ## 2026-09-24 19:39:22 +07:00 — Fix full-suite calendar parsing and test authentication isolation
 
 - Sửa CalendarDateTimeParser để ngày được ghi rõ bằng định dạng dd/mm[/yyyy] không bị tự động đẩy sang ngày kế tiếp chỉ vì thời điểm hiện tại trong ngày đã vượt qua giờ hẹn.
