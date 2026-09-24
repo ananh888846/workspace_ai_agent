@@ -1,3 +1,10 @@
+## 2026-09-24 — Standalone Ollama system prompt runtime verified
+
+- Verify `OllamaProvider.generate()` với `system_prompt` thực tế trên Ollama local.
+- Model: `qwen2.5:1.5b`; provider: `ollama`; response verification: `OK`.
+- Xác nhận system prompt đi qua Ollama adapter thành công.
+- Giữ nguyên boundary: LLM vẫn standalone, chưa tích hợp Calendar, AgentRuntime hoặc scheduling/LangGraph flow.
+
 ## 2026-09-24 — Standalone Ollama LLM runtime verified
 
 - Thêm [docs/LLM.md](./LLM.md) ghi nhận LLM layer độc lập và smoke-test procedure.
