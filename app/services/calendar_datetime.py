@@ -56,7 +56,11 @@ class CalendarDateTimeParser:
 
         value = datetime.combine(target_date, target_time, tzinfo=VIETNAM_TIMEZONE)
 
-        if target_date == reference_local.date() and value < reference_local:
+        if (
+            target_date == reference_local.date()
+            and value < reference_local
+            and not self._has_explicit_date(normalized)
+        ):
             if self._has_explicit_today(normalized):
                 raise ValueError("datetime_expression_is_in_the_past")
             tomorrow = target_date + timedelta(days=1)
@@ -80,6 +84,10 @@ class CalendarDateTimeParser:
     @staticmethod
     def _has_explicit_today(text: str) -> bool:
         return "hôm nay" in text
+
+    @staticmethod
+    def _has_explicit_date(text: str) -> bool:
+        return re.search(r"\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b", text) is not None
 
     def _parse_relative_duration(self, text: str, reference: datetime) -> datetime | None:
         match = re.search(r"\b(\d+)\s*(phút|p|giờ|h|tiếng)\s*(nữa|sau)\b", text)
