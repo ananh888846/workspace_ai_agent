@@ -53,6 +53,19 @@ def test_hybrid_mode_uses_local_first_and_cloud_fallback() -> None:
     assert cloud.calls == 1
 
 
+def test_hybrid_mode_falls_back_when_local_is_unavailable() -> None:
+    from app.llm.providers import LLMProviderUnavailableError
+
+    local = FakeProvider("ollama", error=LLMProviderUnavailableError("ollama_unavailable"))
+    cloud = FakeProvider("cloud", "cloud")
+
+    result = LLMResolver(local=local, cloud=cloud, mode="hybrid").generate("hello")
+
+    assert result == ("cloud", "cloud")
+    assert local.calls == 1
+    assert cloud.calls == 1
+
+
 def test_hybrid_mode_does_not_call_cloud_after_local_success() -> None:
     local = FakeProvider("ollama", "local")
     cloud = FakeProvider("cloud", "cloud")
