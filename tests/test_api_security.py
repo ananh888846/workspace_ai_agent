@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from fastapi import HTTPException
 
+from app.config.settings import get_settings
 from app.api.security import require_agent_server_context
 
 
