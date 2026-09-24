@@ -27,7 +27,11 @@ def test_health() -> None:
 
 
 def test_agent_chat_contract_creates_conversation_id() -> None:
-    response = client.post(\n        "/api/v1/agent/chat",\n        headers=_headers(user_id="contract-user", organization_id="contract-org"),\n        json={"message": "Tôi có những tài khoản Google nào?"},\n    )
+    response = client.post(
+        "/api/v1/agent/chat",
+        headers=_headers(user_id="contract-user", organization_id="contract-org"),
+        json={"message": "Tôi có những tài khoản Google nào?"},
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["conversation_id"]
