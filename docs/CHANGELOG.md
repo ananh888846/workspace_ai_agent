@@ -527,3 +527,20 @@ Migration 046 → 050 đã được tạo nhưng **chưa được verify runtime
 ### Gate
 
 Database V2.1 remains **OPEN**. Runtime execution has not been performed in this environment because Docker/PostgreSQL is not available to the current tool runtime.
+
+
+## 2026-09-24 14:39:00 +07:00 — Multi-Hybrid LLM V1 approved
+
+### Updated
+
+- [docs/DECISIONS.md](./DECISIONS.md) — thêm Decision 054 về Multi-Hybrid LLM V1.
+- [docs/CONFIGURATION.md](./CONFIGURATION.md) — sẽ bổ sung cấu hình LLM local/cloud/hybrid trong bước implementation.
+- [docs/LOCAL_FIRST_SELF_HOSTED_V1.md](./LOCAL_FIRST_SELF_HOSTED_V1.md) — giữ Ollama/local LLM là mặc định và cloud LLM là optional provider.
+
+### Decision
+
+Chốt triển khai Multi-Hybrid LLM V1 theo mô hình tối giản: `local`, `cloud`, `hybrid`; hybrid fallback **local/Ollama → cloud** khi local provider thất bại. Không tạo migration DB và chưa triển khai intelligent routing/cost/usage/model scoring.
+
+### Gate
+
+Đã hoàn tất documentation decision gate. Bước tiếp theo là implementation LLM provider contract/resolver, sau đó cloud adapter và hybrid fallback; mỗi bước phải chạy regression.
