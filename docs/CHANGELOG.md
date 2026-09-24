@@ -1,3 +1,11 @@
+## 2026-09-24 19:39:22 +07:00 — Fix full-suite calendar parsing and test authentication isolation
+
+- Sửa CalendarDateTimeParser để ngày được ghi rõ bằng định dạng dd/mm[/yyyy] không bị tự động đẩy sang ngày kế tiếp chỉ vì thời điểm hiện tại trong ngày đã vượt qua giờ hẹn.
+- Sửa test security thiếu import get_settings.
+- Cô lập get_settings cache trong các test runtime/chat có AGENT_SERVER_TOKEN, tránh full-suite test order làm request hợp lệ thành HTTP 401.
+- Không thay đổi server-to-server authentication contract production.
+- Verification tiếp theo: chạy lại full suite `python -m pytest -q`.
+
 ## 2026-09-24 19:34:04 +07:00 — Fix chat execution contract and authorization wiring tests
 
 - Giữ `conversation_id` và Execution Contract cho request chưa phân loại capability; request có `account_hint` vẫn đi qua Account Resolution boundary.
