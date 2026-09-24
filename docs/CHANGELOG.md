@@ -544,3 +544,13 @@ Chốt triển khai Multi-Hybrid LLM V1 theo mô hình tối giản: `local`, `c
 ### Gate
 
 Đã hoàn tất documentation decision gate. Bước tiếp theo là implementation LLM provider contract/resolver, sau đó cloud adapter và hybrid fallback; mỗi bước phải chạy regression.
+
+
+## 2026-09-24 14:41:32 +07:00 — Multi-Hybrid LLM V1 — H1 Provider Contract + Resolver
+
+- Triển khai H1 theo [Decision 054](DECISIONS.md): tạo LLM provider boundary tối thiểu và `LLMResolver` với ba mode `local`, `cloud`, `hybrid`.
+- Thêm [`app/llm/providers.py`](../app/llm/providers.py) và [`app/llm/resolver.py`](../app/llm/resolver.py); chưa kết nối provider thật vào Agent Runtime.
+- Thêm unit tests tại [`tests/unit/llm/test_resolver.py`](../tests/unit/llm/test_resolver.py).
+- Bổ sung cấu hình [`docs/CONFIGURATION.md`](CONFIGURATION.md) và [`.env.example`](../.env.example) cho `LLM_MODE` và cloud provider.
+- Không tạo migration/DB table; không thay đổi Authorization, Calendar hoặc LangGraph state contract.
+- Verification gate: `python -m pytest tests/unit/llm -q` và `python -m pytest -q`.
