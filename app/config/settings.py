@@ -63,6 +63,12 @@ class Settings:
         "OLLAMA_EMBEDDING_MODEL", "nomic-embed-text-v2-moe"
     )
 
+    # Multi-Hybrid LLM V1: local, cloud, or local-first/cloud-fallback.
+    llm_mode: str = _env("LLM_MODE", "local")
+    cloud_llm_base_url: str = _env("CLOUD_LLM_BASE_URL")
+    cloud_llm_api_key: str = _env("CLOUD_LLM_API_KEY")
+    cloud_llm_chat_model: str = _env("CLOUD_LLM_CHAT_MODEL")
+
     file_storage_driver: str = _env("FILE_STORAGE_DRIVER", "local")
     file_storage_path: str = _env("FILE_STORAGE_PATH", "./data/storage")
 
