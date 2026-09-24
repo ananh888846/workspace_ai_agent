@@ -1,3 +1,9 @@
+## 2026-09-24 19:34:04 +07:00 — Fix chat execution contract and authorization wiring tests
+
+- Giữ `conversation_id` và Execution Contract cho request chưa phân loại capability; request có `account_hint` vẫn đi qua Account Resolution boundary.
+- Cô lập test authorization runtime khỏi PostgreSQL credential storage bằng fake `CredentialResolver`, tránh phụ thuộc trạng thái database khi kiểm tra Authorization boundary.
+- Không nới lỏng server-to-server authentication và không bypass Authorization production runtime.
+
 ## 2026-09-24 05:00:00 +07:00 — Align API/runtime tests with server authentication contract
 
 - Sửa tests/unit/api/test_chat_api.py để các test contract cần runtime context gửi đầy đủ Bearer token, X-Request-Id và identity headers.
