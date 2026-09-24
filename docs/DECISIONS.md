@@ -983,3 +983,63 @@ Không dùng Administrator để thay thế Guest Principal. Guest Access tiếp
 - Không tạo migration schema mới cho bước này vì toàn bộ bảng identity/authorization cần thiết đã tồn tại từ Migration 001 → 009.
 - Guest Access vẫn Deferred theo Decision 051.
 - Bước tiếp theo: local verification, sau đó map `admin_user_id` vào Laravel Web Authentication V1.
+
+
+## Decision 054 — Multi-Hybrid LLM V1
+**Status:** Accepted — Implementation approved
+
+Workspace AI Agent triển khai Multi-Hybrid LLM V1 theo hướng tối giản, giữ Local-First/Self-Hosted invariant.
+
+### Phạm vi V1
+
+- **Ollama/local LLM** là provider mặc định.
+- **Cloud LLM** là provider tùy chọn.
+- Hỗ trợ ba mode cấu hình: \`local\`, \`cloud\`, \`hybrid\`.
+- \`hybrid\` thực hiện **local trước → cloud fallback khi local thất bại**.
+- Cấu hình bằng environment/Settings; **không tạo migration database**.
+- Chưa triển khai intelligent routing, model scoring, cost optimization, token accounting, latency optimization hoặc routing policy theo user/organization.
+
+### Boundary
+
+\`\`\`
+Agent / Application
+        ↓
+LLM Resolver
+        ↓
+LLM Provider
+   ├── Ollama Provider
+   └── Cloud Provider
+\`\`\`
+
+LLM layer không sở hữu Identity, Authentication, Authorization, Credential Resolution hoặc provider permission.
+
+Credential/secret của cloud provider không được đưa vào LangGraph state, prompt, audit hoặc response.
+
+### Fallback contract
+
+\`\`\`
+hybrid
+   ↓
+Local/Ollama
+   ├── success → return
+   └── failure → Cloud Provider
+\`\`\`
+
+Fallback chỉ áp dụng cho lỗi provider/model phù hợp; không được dùng fallback để bypass Authorization, validation, confirmation hoặc capability boundary.
+
+### Database
+
+Không tạo các bảng \`llm_providers\`, \`llm_models\`, \`llm_routing_rules\`, \`llm_usage\` hoặc \`llm_costs\` trong V1.
+
+Chỉ mở rộng persistence khi có yêu cầu thực tế về policy theo user/organization, usage/cost tracking hoặc model configuration động.
+
+### Implementation gate
+
+Triển khai theo từng bước nhỏ:
+1. LLM provider contract/resolver.
+2. Đưa Ollama hiện tại vào provider boundary.
+3. Thêm cloud provider adapter.
+4. Bật hybrid fallback local → cloud.
+5. Chạy LLM-focused tests và full regression.
+
+Không rewrite Agent Runtime/LangGraph hoặc Calendar runtime chỉ để thêm LLM provider abstraction.
