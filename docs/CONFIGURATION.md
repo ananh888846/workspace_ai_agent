@@ -172,3 +172,22 @@ Không bỏ qua Core authorization để gọi provider API trực tiếp.
 - `GOOGLE_CREDENTIAL_ENCRYPTION_KEY`: khóa Fernet dùng để mã hóa credential trước khi ghi `account_credentials.encrypted_value`. Không commit.
 - Hai giá trị này không được đưa vào prompt, log, audit hoặc HTTP response.
 - Nếu thiếu một trong hai secret, OAuth flow phải dừng thay vì tạo credential không bảo vệ.
+
+
+## 11. Multi-Hybrid LLM V1
+
+Multi-Hybrid LLM V1 chỉ có ba mode:
+
+| Mode | Hành vi |
+|---|---|
+| `local` | Chỉ gọi Ollama/local provider |
+| `cloud` | Chỉ gọi cloud provider |
+| `hybrid` | Gọi local trước; local lỗi thì fallback sang cloud |
+
+Mặc định là `LLM_MODE=local`.
+
+Các biến cloud là optional. Nếu chọn `cloud` hoặc `hybrid` mà cloud provider chưa được cấu hình, resolver phải báo lỗi cấu hình thay vì tự ý đổi mode.
+
+V1 **chưa** có intelligent routing, model scoring, cost/token accounting, latency optimization hoặc policy routing theo organization.
+
+API key của cloud provider là server-side secret: không commit, không log, không đưa vào LangGraph state, prompt hoặc HTTP response.
