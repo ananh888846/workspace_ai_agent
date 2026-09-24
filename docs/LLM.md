@@ -66,7 +66,18 @@ python -m pytest -q tests/unit/llm
 9 passed in 0.03s
 ```
 
-## 5. Unit-test coverage
+## 5. System prompt runtime verification
+
+Đã kiểm tra trực tiếp `system_prompt` qua `OllamaProvider.generate()`:
+
+```text
+provider = ollama
+response = OK
+```
+
+Test sử dụng model `qwen2.5:1.5b`, Ollama local tại `127.0.0.1:11434`, với system prompt yêu cầu model tuân thủ định dạng trả lời. Kết quả xác nhận field `system` được truyền qua adapter và Ollama trả response thành công.
+
+## 6. Unit-test coverage
 
 `tests/unit/llm/test_ollama.py` kiểm tra:
 
@@ -86,7 +97,7 @@ python -m pytest -q tests/unit/llm
 
 `tests/unit/llm/test_factory.py` kiểm tra factory tạo đúng Ollama provider và cấu hình model.
 
-## 6. Explicit non-integration boundary
+## 7. Explicit non-integration boundary
 
 Tại trạng thái verified này:
 
@@ -96,7 +107,7 @@ Tại trạng thái verified này:
 - **Không** thay đổi Google OAuth hoặc credential flow.
 - LLM được kiểm thử như một subsystem độc lập.
 
-## 7. Smoke-test commands
+## 8. Smoke-test commands
 
 Kiểm tra Ollama:
 
