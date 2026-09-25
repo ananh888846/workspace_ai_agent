@@ -48,7 +48,7 @@ class Embedding:
 
 
 class Index:
-    def upsert(self, chunks, vectors, document_version_id=None):
+    def upsert(self, chunks, vectors, document_version_id=None, organization_id=None):
         pass
 
     def reconcile(self, document_version_id):
