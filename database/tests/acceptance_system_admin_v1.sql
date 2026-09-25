@@ -1,4 +1,4 @@
--- Acceptance: System Administrator V1.
+/*\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Acceptance checks for System Admin permission and role-management behavior.\n*/\n\n-- Acceptance: System Administrator V1.
 -- Chạy sau Migration 001 -> 051. Toàn bộ fixture được ROLLBACK.
 
 BEGIN;
