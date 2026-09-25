@@ -14,6 +14,14 @@ Không tạo Principal/User type riêng cho Admin.
 
 ## 2. Permission catalog
 
+Canonical Permission Catalog V1 is defined in `workspace-ai-agent-ecosystem/ARCHITECTURE/PERMISSION_CATALOG_V1.md` and currently contains exactly:
+
+- `calendar.read` → resource=`calendar`, action=`read`
+- `calendar.write` → resource=`calendar`, action=`write`
+- `knowledge.read` → resource=`knowledge`, action=`read`
+
+Provider OAuth capabilities such as `threads_basic` and `threads_read_replies` are not Backend Permission rows. Calendar sub-operations are not separate catalog rows.
+
 Khi bootstrap system_admin, role được gắn **tất cả Permission hiện có tại thời điểm chạy** bằng các bản ghi role_permissions.
 
 Đây là explicit mapping, không có wildcard permission.
