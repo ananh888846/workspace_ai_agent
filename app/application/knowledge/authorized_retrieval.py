@@ -1,3 +1,8 @@
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Enforces query authorization and canonical source-level filtering around Knowledge retrieval.
+"""
+
 \nfrom __future__ import annotations
 
 from dataclasses import dataclass
