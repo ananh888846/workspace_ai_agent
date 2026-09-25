@@ -1,4 +1,14 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Qdrant vector index adapter with tenant-filtered Knowledge retrieval.\n"""\n\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom __future__ import annotations
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Qdrant vector index adapter with tenant-filtered Knowledge retrieval.
+"""
+
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.
+"""
+
+from __future__ import annotations
 
 import json
 from dataclasses import dataclass
