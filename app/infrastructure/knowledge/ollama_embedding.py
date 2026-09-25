@@ -3,11 +3,6 @@ Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Ollama embedding adapter for generating Knowledge vectors.
 """
 
-"""
-Created/Updated: 2026-09-24 20:32 GMT+7
-Main Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.
-"""
-
 from __future__ import annotations
 
 import json
