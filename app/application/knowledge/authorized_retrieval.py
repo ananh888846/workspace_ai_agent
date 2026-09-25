@@ -1,4 +1,4 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Enforces query authorization and canonical source-level filtering around Knowledge retrieval.\n"""\n\nfrom __future__ import annotations
+\nfrom __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Protocol, Sequence
