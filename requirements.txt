@@ -9,3 +9,4 @@ google-auth-oauthlib>=1.2,<2
 google-api-python-client>=2.150,<3
 langgraph>=0.6,<2
 langgraph-cli[inmem]
+docling>=2.130,<3
