@@ -69,7 +69,7 @@ class KnowledgeIngestionService:
                 item.assets,
             )
         vectors = self.embedding.embed(chunks)
-        self.vector_index.upsert(chunks, vectors, version.id)
+        self.vector_index.upsert(chunks, vectors, version.id, item.organization_id)
         self.vector_index.reconcile(version.id)
 
         return IngestionResult(
