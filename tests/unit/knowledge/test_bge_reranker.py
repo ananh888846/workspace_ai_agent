@@ -1,3 +1,6 @@
+import sys
+from types import SimpleNamespace
+
 from app.application.knowledge.retrieval import RetrievalCandidate
 from app.infrastructure.knowledge.bge_reranker import BGEReranker
 
@@ -10,9 +13,8 @@ def test_bge_reranker_ranks_by_model_score(monkeypatch):
         def predict(self, pairs):
             return [0.1, 0.9]
 
-    monkeypatch.setattr(
-        "sentence_transformers.CrossEncoder",
-        FakeCrossEncoder,
+    monkeypatch.setitem(
+        sys.modules, "sentence_transformers", SimpleNamespace(CrossEncoder=FakeCrossEncoder)
     )
     candidates = [
         RetrievalCandidate("p1", 0.7, "old", "v1", 0),
