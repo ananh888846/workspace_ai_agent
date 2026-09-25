@@ -1,4 +1,4 @@
-from app.infrastructure.knowledge.docling import DoclingDocumentParser
+"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Unit tests for Docling document parsing and plain-text handling.\n"""\n\nfrom app.infrastructure.knowledge.docling import DoclingDocumentParser
 
 
 class Document:
