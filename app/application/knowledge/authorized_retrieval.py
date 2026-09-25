@@ -37,6 +37,7 @@ class AuthorizedKnowledgeRetrievalService:
         user_id: str,
         organization_id: str,
         limit: int = 10,
+        candidate_limit: int | None = None,
     ) -> list[KnowledgeResult]:
         if not self.authorization.authorize_query(
             user_id=user_id,
@@ -46,6 +47,7 @@ class AuthorizedKnowledgeRetrievalService:
         candidates = self.retrieval.retrieve(
             query,
             organization_id=organization_id,
+            candidate_limit=max(candidate_limit or limit, 1),
             limit=max(limit, 1),
         )
         authorized = self.authorization.filter_candidates(
