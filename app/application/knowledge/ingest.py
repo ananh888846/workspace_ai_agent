@@ -1,4 +1,4 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Coordinates authorized Knowledge ingestion from source item through chunks, embeddings, and vector indexing.\n"""\n\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom dataclasses import dataclass
+\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom dataclasses import dataclass
 
 from app.application.knowledge.ports import (
     AuthorizationPort,
