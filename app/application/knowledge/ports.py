@@ -28,6 +28,18 @@ class KnowledgeRepository(Protocol):
 class StoragePort(Protocol):
     def put(self, asset, content: bytes) -> str: ...
 
+    def get(self, storage_key: str) -> bytes: ...
+
+
+class DocumentParserPort(Protocol):
+    def parse(
+        self,
+        content: bytes,
+        *,
+        file_name: str,
+        mime_type: str | None = None,
+    ) -> str: ...
+
 
 class ChunkerPort(Protocol):
     def chunk(self, content: str) -> list[str]: ...
