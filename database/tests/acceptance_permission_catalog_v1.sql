@@ -1,4 +1,4 @@
--- Acceptance: canonical Permission Catalog V1.
+/*\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Acceptance checks for the canonical Permission Catalog V1.\n*/\n\n-- Acceptance: canonical Permission Catalog V1.
 -- Chạy sau Migration 052. Fixture changes are rolled back.
 
 BEGIN;
