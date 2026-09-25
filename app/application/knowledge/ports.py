@@ -1,4 +1,4 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Provider-neutral ports for Knowledge authorization, storage, parsing, chunking, embeddings, and vector indexing.\n"""\n\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom typing import Protocol
+\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom typing import Protocol
 
 from app.domain.knowledge.source import KnowledgeSourceItem
 
