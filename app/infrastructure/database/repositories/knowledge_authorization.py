@@ -1,3 +1,8 @@
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Applies PostgreSQL Knowledge permission, account-access, and provenance filtering.
+"""
+
 \nfrom __future__ import annotations
 
 from typing import Any, Sequence
