@@ -76,6 +76,7 @@ class QdrantVectorIndex:
         chunks: list[str],
         vectors: list[list[float]],
         document_version_id: str | None = None,
+        organization_id: str | None = None,
     ) -> None:
         if len(chunks) != len(vectors):
             raise QdrantVectorStoreError("qdrant_chunk_vector_count_mismatch")
@@ -93,6 +94,7 @@ class QdrantVectorIndex:
                     "vector": vector,
                     "payload": {
                         "document_version_id": document_version_id,
+                        "organization_id": organization_id,
                         "chunk_index": index,
                         "content": chunk,
                     },
@@ -104,6 +106,45 @@ class QdrantVectorIndex:
             f"/collections/{self.collection}/points?wait=true",
             {"points": points},
         )
+
+    def search(
+        self,
+        vector: list[float],
+        *,
+        organization_id: str,
+        limit: int,
+    ):
+        if not vector:
+            return []
+        if limit < 1:
+            raise ValueError("limit_must_be_positive")
+        payload = {
+            "vector": vector,
+            "limit": limit,
+            "with_payload": True,
+            "filter": {
+                "must": [
+                    {"key": "organization_id", "match": {"value": organization_id}}
+                ]
+            },
+        }
+        response = self._request(
+            "POST",
+            f"/collections/{self.collection}/points/search",
+            payload,
+        )
+        points = response.get("result", [])
+        from app.application.knowledge.retrieval import RetrievalCandidate
+        return [
+            RetrievalCandidate(
+                point_id=str(point["id"]),
+                score=float(point.get("score", 0.0)),
+                content=str(point.get("payload", {}).get("content", "")),
+                document_version_id=str(point.get("payload", {}).get("document_version_id", "")),
+                chunk_index=int(point.get("payload", {}).get("chunk_index", 0)),
+            )
+            for point in points
+        ]
 
     def reconcile(self, document_version_id: str) -> None:
         # Upsert uses deterministic point IDs, so the current version is
