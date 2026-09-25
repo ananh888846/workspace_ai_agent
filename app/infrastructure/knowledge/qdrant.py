@@ -3,11 +3,6 @@ Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Qdrant vector index adapter with tenant-filtered Knowledge retrieval.
 """
 
-"""
-Created/Updated: 2026-09-24 20:32 GMT+7
-Main Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.
-"""
-
 from __future__ import annotations
 
 import json
