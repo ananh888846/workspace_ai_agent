@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Runs local BGE reranking over retrieved Knowledge candidates.\n"""\n\nfrom __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Sequence
