@@ -67,7 +67,7 @@ def test_find_source_is_tenant_account_provider_scoped():
 
 
 def test_create_source_persists_provenance_metadata():
-    connection = Connection([("source-1",)])
+    connection = Connection([None, ("source-1",)])
     repo = PostgresKnowledgeRepository(connection)
 
     result = repo.create_source(item())
