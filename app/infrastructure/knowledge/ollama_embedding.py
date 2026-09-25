@@ -1,4 +1,14 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Ollama embedding adapter for generating Knowledge vectors.\n"""\n\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom __future__ import annotations
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Ollama embedding adapter for generating Knowledge vectors.
+"""
+
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.
+"""
+
+from __future__ import annotations
 
 import json
 from dataclasses import dataclass
