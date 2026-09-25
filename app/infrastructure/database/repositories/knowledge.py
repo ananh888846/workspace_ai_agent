@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, Sequence
+
+from psycopg.types.json import Json
 from uuid import UUID, uuid5
 import hashlib
 
@@ -93,7 +95,7 @@ class PostgresKnowledgeRepository:
             item.source_revision,
             item.source_checksum,
             "deleted" if item.deleted else "active",
-            item.metadata,
+            Json(item.metadata),
         ]
 
         with self._connection.cursor() as cursor:
@@ -230,7 +232,7 @@ class PostgresKnowledgeRepository:
                         item.source_checksum,
                         item.content,
                         item.mime_type or "text/plain",
-                        item.metadata,
+                        Json(item.metadata),
                     ],
                 )
                 version_id = str(cursor.fetchone()[0])
@@ -341,7 +343,7 @@ class PostgresKnowledgeRepository:
                         [organization_id, document_version_id, asset.asset_type,
                          asset.file_name, asset.mime_type, asset.file_size,
                          asset.checksum, asset.storage_backend, asset.storage_key,
-                         asset.metadata],
+                         Json(asset.metadata)],
                     )
                     row = cursor.fetchone()
                     if row is None:
