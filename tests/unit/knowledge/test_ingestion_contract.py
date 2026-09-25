@@ -21,6 +21,13 @@ class Repo:
         self.versions += 1
         return type("Version", (), {"id": f"version-{self.versions}"})()
 
+    def create_chunks(self, document_version_id, organization_id, chunks):
+        self.chunks = chunks
+        return [f"chunk-{i}" for i, _ in enumerate(chunks)]
+
+    def create_assets(self, document_version_id, organization_id, assets):
+        return [f"asset-{i}" for i, _ in enumerate(assets)]
+
     def mark_unchanged(self, source_id):
         pass
 
@@ -73,6 +80,7 @@ def test_first_ingestion_creates_version():
     result = service.ingest(item())
     assert result.status == "COMPLETED"
     assert result.chunk_count == 1
+    assert repo.chunks == ["Xin chào Knowledge"]
 
 
 def test_unchanged_checksum_is_noop():
