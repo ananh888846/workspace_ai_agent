@@ -106,19 +106,7 @@ class QdrantVectorIndex:
         )
 
     def reconcile(self, document_version_id: str) -> None:
-        if not document_version_id:
-            return
-        self._request(
-            "POST",
-            f"/collections/{self.collection}/points/delete?wait=true",
-            {
-                "filter": {
-                    "must": [
-                        {
-                            "key": "document_version_id",
-                            "match": {"value": document_version_id},
-                        }
-                    ]
-                }
-            },
-        )
+        # Upsert uses deterministic point IDs, so the current version is
+        # idempotent. Stale-point deletion is deferred until retrieval can
+        # reconcile canonical PostgreSQL chunk IDs safely.
+        return None
