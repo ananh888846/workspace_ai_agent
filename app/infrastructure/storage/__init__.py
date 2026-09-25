@@ -1,4 +1,9 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Exports the local Knowledge asset storage adapter.\n"""\n\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\n"""Knowledge binary storage adapters."""
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Exports the local Knowledge asset storage adapter.
+"""
+
+"""Knowledge binary storage adapters."""
 
 from app.infrastructure.storage.local import LocalFileStorage
 
