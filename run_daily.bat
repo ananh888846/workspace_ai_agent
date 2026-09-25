@@ -9,7 +9,6 @@ cd /d "%~dp0"
 set "PYTHON=python"
 set "VENV=.venv"
 set "PYTHON_EXE=%VENV%\Scripts\python.exe"
-set "PIP_EXE=%VENV%\Scripts\pip.exe"
 set "AGENT_HOST=127.0.0.1"
 set "AGENT_PORT=8000"
 set "AGENT_URL=http://%AGENT_HOST%:%AGENT_PORT%"
@@ -27,7 +26,7 @@ if errorlevel 1 goto :fail
 
 if not exist ".env" (
     echo [WARN] .env does not exist. Create it from .env.example before starting the Agent.
-    echo [WARN] The script will continue with Docker services, but FastAPI may not start correctly.
+    echo [WARN] Docker services will still start, but application config may be incomplete.
 ) else (
     echo [OK] .env found.
 )
@@ -79,12 +78,12 @@ if not errorlevel 1 (
 )
 
 call :step "Starting FastAPI Agent on %AGENT_URL%"
-if not exist "app\api\chat.py" (
-    echo [ERROR] Expected Agent API source was not found: app\api\chat.py
+if not exist "app\main.py" (
+    echo [ERROR] Expected Agent API source was not found: app\main.py
     goto :fail
 )
 
-start "Workspace AI Agent - FastAPI :8000" /MIN cmd /c "cd /d ""%~dp0"" && ""%PYTHON_EXE%"" -m uvicorn app.api.chat:app --host %AGENT_HOST% --port %AGENT_PORT% > ""agent_api.log"" 2>&1"
+start "Workspace AI Agent - FastAPI :8000" /MIN cmd /c "cd /d ""%~dp0"" && ""%PYTHON_EXE%"" -m uvicorn app.main:app --host %AGENT_HOST% --port %AGENT_PORT% > ""agent_api.log"" 2>&1"
 if errorlevel 1 (
     echo [ERROR] Failed to launch FastAPI process.
     goto :fail
@@ -115,7 +114,6 @@ goto :agent_ready
 :agent_timeout
 echo [WARN] FastAPI process was launched, but readiness was not confirmed within 20 seconds.
 echo [INFO] Check agent_api.log for the startup error if the API is unavailable.
-
 goto :agent_ready
 
 :agent_ready
