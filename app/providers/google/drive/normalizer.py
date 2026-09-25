@@ -28,8 +28,7 @@ class GoogleDriveNormalizer:
         content = str(raw.get("content") or "")
         mime_type = raw.get("mimeType")
 
-        canonical_material = "
-".join(
+        canonical_material = "\n".join(
             [
                 str(raw.get("name") or ""),
                 content,
