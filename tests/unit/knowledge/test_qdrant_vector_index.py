@@ -7,7 +7,8 @@ def test_qdrant_upsert_creates_collection_and_points(monkeypatch):
     def request(method, path, payload=None):
         calls.append((method, path, payload))
         if method == "GET":
-            raise RuntimeError("qdrant_http_404")
+            from app.infrastructure.knowledge.qdrant import QdrantVectorStoreError
+        raise QdrantVectorStoreError("qdrant_http_404")
         return {"result": {"status": "ok"}}
 
     index = QdrantVectorIndex("http://qdrant", "knowledge")
