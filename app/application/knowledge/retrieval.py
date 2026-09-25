@@ -3,12 +3,6 @@ Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Implements tenant-scoped semantic retrieval and second-stage reranking orchestration.
 """
 
-
-"""
-Created/Updated: 2026-09-24 20:32 GMT+7
-Main Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
