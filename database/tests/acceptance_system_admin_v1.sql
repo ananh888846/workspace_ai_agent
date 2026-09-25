@@ -73,7 +73,13 @@ BEGIN
     RAISE EXCEPTION 'AT-SYSADMIN-06 FAIL: membership deletion did not apply';
   END IF;
 
-  RAISE NOTICE 'AT-SYSADMIN-01..06 PASS';
+  IF v_permission_count <> 3 THEN
+    RAISE EXCEPTION
+      'AT-SYSADMIN-07 FAIL: canonical catalog expected 3 permissions, found %',
+      v_permission_count;
+  END IF;
+
+  RAISE NOTICE 'AT-SYSADMIN-01..07 PASS';
 END $$;
 
 ROLLBACK;
