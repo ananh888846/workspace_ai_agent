@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Sequence
+from uuid import UUID, uuid5
+import hashlib
 
 from app.domain.knowledge.source import KnowledgeSourceItem
 
@@ -263,6 +265,88 @@ class PostgresKnowledgeRepository:
             raise
 
         return KnowledgeDocumentVersionRecord(id=version_id)
+
+    def create_chunks(
+        self,
+        document_version_id: str,
+        organization_id: str,
+        chunks: Sequence[str],
+    ) -> list[str]:
+        """Persist canonical version-scoped chunks and return stable point IDs.
+
+        Qdrant remains a derived index. PostgreSQL owns chunk identity/content,
+        allowing retrieval to reconstruct canonical content and provenance.
+        """
+        try:
+            chunk_ids: list[str] = []
+            with self._connection.cursor() as cursor:
+                for index, content in enumerate(chunks):
+                    point_id = str(uuid5(UUID(document_version_id), f"chunk:{index}"))
+                    content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+                    cursor.execute(
+                        """
+                        INSERT INTO knowledge_chunks (
+                            document_id, chunk_index, content_hash, qdrant_point_id,
+                            token_count, organization_id, document_version_id, content
+                        )
+                        SELECT kdv.knowledge_document_id, %s, %s, %s, NULL,
+                               %s, kdv.id, %s
+                        FROM knowledge_document_versions kdv
+                        WHERE kdv.id = %s AND kdv.organization_id = %s
+                        ON CONFLICT (document_version_id, chunk_index)
+                        DO UPDATE SET content_hash = EXCLUDED.content_hash,
+                                      qdrant_point_id = EXCLUDED.qdrant_point_id,
+                                      content = EXCLUDED.content
+                        RETURNING id
+                        """,
+                        [index, content_hash, point_id, organization_id, content,
+                         document_version_id, organization_id],
+                    )
+                    row = cursor.fetchone()
+                    if row is None:
+                        raise RuntimeError("knowledge_chunk_version_not_found")
+                    chunk_ids.append(str(row[0]))
+            self._connection.commit()
+            return chunk_ids
+        except Exception:
+            self._connection.rollback()
+            raise
+
+    def create_assets(
+        self,
+        document_version_id: str,
+        organization_id: str,
+        assets: Sequence[Any],
+    ) -> list[str]:
+        """Persist asset metadata; binary payloads stay in File Storage."""
+        try:
+            asset_ids: list[str] = []
+            with self._connection.cursor() as cursor:
+                for asset in assets:
+                    cursor.execute(
+                        """
+                        INSERT INTO knowledge_assets (
+                            organization_id, document_version_id, asset_type,
+                            file_name, mime_type, file_size, checksum,
+                            storage_backend, storage_key, metadata
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING id
+                        """,
+                        [organization_id, document_version_id, asset.asset_type,
+                         asset.file_name, asset.mime_type, asset.file_size,
+                         asset.checksum, asset.storage_backend, asset.storage_key,
+                         asset.metadata],
+                    )
+                    row = cursor.fetchone()
+                    if row is None:
+                        raise RuntimeError("knowledge_asset_create_failed")
+                    asset_ids.append(str(row[0]))
+            self._connection.commit()
+            return asset_ids
+        except Exception:
+            self._connection.rollback()
+            raise
 
     def mark_unchanged(self, source_id: str) -> None:
         # Source checksum is already represented by the latest immutable
