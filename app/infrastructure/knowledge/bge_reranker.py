@@ -3,7 +3,8 @@ Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Runs local BGE reranking over retrieved Knowledge candidates.
 """
 
-\nfrom __future__ import annotations
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Sequence
