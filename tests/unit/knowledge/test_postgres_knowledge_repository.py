@@ -125,3 +125,50 @@ def test_create_document_version_rolls_back_on_database_error():
         raise AssertionError("expected repository failure")
 
     assert connection.rollbacks == 1
+
+
+def test_create_chunks_persists_version_scoped_content_and_stable_point_id():
+    connection = Connection([("chunk-1",)])
+    repo = PostgresKnowledgeRepository(connection)
+
+    result = repo.create_chunks(
+        "11111111-1111-7111-8111-111111111111",
+        "org-1",
+        ["first chunk"],
+    )
+
+    assert result == ["chunk-1"]
+    assert connection.commits == 1
+    query, params = connection.cursor_obj.calls[0]
+    assert "knowledge_chunks" in query
+    assert "document_version_id" in query
+    assert params[0] == 0
+    assert params[3] == "org-1"
+    assert params[5] == "11111111-1111-7111-8111-111111111111"
+
+
+def test_create_assets_persists_storage_metadata():
+    class Asset:
+        asset_type = "document"
+        file_name = "file.pdf"
+        mime_type = "application/pdf"
+        file_size = 42
+        checksum = "asset-checksum"
+        storage_backend = "local"
+        storage_key = "knowledge/file.pdf"
+        metadata = {"page": 1}
+
+    connection = Connection([("asset-1",)])
+    repo = PostgresKnowledgeRepository(connection)
+
+    result = repo.create_assets(
+        "version-1",
+        "org-1",
+        [Asset()],
+    )
+
+    assert result == ["asset-1"]
+    assert connection.commits == 1
+    query, params = connection.cursor_obj.calls[0]
+    assert "knowledge_assets" in query
+    assert params[0:3] == ["org-1", "version-1", "document"]
