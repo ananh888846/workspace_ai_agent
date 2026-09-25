@@ -1,4 +1,4 @@
-from app.application.knowledge.ingest import KnowledgeIngestionService
+"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Unit tests for Knowledge ingestion authorization, versioning, chunk persistence, and vector indexing.\n"""\n\nfrom app.application.knowledge.ingest import KnowledgeIngestionService
 from app.domain.knowledge.source import KnowledgeSourceItem
 
 
