@@ -55,5 +55,6 @@ class VectorIndexPort(Protocol):
         chunks: list[str],
         vectors: list[list[float]],
         document_version_id: str | None = None,
+        organization_id: str | None = None,
     ) -> None: ...
     def reconcile(self, document_version_id: str) -> None: ...
