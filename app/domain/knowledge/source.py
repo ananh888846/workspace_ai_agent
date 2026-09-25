@@ -1,3 +1,8 @@
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Defines the provider-neutral Knowledge source item and asset reference domain contracts.
+"""
+
 \nfrom dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
