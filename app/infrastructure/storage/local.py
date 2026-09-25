@@ -1,4 +1,14 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Local filesystem storage for Knowledge assets with path-safety and checksum validation.\n"""\n\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom __future__ import annotations
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Local filesystem storage for Knowledge assets with path-safety and checksum validation.
+"""
+
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.
+"""
+
+from __future__ import annotations
 
 import hashlib
 import os
