@@ -1,4 +1,4 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Defines the provider-neutral Knowledge source item and asset reference domain contracts.\n"""\n\nfrom dataclasses import dataclass, field
+\nfrom dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
