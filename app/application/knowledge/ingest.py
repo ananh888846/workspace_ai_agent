@@ -57,6 +57,17 @@ class KnowledgeIngestionService:
 
         version = self.repository.create_document_version(source.id, item)
         chunks = self.chunker.chunk(item.content)
+        self.repository.create_chunks(
+            version.id,
+            item.organization_id,
+            chunks,
+        )
+        if item.assets:
+            self.repository.create_assets(
+                version.id,
+                item.organization_id,
+                item.assets,
+            )
         vectors = self.embedding.embed(chunks)
         self.vector_index.upsert(chunks, vectors)
         self.vector_index.reconcile(version.id)
