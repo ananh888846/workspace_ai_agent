@@ -1,4 +1,4 @@
-import sys
+"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Unit test for BGE reranker scoring and ordering.\n"""\n\nimport sys
 from types import SimpleNamespace
 
 from app.application.knowledge.retrieval import RetrievalCandidate
