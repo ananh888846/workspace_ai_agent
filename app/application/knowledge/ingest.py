@@ -1,4 +1,10 @@
-\n"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.\n"""\n\nfrom dataclasses import dataclass
+
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Knowledge subsystem implementation or verification code for the Workspace AI Agent.
+"""
+
+from dataclasses import dataclass
 
 from app.application.knowledge.ports import (
     AuthorizationPort,
