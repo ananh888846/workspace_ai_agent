@@ -18,6 +18,9 @@ class Repo:
     def current_checksum(self, source_id):
         return self.checksum
 
+    def current_version_id(self, source_id):
+        return "version-1"
+
     def create_document_version(self, source_id, item):
         self.versions += 1
         self.checksum = item.source_checksum
@@ -58,9 +61,14 @@ class Index:
     def __init__(self):
         self.upserts = []
         self.reconciled = []
+        self.indexed = False
+
+    def is_indexed(self, document_version_id, expected_chunk_count):
+        return self.indexed
 
     def upsert(self, chunks, vectors, document_version_id=None, organization_id=None):
         self.upserts.append((chunks, vectors))
+        self.indexed = True
 
     def reconcile(self, document_version_id, active_chunk_indices=None):
         self.reconciled.append((document_version_id, active_chunk_indices))
