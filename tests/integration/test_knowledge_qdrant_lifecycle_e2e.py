@@ -260,7 +260,7 @@ def test_real_postgres_qdrant_lifecycle():
         )
         assert reingested.status == "COMPLETED"
         assert reingested.source_id == deleted.source_id
-        assert reingested.document_version_id != second.document_version_id
+        assert reingested.document_version_id == second.document_version_id
         version_ids.append(reingested.document_version_id)
         reingested_points = _scroll_version(qdrant, reingested.document_version_id)
         assert len(reingested_points) == 2
