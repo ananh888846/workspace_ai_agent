@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
-client = TestClient(app)
+client = TestClient(app, headers={"Host": "127.0.0.1"})
 
 
 @pytest.fixture(autouse=True)
