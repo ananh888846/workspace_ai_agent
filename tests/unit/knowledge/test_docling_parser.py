@@ -8,9 +8,7 @@ from app.infrastructure.knowledge.docling import DoclingDocumentParser
 
 class Document:
     def export_to_markdown(self):
-        return "# Parsed\
-\
-Hello"
+        return "# Parsed\n\nHello"
 
 
 class Result:
