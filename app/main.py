@@ -6,6 +6,7 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 import httpx
+import hmac
 import psycopg
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import RedirectResponse
@@ -20,7 +21,7 @@ from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
 from app.api.errors import http_exception_handler, unhandled_exception_handler, validation_exception_handler
-from app.api.security import require_agent_server_context
+from app.api.security import new_request_id, require_agent_server_context
 
 settings = get_settings()
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase3")
@@ -39,6 +40,26 @@ app.add_middleware(
 )
 if settings.app_enforce_https:
     app.add_middleware(HTTPSRedirectMiddleware)
+
+
+@app.middleware("http")
+async def agent_server_auth(request: Request, call_next):
+    """Reject invalid server tokens before FastAPI validates request bodies."""
+    if request.url.path in {"/api/v1/agent/chat", "/api/agent/chat"}:
+        expected = settings.agent_server_token
+        authorization = request.headers.get("authorization")
+        supplied = authorization[7:].strip() if authorization and authorization.startswith("Bearer ") else ""
+        if not expected:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "error", "error": {"code": "AGENT_SERVER_AUTH_NOT_CONFIGURED", "message": "Agent server authentication chưa được cấu hình."}, "request_id": request.headers.get("x-request-id") or new_request_id()},
+            )
+        if not supplied or not hmac.compare_digest(supplied, expected):
+            return JSONResponse(
+                status_code=401,
+                content={"status": "error", "error": {"code": "SERVER_AUTHENTICATION_FAILED", "message": "Xác thực server không hợp lệ."}, "request_id": request.headers.get("x-request-id") or new_request_id()},
+            )
+    return await call_next(request)
 
 
 @app.middleware("http")
