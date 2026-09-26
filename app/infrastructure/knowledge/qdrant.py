@@ -151,6 +151,51 @@ class QdrantVectorIndex:
             for point in points
         ]
 
+    def is_indexed(self, document_version_id: str, expected_chunk_count: int) -> bool:
+        """Return whether Qdrant contains exactly the expected chunk indexes.
+
+        This is a derived-index health check. PostgreSQL remains canonical;
+        a false result tells ingestion that the current version must be
+        re-indexed on retry.
+        """
+        if expected_chunk_count < 0:
+            raise ValueError("expected_chunk_count_must_be_non_negative")
+
+        offset = None
+        indexes: set[int] = set()
+        while True:
+            payload = {
+                "limit": 1000,
+                "with_payload": True,
+                "with_vector": False,
+                "filter": {
+                    "must": [
+                        {
+                            "key": "document_version_id",
+                            "match": {"value": document_version_id},
+                        }
+                    ]
+                },
+            }
+            if offset is not None:
+                payload["offset"] = offset
+
+            response = self._request(
+                "POST",
+                f"/collections/{self.collection}/points/scroll",
+                payload,
+            )
+            result = response.get("result", {})
+            for point in result.get("points", []):
+                payload_data = point.get("payload", {})
+                indexes.add(int(payload_data.get("chunk_index", -1)))
+
+            offset = result.get("next_page_offset")
+            if offset is None:
+                break
+
+        return indexes == set(range(expected_chunk_count))
+
     def reconcile(
         self,
         document_version_id: str,
