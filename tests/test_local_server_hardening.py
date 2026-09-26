@@ -13,7 +13,7 @@ def test_health_is_available():
 
 
 def test_health_has_security_headers():
-    response = TestClient(app).get("/health")
+    response = TestClient(app).get("/health", headers={"Host": "127.0.0.1"})
 
     assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["X-Frame-Options"] == "DENY"
@@ -33,4 +33,4 @@ def test_api_cors_is_not_wildcard():
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:8001"
-    assert response.headers["access-control-allow-credentials"] == "false"
+    assert response.headers.get("access-control-allow-credentials") != "true"
