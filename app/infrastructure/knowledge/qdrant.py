@@ -151,8 +151,63 @@ class QdrantVectorIndex:
             for point in points
         ]
 
-    def reconcile(self, document_version_id: str) -> None:
-        # Upsert uses deterministic point IDs, so the current version is
-        # idempotent. Stale-point deletion is deferred until retrieval can
-        # reconcile canonical PostgreSQL chunk IDs safely.
-        return None
+    def reconcile(
+        self,
+        document_version_id: str,
+        active_chunk_indices: list[int] | None = None,
+    ) -> None:
+        """Remove stale chunks for one immutable document version.
+
+        The caller supplies the canonical chunk indexes from PostgreSQL. The
+        Qdrant scan is scoped to this version only, so reconciliation cannot
+        delete another document or tenant's vectors.
+        """
+        if active_chunk_indices is None:
+            return None
+        response = self._request(
+            "POST",
+            f"/collections/{self.collection}/points/scroll",
+            {
+                "limit": 1000,
+                "with_payload": True,
+                "with_vector": False,
+                "filter": {
+                    "must": [
+                        {
+                            "key": "document_version_id",
+                            "match": {"value": document_version_id},
+                        }
+                    ]
+                },
+            },
+        )
+        points = response.get("result", {}).get("points", [])
+        active = set(active_chunk_indices)
+        stale_ids = [
+            str(point["id"])
+            for point in points
+            if int(point.get("payload", {}).get("chunk_index", -1)) not in active
+        ]
+        if stale_ids:
+            self._request(
+                "POST",
+                f"/collections/{self.collection}/points/delete?wait=true",
+                {"points": stale_ids},
+            )
+
+    def delete_document_version(self, document_version_id: str) -> None:
+        """Delete all derived points for one document version."""
+        self._request(
+            "POST",
+            f"/collections/{self.collection}/points/delete?wait=true",
+            {
+                "filter": {
+                    "must": [
+                        {
+                            "key": "document_version_id",
+                            "match": {"value": document_version_id},
+                        }
+                    ]
+                }
+            },
+        )
