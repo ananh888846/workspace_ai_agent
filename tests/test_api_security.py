@@ -80,6 +80,7 @@ def test_identity_headers_are_required_after_authentication(monkeypatch):
 
 def test_agent_chat_rejects_invalid_server_token_before_body_validation(monkeypatch):
     monkeypatch.setattr("app.api.security.get_settings", lambda: type("S", (), {"agent_server_token": "test-secret"})())
+    monkeypatch.setattr("app.main.settings", type("S", (), {"agent_server_token": "test-secret"})())
 
     response = TestClient(app).post(
         "/api/v1/agent/chat",
