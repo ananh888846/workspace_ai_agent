@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Local Knowledge retrieval quality benchmark.
+"""Local Knowledge retrieval quality and regression benchmark.
 
-This benchmark intentionally uses hard negatives: multiple documents discuss
-closely related concepts, while each query is paraphrased so it does not simply
-repeat the target document's keywords.
+The benchmark uses fixed paraphrased queries and hard negatives. It compares
+first-stage cosine retrieval from Ollama embeddings with BGE cross-encoder
+reranking using the same 30-candidate ceiling as the production path.
 
-It compares first-stage cosine retrieval from Ollama embeddings with BGE
-cross-encoder reranking using the same 30-candidate ceiling as the production
-Knowledge retrieval path. It does not modify PostgreSQL or Qdrant data.
+It does not modify PostgreSQL or Qdrant data. A regression failure exits with
+status 1 so this command can be used as a local quality gate.
 
 Run from the repository root:
     python scripts/knowledge_retrieval_benchmark.py
@@ -41,64 +40,23 @@ class BenchmarkCase:
     relevant_id: str
 
 
-# The queries deliberately use paraphrases and avoid simply copying the
-# terminology from the relevant fixture. Each topic also has several
-# semantically similar hard negatives.
+# Fixed regression corpus: paraphrases avoid copying the target terminology,
+# while related documents provide hard negatives.
 CASES = (
-    BenchmarkCase(
-        "Thành phần nào giữ chỉ mục vector để tìm các đoạn nội dung theo ngữ nghĩa?",
-        "qdrant_primary",
-    ),
-    BenchmarkCase(
-        "Dịch vụ nào biến văn bản thành biểu diễn số để phục vụ tìm kiếm?",
-        "ollama_primary",
-    ),
-    BenchmarkCase(
-        "Công cụ nào xếp hạng lại các ứng viên sau lần tìm kiếm đầu tiên?",
-        "bge_primary",
-    ),
-    BenchmarkCase(
-        "Kho dữ liệu nào là nơi lưu bản ghi Knowledge chuẩn làm nguồn sự thật?",
-        "postgres_primary",
-    ),
-    BenchmarkCase(
-        "Trước khi trả nội dung nội bộ, hệ thống dựa vào cơ chế nào để quyết định người dùng được phép đọc?",
-        "authorization_primary",
-    ),
-    BenchmarkCase(
-        "Khi một tài liệu mới thay thế bản cũ, hệ thống phải làm gì với dữ liệu lập chỉ mục cũ?",
-        "lifecycle_primary",
-    ),
-    BenchmarkCase(
-        "Tìm kiếm theo nghĩa dùng kho nào làm lớp chỉ mục dẫn xuất thay vì nguồn dữ liệu gốc?",
-        "qdrant_primary",
-    ),
-    BenchmarkCase(
-        "Mô hình embedding được gọi ở bước nào trước khi nội dung đi vào vector store?",
-        "ollama_primary",
-    ),
-    BenchmarkCase(
-        "Sau khi lọc quyền và lấy các ứng viên, thành phần nào quyết định thứ tự cuối cùng?",
-        "bge_primary",
-    ),
-    BenchmarkCase(
-        "Thông tin phiên bản, chunk và provenance của Knowledge được lưu bền vững ở đâu?",
-        "postgres_primary",
-    ),
-    BenchmarkCase(
-        "Lớp nào ngăn người dùng nhận tài liệu của organization khác?",
-        "authorization_primary",
-    ),
-    BenchmarkCase(
-        "Khi số chunk của một phiên bản thay đổi, bước nào dọn các vector không còn tương ứng?",
-        "lifecycle_primary",
-    ),
+    BenchmarkCase("Thành phần nào giữ chỉ mục vector để tìm các đoạn nội dung theo ngữ nghĩa?", "qdrant_primary"),
+    BenchmarkCase("Dịch vụ nào biến văn bản thành biểu diễn số để phục vụ tìm kiếm?", "ollama_primary"),
+    BenchmarkCase("Công cụ nào xếp hạng lại các ứng viên sau lần tìm kiếm đầu tiên?", "bge_primary"),
+    BenchmarkCase("Kho dữ liệu nào là nơi lưu bản ghi Knowledge chuẩn làm nguồn sự thật?", "postgres_primary"),
+    BenchmarkCase("Trước khi trả nội dung nội bộ, hệ thống dựa vào cơ chế nào để quyết định người dùng được phép đọc?", "authorization_primary"),
+    BenchmarkCase("Khi một tài liệu mới thay thế bản cũ, hệ thống phải làm gì với dữ liệu lập chỉ mục cũ?", "lifecycle_primary"),
+    BenchmarkCase("Tìm kiếm theo nghĩa dùng kho nào làm lớp chỉ mục dẫn xuất thay vì nguồn dữ liệu gốc?", "qdrant_primary"),
+    BenchmarkCase("Mô hình embedding được gọi ở bước nào trước khi nội dung đi vào vector store?", "ollama_primary"),
+    BenchmarkCase("Sau khi lọc quyền và lấy các ứng viên, thành phần nào quyết định thứ tự cuối cùng?", "bge_primary"),
+    BenchmarkCase("Thông tin phiên bản, chunk và provenance của Knowledge được lưu bền vững ở đâu?", "postgres_primary"),
+    BenchmarkCase("Lớp nào ngăn người dùng nhận tài liệu của organization khác?", "authorization_primary"),
+    BenchmarkCase("Khi số chunk của một phiên bản thay đổi, bước nào dọn các vector không còn tương ứng?", "lifecycle_primary"),
 )
 
-
-# Six related documents per topic create realistic hard negatives. The primary
-# document is the only relevant document for each case; related documents are
-# intentionally plausible but answer a different question.
 DOCUMENTS = (
     ("qdrant_primary", "Qdrant is the derived vector index used for tenant-filtered semantic retrieval of Knowledge chunks."),
     ("qdrant_similarity", "Vector search compares embedding similarity and returns candidate Knowledge chunks for a later ranking stage."),
@@ -138,10 +96,22 @@ DOCUMENTS = (
     ("lifecycle_canonical", "PostgreSQL remains canonical while Qdrant is treated as rebuildable derived retrieval state."),
 )
 
-# Production retrieval keeps at least 30 candidates when reranking is enabled.
-# Limiting the benchmark to the same candidate ceiling makes the comparison
-# representative without requiring a live Qdrant collection.
 RERANK_CANDIDATE_LIMIT = 30
+
+# Regression contract derived from the validated candidate-limit=30 run.
+# Aggregate thresholds protect overall quality; per-case ceilings protect
+# expected behavior of the fixed hard-negative corpus.
+MIN_RERANK_RECALL_AT_5 = 1.0
+MIN_RERANK_NDCG_AT_5 = 0.70
+MIN_RERANK_MRR_AT_10 = 0.60
+MAX_RERANK_RANK = {
+    "qdrant_primary": 3,
+    "ollama_primary": 5,
+    "bge_primary": 4,
+    "postgres_primary": 1,
+    "authorization_primary": 5,
+    "lifecycle_primary": 3,
+}
 
 
 def cosine(left: list[float], right: list[float]) -> float:
@@ -178,28 +148,14 @@ def ndcg_at_k(ids: list[str], relevant_id: str, k: int) -> float:
     return 0.0 if rank is None else 1.0 / math.log2(rank + 1)
 
 
-def mean_metric(
-    cases: tuple[BenchmarkCase, ...],
-    ranked_cases: list[list[RetrievalCandidate]],
-    metric,
-    k: int,
-) -> float:
+def mean_metric(cases, ranked_cases, metric, k: int) -> float:
     return sum(
-        metric(
-            [candidate.point_id for candidate in candidates],
-            case.relevant_id,
-            k,
-        )
+        metric([candidate.point_id for candidate in candidates], case.relevant_id, k)
         for case, candidates in zip(cases, ranked_cases)
     ) / len(cases)
 
 
-def build_baseline(
-    query_vectors: list[list[float]],
-    document_ids: list[str],
-    document_texts: list[str],
-    document_vectors: list[list[float]],
-) -> list[list[RetrievalCandidate]]:
+def build_baseline(query_vectors, document_ids, document_texts, document_vectors):
     ranked_cases = []
     for query_vector in query_vectors:
         scored = sorted(
@@ -222,11 +178,8 @@ def build_baseline(
     return ranked_cases
 
 
-def print_metrics(
-    cases: tuple[BenchmarkCase, ...],
-    baseline_cases: list[list[RetrievalCandidate]],
-    reranked_cases: list[list[RetrievalCandidate]],
-) -> None:
+def print_metrics(cases, baseline_cases, reranked_cases) -> dict[str, float]:
+    metrics = {}
     for k in (1, 3, 5, 10):
         baseline_recall = mean_metric(cases, baseline_cases, recall_at_k, k)
         reranked_recall = mean_metric(cases, reranked_cases, recall_at_k, k)
@@ -234,6 +187,8 @@ def print_metrics(
         reranked_precision = mean_metric(cases, reranked_cases, precision_at_k, k)
         baseline_ndcg = mean_metric(cases, baseline_cases, ndcg_at_k, k)
         reranked_ndcg = mean_metric(cases, reranked_cases, ndcg_at_k, k)
+        metrics[f"reranked_recall@{k}"] = reranked_recall
+        metrics[f"reranked_ndcg@{k}"] = reranked_ndcg
         print(
             f"@{k}: "
             f"Recall baseline={baseline_recall:.3f} reranked={reranked_recall:.3f} | "
@@ -243,7 +198,65 @@ def print_metrics(
 
     baseline_mrr = mean_metric(cases, baseline_cases, reciprocal_rank, 10)
     reranked_mrr = mean_metric(cases, reranked_cases, reciprocal_rank, 10)
+    metrics["reranked_mrr@10"] = reranked_mrr
     print(f"MRR@10: baseline={baseline_mrr:.3f} reranked={reranked_mrr:.3f}")
+    return metrics
+
+
+def print_regression_check(cases, reranked_cases, metrics) -> bool:
+    failures = []
+
+    checks = (
+        ("Recall@5", metrics["reranked_recall@5"], MIN_RERANK_RECALL_AT_5),
+        ("nDCG@5", metrics["reranked_ndcg@5"], MIN_RERANK_NDCG_AT_5),
+        ("MRR@10", metrics["reranked_mrr@10"], MIN_RERANK_MRR_AT_10),
+    )
+    for name, actual, minimum in checks:
+        if actual < minimum:
+            failures.append(f"{name}={actual:.3f} < required {minimum:.3f}")
+
+    for case, candidates in zip(cases, reranked_cases):
+        ids = [candidate.point_id for candidate in candidates]
+        rank = rank_of(ids, case.relevant_id)
+        maximum = MAX_RERANK_RANK[case.relevant_id]
+        if rank is None or rank > maximum:
+            failures.append(
+                f"{case.relevant_id} rank={rank or 'not found'} > required <= {maximum}"
+            )
+
+    print()
+    print("Regression gate:")
+    print(
+        f"  Recall@5 >= {MIN_RERANK_RECALL_AT_5:.3f}: "
+        f"{'PASS' if metrics['reranked_recall@5'] >= MIN_RERANK_RECALL_AT_5 else 'FAIL'}"
+    )
+    print(
+        f"  nDCG@5 >= {MIN_RERANK_NDCG_AT_5:.3f}: "
+        f"{'PASS' if metrics['reranked_ndcg@5'] >= MIN_RERANK_NDCG_AT_5 else 'FAIL'}"
+    )
+    print(
+        f"  MRR@10 >= {MIN_RERANK_MRR_AT_10:.3f}: "
+        f"{'PASS' if metrics['reranked_mrr@10'] >= MIN_RERANK_MRR_AT_10 else 'FAIL'}"
+    )
+    print("  Per-case expected rank ceilings:")
+    for case, candidates in zip(cases, reranked_cases):
+        rank = rank_of([candidate.point_id for candidate in candidates], case.relevant_id)
+        maximum = MAX_RERANK_RANK[case.relevant_id]
+        print(
+            f"    {case.relevant_id}: rank={rank or 'not found'} "
+            f"<= {maximum}: {'PASS' if rank is not None and rank <= maximum else 'FAIL'}"
+        )
+
+    if failures:
+        print()
+        print("REGRESSION FAILED:")
+        for failure in failures:
+            print(f"  - {failure}")
+        return False
+
+    print()
+    print("REGRESSION PASSED: retrieval quality is within the fixed contract.")
+    return True
 
 
 def main() -> int:
@@ -264,25 +277,22 @@ def main() -> int:
     )
 
     reranker = BGEReranker(
-        model_name=os.getenv(
-            "KNOWLEDGE_RERANKER_MODEL",
-            "BAAI/bge-reranker-v2-m3",
-        )
+        model_name=os.getenv("KNOWLEDGE_RERANKER_MODEL", "BAAI/bge-reranker-v2-m3")
     )
     reranked_cases = [
         reranker.rerank(case.query, candidates[:RERANK_CANDIDATE_LIMIT])
         for case, candidates in zip(CASES, baseline_cases)
     ]
 
-    print("Knowledge Retrieval Quality Benchmark")
+    print("Knowledge Retrieval Quality Regression Benchmark")
     print(f"Cases: {len(CASES)}")
     print(f"Fixture documents: {len(DOCUMENTS)}")
     print(f"BGE candidate limit: {RERANK_CANDIDATE_LIMIT}")
-    print("Corpus design: paraphrased queries + hard negatives")
+    print("Corpus design: fixed paraphrases + hard negatives")
     print(f"Ollama embedding model: {model}")
     print(f"BGE model: {reranker.model_name}")
     print()
-    print_metrics(CASES, baseline_cases, reranked_cases)
+    metrics = print_metrics(CASES, baseline_cases, reranked_cases)
     print()
 
     for case, baseline, reranked in zip(CASES, baseline_cases, reranked_cases):
@@ -294,11 +304,11 @@ def main() -> int:
             f"  rank: baseline={rank_of(baseline_ids, case.relevant_id) or 'not found'} "
             f"reranked={rank_of(reranked_ids, case.relevant_id) or 'not found'}"
         )
-        print("  baseline:", ", ".join(baseline[:10][i].point_id for i in range(min(10, len(baseline)))))
-        print("  reranked:", ", ".join(reranked[:10][i].point_id for i in range(min(10, len(reranked)))))
+        print("  baseline:", ", ".join(candidate.point_id for candidate in baseline[:10]))
+        print("  reranked:", ", ".join(candidate.point_id for candidate in reranked[:10]))
         print()
 
-    return 0
+    return 0 if print_regression_check(CASES, reranked_cases, metrics) else 1
 
 
 if __name__ == "__main__":
