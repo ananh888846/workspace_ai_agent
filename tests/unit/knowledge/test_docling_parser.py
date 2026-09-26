@@ -31,9 +31,7 @@ class Converter:
 def test_docling_parser_uses_document_stream_for_binary():
     converter = Converter()
     parser = DoclingDocumentParser(converter)
-    assert parser.parse(b"pdf", file_name="report.pdf", mime_type="application/pdf") == "# Parsed\
-\
-Hello"
+    assert parser.parse(b"pdf", file_name="report.pdf", mime_type="application/pdf") == "# Parsed\n\nHello"
     assert converter.calls[0][0] == "convert"
 
 
