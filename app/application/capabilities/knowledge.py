@@ -5,13 +5,17 @@ from uuid import uuid4
 
 from app.application.execution_contract import build_execution_contract
 from app.application.knowledge.authorized_retrieval import AuthorizedKnowledgeRetrievalService
-from app.application.knowledge.retrieval import KnowledgeRetrievalService
+from app.application.knowledge.retrieval import (
+    KnowledgeRetrievalService,
+    RerankedKnowledgeRetrievalService,
+)
 from app.infrastructure.database.connection import database_connection
 from app.infrastructure.database.repositories.knowledge_authorization import (
     PostgresKnowledgeAuthorizationRepository,
 )
 from app.infrastructure.knowledge.ollama_embedding import OllamaEmbeddingProvider
 from app.infrastructure.knowledge.qdrant import QdrantVectorIndex
+from app.infrastructure.knowledge.bge_reranker import BGEReranker
 from app.config.settings import get_settings
 
 
@@ -73,14 +77,25 @@ class KnowledgeHandler:
                 embedding=embedding,
                 vector_index=vector_index,
             )
+            if settings.knowledge_reranker_enabled:
+                retrieval_service = RerankedKnowledgeRetrievalService(
+                    retrieval=retrieval,
+                    reranker=BGEReranker(model_name=settings.knowledge_reranker_model),
+                )
+                candidate_limit = max(limit, 30)
+            else:
+                retrieval_service = retrieval
+                candidate_limit = limit
+
             service = AuthorizedKnowledgeRetrievalService(
-                retrieval=retrieval,
+                retrieval=retrieval_service,
                 authorization=authorization,
             )
             results = service.retrieve(
                 payload.message,
                 user_id=user_id,
                 organization_id=organization_id,
+                candidate_limit=candidate_limit,
                 limit=limit,
             )
 
