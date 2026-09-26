@@ -1,7 +1,9 @@
 """
 Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Unit tests for Ollama embedding response parsing and validation.
-"""\n\nfrom app.infrastructure.knowledge.ollama_embedding import (
+"""
+
+from app.infrastructure.knowledge.ollama_embedding import (
     OllamaEmbeddingProvider,
 )
 
