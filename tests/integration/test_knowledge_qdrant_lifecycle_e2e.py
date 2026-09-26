@@ -251,6 +251,37 @@ def test_real_postgres_qdrant_lifecycle():
                 [second.document_version_id],
             )
             assert cursor.fetchone()[0] == "deleted"
+
+        reingested = service.ingest(
+            _item(
+                content_v2,
+                hashlib.sha256(content_v2.encode()).hexdigest(),
+            )
+        )
+        assert reingested.status == "COMPLETED"
+        assert reingested.source_id == deleted.source_id
+        assert reingested.document_version_id != second.document_version_id
+        version_ids.append(reingested.document_version_id)
+        reingested_points = _scroll_version(qdrant, reingested.document_version_id)
+        assert len(reingested_points) == 2
+        assert _scroll_version(qdrant, second.document_version_id) == []
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT status FROM knowledge_sources WHERE organization_id = %s",
+                [ORG_ID],
+            )
+            assert cursor.fetchone()[0] == "active"
+            cursor.execute(
+                "SELECT status FROM knowledge_document_versions WHERE id = %s",
+                [reingested.document_version_id],
+            )
+            assert cursor.fetchone()[0] == "active"
+            cursor.execute(
+                "SELECT status FROM knowledge_document_versions WHERE id = %s",
+                [second.document_version_id],
+            )
+            assert cursor.fetchone()[0] == "deleted"
     finally:
         _cleanup(connection, qdrant, version_ids)
         connection.close()
