@@ -1,7 +1,9 @@
 """
 Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Unit tests for Qdrant collection creation, upsert, and non-destructive reconciliation.
-"""\n\nfrom app.infrastructure.knowledge.qdrant import QdrantVectorIndex, QdrantVectorStoreError
+"""
+
+from app.infrastructure.knowledge.qdrant import QdrantVectorIndex, QdrantVectorStoreError
 
 
 def test_qdrant_upsert_creates_collection_and_points(monkeypatch):
