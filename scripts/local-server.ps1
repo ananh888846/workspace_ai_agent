@@ -23,8 +23,8 @@ function Test-Port($Port) {
     return $null -ne (Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
 }
 function Remove-StalePid($Path) {
-    $pid = Get-PidFromFile $Path
-    if ($null -ne $pid -and -not (Get-Process -Id $pid -ErrorAction SilentlyContinue)) { Remove-Item $Path -Force -ErrorAction SilentlyContinue }
+    $processId = Get-PidFromFile $Path
+    if ($null -ne $processId -and -not (Get-Process -Id $processId -ErrorAction SilentlyContinue)) { Remove-Item $Path -Force -ErrorAction SilentlyContinue }
 }
 function Start-Agent {
     if (Test-Port 8000) { Write-Info "Agent port 8000 is already listening."; return }
@@ -44,10 +44,10 @@ function Start-Web {
     Write-Info "Started Laravel PID $($process.Id) on 127.0.0.1:8001."
 }
 function Stop-PidFile($Path, $Name) {
-    $pid = Get-PidFromFile $Path
-    if ($null -eq $pid) { Write-Info "$Name PID file not found."; return }
-    $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
-    if ($null -ne $process) { Stop-Process -Id $pid -Force; Write-Info "Stopped $Name PID $pid." } else { Write-Info "$Name PID $pid is already stopped." }
+    $processId = Get-PidFromFile $Path
+    if ($null -eq $processId) { Write-Info "$Name PID file not found."; return }
+    $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+    if ($null -ne $process) { Stop-Process -Id $processId -Force; Write-Info "Stopped $Name PID $processId." } else { Write-Info "$Name PID $processId is already stopped." }
     Remove-Item $Path -Force -ErrorAction SilentlyContinue
 }
 function Show-Status {
