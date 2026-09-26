@@ -63,7 +63,7 @@ function Show-Health {
     try { Invoke-RestMethod "http://127.0.0.1:8000/health/dependencies" | ConvertTo-Json -Depth 5 } catch { Write-Host "UNAVAILABLE: $($_.Exception.Message)" }
     if (Test-Port 8001) {
         Write-Info "Laravel Web:"
-        try { (Invoke-WebRequest "http://127.0.0.1:8001/up").StatusCode } catch { Write-Host "UNHEALTHY: $($_.Exception.Message)" }
+        try { (Invoke-WebRequest "http://127.0.0.1:8001/up" -UseBasicParsing).StatusCode } catch { Write-Host "UNHEALTHY: $($_.Exception.Message)" }
     }
 }
 switch ($Action) {
