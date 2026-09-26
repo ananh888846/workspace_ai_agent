@@ -34,7 +34,7 @@ def _headers(*, user_id: str | None = None, organization_id: str | None = None) 
 
 
 def test_health() -> None:
-    response = client.get("/health")
+    response = client.get("/health", headers={"Host": "127.0.0.1"})
     assert response.status_code == 200
 
 
