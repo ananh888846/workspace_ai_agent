@@ -32,6 +32,12 @@ class Repo:
     def mark_unchanged(self, source_id):
         pass
 
+    def retire_previous_versions(self, source_id, current_version_id):
+        return []
+
+    def retire_source(self, source_id):
+        return []
+
 
 class Auth:
     def authorize_ingestion(self, **kwargs):
