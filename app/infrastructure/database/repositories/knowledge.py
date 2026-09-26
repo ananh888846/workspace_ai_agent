@@ -359,3 +359,46 @@ class PostgresKnowledgeRepository:
         # Source checksum is already represented by the latest immutable
         # version. No canonical mutation is required for an unchanged fetch.
         return None
+
+    def retire_previous_versions(self, source_id: str, current_version_id: str) -> list[str]:
+        """Supersede older versions after the new vector is safely indexed."""
+        with self._connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE knowledge_document_versions kdv
+                SET status = 'superseded', updated_at = now()
+                FROM knowledge_document_version_sources kdvs
+                WHERE kdvs.document_version_id = kdv.id
+                  AND kdvs.source_id = %s
+                  AND kdv.id <> %s
+                  AND kdv.status = 'active'
+                RETURNING kdv.id
+                """,
+                [source_id, current_version_id],
+            )
+            ids = [str(row[0]) for row in cursor.fetchall()]
+        self._connection.commit()
+        return ids
+
+    def retire_source(self, source_id: str) -> list[str]:
+        """Mark a deleted source and all its versions inaccessible."""
+        with self._connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE knowledge_sources SET status = 'deleted', updated_at = now() WHERE id = %s",
+                [source_id],
+            )
+            cursor.execute(
+                """
+                UPDATE knowledge_document_versions kdv
+                SET status = 'deleted', updated_at = now()
+                FROM knowledge_document_version_sources kdvs
+                WHERE kdvs.document_version_id = kdv.id
+                  AND kdvs.source_id = %s
+                  AND kdv.status <> 'deleted'
+                RETURNING kdv.id
+                """,
+                [source_id],
+            )
+            ids = [str(row[0]) for row in cursor.fetchall()]
+        self._connection.commit()
+        return ids
