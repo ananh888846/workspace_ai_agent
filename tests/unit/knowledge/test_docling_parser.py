@@ -3,7 +3,7 @@
 
 class Document:
     def export_to_markdown(self):
-        return "# Parsed\n\nHello"
+        return "# Parsed\\n\\nHello"
 
 
 class Result:
@@ -26,7 +26,7 @@ class Converter:
 def test_docling_parser_uses_document_stream_for_binary():
     converter = Converter()
     parser = DoclingDocumentParser(converter)
-    assert parser.parse(b"pdf", file_name="report.pdf", mime_type="application/pdf") == "# Parsed\n\nHello"
+    assert parser.parse(b"pdf", file_name="report.pdf", mime_type="application/pdf") == "# Parsed\\n\\nHello"
     assert converter.calls[0][0] == "convert"
 
 
