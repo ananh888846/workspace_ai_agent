@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import pytest
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 
 from app.config.settings import get_settings
 from app.api.security import require_agent_server_context
+from app.main import app
 
 
 def _call(*, token: str | None, request_id: str = "123e4567-e89b-12d3-a456-426614174000"):
@@ -73,3 +75,22 @@ def test_identity_headers_are_required_after_authentication(monkeypatch):
         )
 
     assert exc.value.status_code == 400
+
+
+
+def test_agent_chat_rejects_invalid_server_token_before_body_validation(monkeypatch):
+    monkeypatch.setattr("app.api.security.get_settings", lambda: type("S", (), {"agent_server_token": "test-secret"})())
+
+    response = TestClient(app).post(
+        "/api/v1/agent/chat",
+        headers={
+            "Authorization": "Bearer wrong-secret",
+            "X-Request-Id": "123e4567-e89b-12d3-a456-426614174000",
+            "X-User-Id": "user-100",
+            "X-Organization-Id": "org-10",
+        },
+        json={"message": "hello"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "SERVER_AUTHENTICATION_FAILED"
