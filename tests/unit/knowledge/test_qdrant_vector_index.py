@@ -58,6 +58,42 @@ def test_qdrant_reconcile_deletes_stale_chunks(monkeypatch):
     assert calls[1][2] == {"points": ["stale"]}
 
 
+def test_qdrant_reconcile_paginates_all_chunks(monkeypatch):
+    calls = []
+    index = QdrantVectorIndex("http://qdrant", "knowledge")
+
+    def request(method, path, payload=None):
+        calls.append((method, path, payload))
+        if method == "POST" and path.endswith("/points/scroll"):
+            if payload.get("offset") is None:
+                return {
+                    "result": {
+                        "points": [
+                            {"id": "keep-page-1", "payload": {"chunk_index": 0}},
+                        ],
+                        "next_page_offset": "page-2",
+                    }
+                }
+            assert payload["offset"] == "page-2"
+            return {
+                "result": {
+                    "points": [
+                        {"id": "stale-page-2", "payload": {"chunk_index": 1001}},
+                    ],
+                    "next_page_offset": None,
+                }
+            }
+        return {"result": {"status": "ok"}}
+
+    monkeypatch.setattr(index, "_request", request)
+    index.reconcile("11111111-1111-1111-1111-111111111111", [0])
+
+    scrolls = [call for call in calls if call[1].endswith("/points/scroll")]
+    deletes = [call for call in calls if call[1].endswith("/points/delete?wait=true")]
+    assert len(scrolls) == 2
+    assert deletes[0][2] == {"points": ["stale-page-2"]}
+
+
 def test_qdrant_delete_document_version_uses_version_filter(monkeypatch):
     calls = []
     index = QdrantVectorIndex("http://qdrant", "knowledge")
