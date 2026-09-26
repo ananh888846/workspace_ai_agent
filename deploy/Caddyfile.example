@@ -1,0 +1,14 @@
+# Remote access V1
+# Publish Laravel Web only. Keep Agent/PostgreSQL/Qdrant/Ollama private.
+# Replace the hostname with a real DNS name and terminate HTTPS here.
+#
+# Example:
+# app.example.com {
+#     reverse_proxy 127.0.0.1:8001
+# }
+#
+# Do NOT add public reverse_proxy entries for:
+# - 127.0.0.1:8000 (Agent) until a dedicated client authentication contract exists
+# - 127.0.0.1:5433 (PostgreSQL)
+# - 127.0.0.1:6333/6334 (Qdrant)
+# - 127.0.0.1:11434 (Ollama)
