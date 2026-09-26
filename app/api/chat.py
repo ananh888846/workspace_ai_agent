@@ -56,6 +56,13 @@ def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | 
         "reranking",
         "nguồn dữ liệu",
         "kho kiến thức",
+        "workspace ai agent",
+        "workspace knowledge",
+        "knowledge base",
+        "knowledge pipeline",
+        "ecosystem",
+        "kiến trúc hệ thống",
+        "kiến trúc knowledge",
     )
     read_words = ("lịch", "calendar", "cuộc hẹn", "cuộc họp", "họp", "meeting", "sự kiện", "agenda", "schedule")
     write_words = ("tạo lịch", "tạo cuộc hẹn", "tạo cuộc họp", "tạo họp", "tạo meeting", "đặt lịch", "đặt cuộc họp", "thêm lịch", "thêm cuộc hẹn", "thêm cuộc họp", "sửa lịch", "sửa cuộc hẹn", "sửa cuộc họp", "cập nhật lịch", "cập nhật cuộc hẹn", "cập nhật cuộc họp", "xóa lịch", "xóa cuộc hẹn", "xóa cuộc họp", "xoá lịch", "xoá cuộc hẹn", "xoá cuộc họp", "huỷ lịch", "huỷ cuộc họp", "hủy lịch", "hủy cuộc họp")
