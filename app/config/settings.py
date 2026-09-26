@@ -51,6 +51,9 @@ class Settings:
     app_env: str = _env("APP_ENV", "development")
     app_host: str = _env("APP_HOST", "0.0.0.0")
     app_port: int = int(_env("APP_PORT", "8000"))
+    app_allowed_hosts: tuple[str, ...] = tuple(filter(None, (_env("APP_ALLOWED_HOSTS", "127.0.0.1,localhost")).split(",")))
+    app_cors_origins: tuple[str, ...] = tuple(filter(None, (_env("APP_CORS_ORIGINS", "http://127.0.0.1:8001,http://localhost:8001")).split(",")))
+    app_enforce_https: bool = _env("APP_ENFORCE_HTTPS", "false").lower() in {"1", "true", "yes", "on"}
 
     database_url: str = _env("DATABASE_URL")
     qdrant_url: str = _env("QDRANT_URL", "http://localhost:6333")
