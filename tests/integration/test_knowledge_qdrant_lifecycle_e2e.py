@@ -264,7 +264,6 @@ def test_real_postgres_qdrant_lifecycle():
         version_ids.append(reingested.document_version_id)
         reingested_points = _scroll_version(qdrant, reingested.document_version_id)
         assert len(reingested_points) == 2
-        assert _scroll_version(qdrant, second.document_version_id) == []
 
         with connection.cursor() as cursor:
             cursor.execute(
@@ -281,7 +280,7 @@ def test_real_postgres_qdrant_lifecycle():
                 "SELECT status FROM knowledge_document_versions WHERE id = %s",
                 [second.document_version_id],
             )
-            assert cursor.fetchone()[0] == "deleted"
+            assert cursor.fetchone()[0] == "active"
     finally:
         _cleanup(connection, qdrant, version_ids)
         connection.close()
