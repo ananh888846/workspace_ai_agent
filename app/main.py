@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+import httpx
+import hmac
+import psycopg
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
@@ -14,9 +21,60 @@ from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
 from app.api.errors import http_exception_handler, unhandled_exception_handler, validation_exception_handler
-from app.api.security import require_agent_server_context
+from app.api.security import new_request_id, require_agent_server_context
+import app.api.security as agent_security
 
+settings = get_settings()
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase3")
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=list(settings.app_allowed_hosts),
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=list(settings.app_cors_origins),
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-Id", "X-User-Id", "X-Organization-Id", "Idempotency-Key"],
+    expose_headers=["X-Request-Id"],
+)
+if settings.app_enforce_https:
+    app.add_middleware(HTTPSRedirectMiddleware)
+
+
+@app.middleware("http")
+async def agent_server_auth(request: Request, call_next):
+    """Reject invalid server tokens before FastAPI validates request bodies."""
+    if request.method == "OPTIONS" or request.url.path not in {"/api/v1/agent/chat", "/api/agent/chat"}:
+        return await call_next(request)
+    if request.url.path in {"/api/v1/agent/chat", "/api/agent/chat"}:
+        expected = agent_security.get_settings().agent_server_token
+        authorization = request.headers.get("authorization")
+        supplied = authorization[7:].strip() if authorization and authorization.startswith("Bearer ") else ""
+        if not expected:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "error", "error": {"code": "AGENT_SERVER_AUTH_NOT_CONFIGURED", "message": "Agent server authentication chưa được cấu hình."}, "request_id": request.headers.get("x-request-id") or new_request_id()},
+            )
+        if not supplied or not hmac.compare_digest(supplied, expected):
+            return JSONResponse(
+                status_code=401,
+                content={"status": "error", "error": {"code": "SERVER_AUTHENTICATION_FAILED", "message": "Xác thực server không hợp lệ."}, "request_id": request.headers.get("x-request-id") or new_request_id()},
+            )
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
@@ -115,6 +173,52 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/health/dependencies")
+def health_dependencies() -> JSONResponse:
+    """Kiểm tra local runtime dependencies mà không trả secret/config nội bộ."""
+    checks: dict[str, dict[str, object]] = {}
+
+    if settings.database_url:
+        try:
+            with psycopg.connect(settings.database_url, connect_timeout=2) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT 1")
+                    cursor.fetchone()
+            checks["postgresql"] = {"status": "ok"}
+        except Exception:
+            checks["postgresql"] = {"status": "error"}
+    else:
+        checks["postgresql"] = {"status": "not_configured"}
+
+    try:
+        response = httpx.get(f"{settings.qdrant_url.rstrip('/')}/collections", timeout=2.0)
+        response.raise_for_status()
+        checks["qdrant"] = {"status": "ok"}
+    except Exception:
+        checks["qdrant"] = {"status": "error"}
+
+    try:
+        response = httpx.get(f"{settings.ollama_base_url.rstrip('/')}/api/tags", timeout=2.0)
+        response.raise_for_status()
+        payload = response.json()
+        checks["ollama"] = {
+            "status": "ok",
+            "chat_model": settings.ollama_chat_model,
+            "embedding_model": settings.ollama_embedding_model,
+            "models_available": len(payload.get("models", [])) if isinstance(payload, dict) else 0,
+        }
+    except Exception:
+        checks["ollama"] = {"status": "error"}
+
+    required_ok = checks["postgresql"]["status"] == "ok" and checks["qdrant"]["status"] == "ok"
+    all_ok = required_ok and checks["ollama"]["status"] == "ok"
+    body = {
+        "status": "ok" if all_ok else ("degraded" if required_ok else "error"),
+        "checks": checks,
+    }
+    return JSONResponse(status_code=200 if required_ok else 503, content=body)
+
+
 def _classify_agent_request(payload: AgentChatRequest) -> tuple[str, str | None, str | None]:
     request = ChatRequest(
         message=payload.message,
@@ -171,8 +275,8 @@ _agent_runtime = AgentRuntime(
 
 @app.post("/api/v1/agent/chat")
 def agent_chat(
-    payload: AgentChatRequest,
     server_context: dict[str, str] = Depends(require_agent_server_context),
+    payload: AgentChatRequest = Body(...),
 ) -> dict:
     context = {
         "request_id": server_context["request_id"],
@@ -188,8 +292,8 @@ def agent_chat(
 # Canonical API remains /api/v1/agent/chat.
 @app.post("/api/agent/chat")
 def agent_chat_legacy(
-    payload: AgentChatRequest,
     server_context: dict[str, str] = Depends(require_agent_server_context),
+    payload: AgentChatRequest = Body(...),
 ) -> dict:
     return agent_chat(payload=payload, server_context=server_context)
 

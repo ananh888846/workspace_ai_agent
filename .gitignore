@@ -22,3 +22,6 @@ storage/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local server process state
+.local-run/

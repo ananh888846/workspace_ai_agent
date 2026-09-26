@@ -26,7 +26,7 @@ def test_chat_returns_structured_success_and_request_id(monkeypatch):
     import app.main as main_module
 
     monkeypatch.setattr(main_module, "_agent_runtime", _FakeRuntime())
-    client = TestClient(app)
+    client = TestClient(app, headers={"Host": "127.0.0.1"})
     request_id = "123e4567-e89b-12d3-a456-426614174000"
 
     response = client.post(
