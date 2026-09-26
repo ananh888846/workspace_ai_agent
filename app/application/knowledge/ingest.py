@@ -52,9 +52,7 @@ class KnowledgeIngestionService:
         if not allowed:
             return IngestionResult(status="SKIPPED_UNAUTHORIZED")
 
-        source = self.repository.find_source(item)
-        if source is None:
-            source = self.repository.create_source(item)
+        source = self.repository.create_source(item)
 
         if item.deleted:
             version_ids = self.repository.retire_source(source.id)
