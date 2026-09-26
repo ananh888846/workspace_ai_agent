@@ -64,6 +64,12 @@ class PostgresKnowledgeRepository:
     def create_source(self, item: KnowledgeSourceItem) -> KnowledgeSourceRecord:
         existing = self.find_source(item)
         if existing is not None:
+            with self._connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE knowledge_sources SET status = %s, updated_at = now() WHERE id = %s",
+                    ["deleted" if item.deleted else "active", existing.id],
+                )
+            self._connection.commit()
             return existing
 
         query = """
@@ -119,6 +125,7 @@ class PostgresKnowledgeRepository:
             JOIN knowledge_document_version_sources kdvs
               ON kdvs.document_version_id = kdvv.id
             WHERE kdvs.source_id = %s
+              AND kdvv.status = 'active'
             ORDER BY kdvv.version_no DESC
             LIMIT 1
         """
