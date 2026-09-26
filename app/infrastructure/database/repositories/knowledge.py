@@ -135,6 +135,23 @@ class PostgresKnowledgeRepository:
 
         return str(row[0]) if row and row[0] is not None else None
 
+    def current_version_id(self, source_id: str) -> str | None:
+        """Return the active canonical version used for index recovery."""
+        query = """
+            SELECT kdv.id
+            FROM knowledge_document_versions kdv
+            JOIN knowledge_document_version_sources kdvs
+              ON kdvs.document_version_id = kdv.id
+            WHERE kdvs.source_id = %s
+              AND kdv.status = 'active'
+            ORDER BY kdv.version_no DESC
+            LIMIT 1
+        """
+        with self._connection.cursor() as cursor:
+            cursor.execute(query, [source_id])
+            row = cursor.fetchone()
+        return str(row[0]) if row else None
+
     def create_document_version(
         self,
         source_id: str,
