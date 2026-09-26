@@ -104,8 +104,21 @@ def _cleanup(connection, qdrant=None, document_version_id=None):
         cursor.execute("DELETE FROM roles WHERE id = %s", [ROLE_ID])
         cursor.execute("DELETE FROM organizations WHERE id = %s", [ORG_ID])
     connection.commit()
-    if qdrant is not None and document_version_id is not None:
-        qdrant.delete_document_version(document_version_id)
+    if qdrant is not None:
+        qdrant._request(
+            "POST",
+            f"/collections/{qdrant.collection}/points/delete?wait=true",
+            {
+                "filter": {
+                    "must": [
+                        {
+                            "key": "organization_id",
+                            "match": {"value": ORG_ID},
+                        }
+                    ]
+                }
+            },
+        )
 
 
 @pytest.mark.skipif(
