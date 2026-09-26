@@ -1,6 +1,6 @@
 """
-Created/Updated: 2026-09-24 20:32 GMT+7
-Main Function: Full Knowledge E2E smoke test covering PostgreSQL canonical ingestion, Ollama embeddings, Qdrant retrieval, BGE reranking, and authorization.
+Created/Updated: 2026-09-26  GMT+7
+Main Function: Full Knowledge E2E smoke test covering PostgreSQL canonical ingestion, Ollama embeddings, Qdrant retrieval, BGE reranking, authorization, and Vietnamese retrieval.
 """
 
 from __future__ import annotations
@@ -238,6 +238,23 @@ def test_full_knowledge_e2e():
         assert all(result.provider == "runtime_e2e" for result in results)
         assert all(result.external_id == "knowledge-e2e-001" for result in results)
         assert all(result.document_version_id == ingested.document_version_id for result in results)
+
+        vietnamese_results = authorized.retrieve(
+            "Dữ liệu tài liệu chuẩn và embedding được lưu ở đâu?",
+            user_id=USER_ID,
+            organization_id=ORG_ID,
+            candidate_limit=4,
+            limit=2,
+        )
+
+        assert vietnamese_results
+        assert any("PostgreSQL" in result.content for result in vietnamese_results)
+        assert all(result.provider == "runtime_e2e" for result in vietnamese_results)
+        assert all(result.external_id == "knowledge-e2e-001" for result in vietnamese_results)
+        assert all(
+            result.document_version_id == ingested.document_version_id
+            for result in vietnamese_results
+        )
 
         assert not authorization.authorize_query(
             user_id=USER_ID,

@@ -33,8 +33,10 @@ def _repair_mojibake(value: str | None) -> str | None:
 
 def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | None]:
     if request.capability:
-        action = request.action or ("read" if request.capability == "calendar.read" else "write")
-        return "calendar", request.capability, action
+        resource, separator, capability_action = request.capability.partition(".")
+        if separator and resource and capability_action:
+            return resource, request.capability, request.action or capability_action
+        return "not_classified", request.capability, request.action
     text = request.message.casefold()
     read_words = ("lịch", "calendar", "cuộc hẹn", "cuộc họp", "họp", "meeting", "sự kiện", "agenda", "schedule")
     write_words = ("tạo lịch", "tạo cuộc hẹn", "tạo cuộc họp", "tạo họp", "tạo meeting", "đặt lịch", "đặt cuộc họp", "thêm lịch", "thêm cuộc hẹn", "thêm cuộc họp", "sửa lịch", "sửa cuộc hẹn", "sửa cuộc họp", "cập nhật lịch", "cập nhật cuộc hẹn", "cập nhật cuộc họp", "xóa lịch", "xóa cuộc hẹn", "xóa cuộc họp", "xoá lịch", "xoá cuộc hẹn", "xoá cuộc họp", "huỷ lịch", "huỷ cuộc họp", "hủy lịch", "hủy cuộc họp")

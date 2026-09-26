@@ -1,4 +1,9 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Unit tests for Ollama embedding response parsing and validation.\n"""\n\nfrom app.infrastructure.knowledge.ollama_embedding import (
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Unit tests for Ollama embedding response parsing and validation.
+"""
+
+from app.infrastructure.knowledge.ollama_embedding import (
     OllamaEmbeddingProvider,
 )
 

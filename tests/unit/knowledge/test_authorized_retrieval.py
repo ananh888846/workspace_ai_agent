@@ -1,4 +1,9 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Unit tests for denied and authorized Knowledge retrieval.\n"""\n\nfrom app.application.knowledge.authorized_retrieval import AuthorizedKnowledgeRetrievalService
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Unit tests for denied and authorized Knowledge retrieval.
+"""
+
+from app.application.knowledge.authorized_retrieval import AuthorizedKnowledgeRetrievalService
 from app.application.knowledge.retrieval import RetrievalCandidate, KnowledgeResult
 
 

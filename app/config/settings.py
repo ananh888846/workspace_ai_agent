@@ -62,6 +62,10 @@ class Settings:
     ollama_embedding_model: str = _env(
         "OLLAMA_EMBEDDING_MODEL", "nomic-embed-text-v2-moe"
     )
+    knowledge_reranker_enabled: bool = _env("KNOWLEDGE_RERANKER_ENABLED", "true").lower() in {"1", "true", "yes", "on"}
+    knowledge_reranker_model: str = _env(
+        "KNOWLEDGE_RERANKER_MODEL", "BAAI/bge-reranker-v2-m3"
+    )
 
     # Multi-Hybrid LLM V1: local, cloud, or local-first/cloud-fallback.
     llm_mode: str = _env("LLM_MODE", "local")

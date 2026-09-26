@@ -1,4 +1,9 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Unit tests for semantic retrieval and reranking orchestration.\n"""\n\nfrom app.application.knowledge.retrieval import (
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Unit tests for semantic retrieval and reranking orchestration.
+"""
+
+from app.application.knowledge.retrieval import (
     KnowledgeRetrievalService,
     RerankedKnowledgeRetrievalService,
     RetrievalCandidate,

@@ -9,6 +9,7 @@ from app.api.chat import authorize_request, build_chat_response, classify_chat_r
 from app.api.schemas import ChatRequest
 from app.application.core_runtime import ExternalAccount
 from app.application.capabilities.calendar import CalendarHandler, calendar_handler
+from app.application.capabilities.knowledge import knowledge_handler
 from app.agent_runtime.runtime import AgentRuntime, AgentRuntimeDependencies
 from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
@@ -161,6 +162,7 @@ _agent_runtime = AgentRuntime(
         route_handlers={
             "calendar.read": calendar_handler.handle,
             "calendar.write": calendar_handler.handle,
+            "knowledge.read": knowledge_handler.handle,
             "default": _unsupported_handler,
         },
     )
