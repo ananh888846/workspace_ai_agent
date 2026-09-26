@@ -64,6 +64,12 @@ class PostgresKnowledgeRepository:
     def create_source(self, item: KnowledgeSourceItem) -> KnowledgeSourceRecord:
         existing = self.find_source(item)
         if existing is not None:
+            with self._connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE knowledge_sources SET status = %s, updated_at = now() WHERE id = %s",
+                    ["deleted" if item.deleted else "active", existing.id],
+                )
+            self._connection.commit()
             return existing
 
         query = """
@@ -119,6 +125,7 @@ class PostgresKnowledgeRepository:
             JOIN knowledge_document_version_sources kdvs
               ON kdvs.document_version_id = kdvv.id
             WHERE kdvs.source_id = %s
+              AND kdvv.status = 'active'
             ORDER BY kdvv.version_no DESC
             LIMIT 1
         """
@@ -197,6 +204,56 @@ class PostgresKnowledgeRepository:
                     document_id = str(cursor.fetchone()[0])
                 else:
                     document_id = str(document_row[0])
+
+                cursor.execute(
+                    """
+                    SELECT id, version_no
+                    FROM knowledge_document_versions
+                    WHERE knowledge_document_id = %s
+                      AND checksum = %s
+                      AND status = 'deleted'
+                    ORDER BY version_no DESC
+                    LIMIT 1
+                    """,
+                    [document_id, item.source_checksum],
+                )
+                deleted_version_row = cursor.fetchone()
+                if deleted_version_row is not None:
+                    version_id = str(deleted_version_row[0])
+                    version_no = int(deleted_version_row[1])
+                    cursor.execute(
+                        """
+                        UPDATE knowledge_document_versions
+                        SET source_revision = %s,
+                            canonical_content = %s,
+                            content_type = %s,
+                            status = 'active',
+                            metadata = %s,
+                            updated_at = now()
+                        WHERE id = %s
+                        """,
+                        [
+                            item.source_revision,
+                            item.content,
+                            item.mime_type or "text/plain",
+                            Json(item.metadata),
+                            version_id,
+                        ],
+                    )
+                    cursor.execute(
+                        """
+                        UPDATE knowledge_documents
+                        SET title = %s,
+                            version = %s,
+                            checksum = %s,
+                            status = 'active',
+                            updated_at = now()
+                        WHERE id = %s
+                        """,
+                        [item.title, str(version_no), item.source_checksum, document_id],
+                    )
+                    self._connection.commit()
+                    return KnowledgeDocumentVersionRecord(id=version_id)
 
                 cursor.execute(
                     """
@@ -359,3 +416,46 @@ class PostgresKnowledgeRepository:
         # Source checksum is already represented by the latest immutable
         # version. No canonical mutation is required for an unchanged fetch.
         return None
+
+    def retire_previous_versions(self, source_id: str, current_version_id: str) -> list[str]:
+        """Supersede older versions after the new vector is safely indexed."""
+        with self._connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE knowledge_document_versions kdv
+                SET status = 'superseded', updated_at = now()
+                FROM knowledge_document_version_sources kdvs
+                WHERE kdvs.document_version_id = kdv.id
+                  AND kdvs.source_id = %s
+                  AND kdv.id <> %s
+                  AND kdv.status = 'active'
+                RETURNING kdv.id
+                """,
+                [source_id, current_version_id],
+            )
+            ids = [str(row[0]) for row in cursor.fetchall()]
+        self._connection.commit()
+        return ids
+
+    def retire_source(self, source_id: str) -> list[str]:
+        """Mark a deleted source and all its versions inaccessible."""
+        with self._connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE knowledge_sources SET status = 'deleted', updated_at = now() WHERE id = %s",
+                [source_id],
+            )
+            cursor.execute(
+                """
+                UPDATE knowledge_document_versions kdv
+                SET status = 'deleted', updated_at = now()
+                FROM knowledge_document_version_sources kdvs
+                WHERE kdvs.document_version_id = kdv.id
+                  AND kdvs.source_id = %s
+                  AND kdv.status <> 'deleted'
+                RETURNING kdv.id
+                """,
+                [source_id],
+            )
+            ids = [str(row[0]) for row in cursor.fetchall()]
+        self._connection.commit()
+        return ids

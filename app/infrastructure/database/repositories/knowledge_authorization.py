@@ -78,6 +78,8 @@ class PostgresKnowledgeAuthorizationRepository:
              AND (ag.expires_at IS NULL OR ag.expires_at > CURRENT_TIMESTAMP)
             WHERE kc.organization_id = %s
               AND kc.qdrant_point_id = ANY(%s)
+              AND kdv.status = 'active'
+              AND ks.status = 'active'
               AND (
                     ks.user_account_id IS NULL
                     OR ua.user_id = %s

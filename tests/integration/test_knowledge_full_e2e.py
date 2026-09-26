@@ -66,7 +66,7 @@ def _connection():
     )
 
 
-def _cleanup(connection):
+def _cleanup(connection, qdrant=None, document_version_id=None):
     with connection.cursor() as cursor:
         cursor.execute(
             "DELETE FROM knowledge_document_version_sources WHERE organization_id = %s",
@@ -104,6 +104,21 @@ def _cleanup(connection):
         cursor.execute("DELETE FROM roles WHERE id = %s", [ROLE_ID])
         cursor.execute("DELETE FROM organizations WHERE id = %s", [ORG_ID])
     connection.commit()
+    if qdrant is not None:
+        qdrant._request(
+            "POST",
+            f"/collections/{qdrant.collection}/points/delete?wait=true",
+            {
+                "filter": {
+                    "must": [
+                        {
+                            "key": "organization_id",
+                            "match": {"value": ORG_ID},
+                        }
+                    ]
+                }
+            },
+        )
 
 
 @pytest.mark.skipif(
@@ -112,6 +127,11 @@ def _cleanup(connection):
 )
 def test_full_knowledge_e2e():
     connection = _connection()
+    qdrant = QdrantVectorIndex(
+        os.getenv("QDRANT_URL", "http://127.0.0.1:6333"),
+        os.getenv("QDRANT_COLLECTION", "knowledge_v1"),
+    )
+    ingested_version_id = None
     try:
         _cleanup(connection)
 
@@ -188,10 +208,6 @@ def test_full_knowledge_e2e():
             os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
             os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text-v2-moe"),
         )
-        qdrant = QdrantVectorIndex(
-            os.getenv("QDRANT_URL", "http://127.0.0.1:6333"),
-            os.getenv("QDRANT_COLLECTION", "knowledge_v1"),
-        )
         repository = PostgresKnowledgeRepository(connection)
 
         ingestion = KnowledgeIngestionService(
@@ -207,6 +223,7 @@ def test_full_knowledge_e2e():
         assert ingested.source_id
         assert ingested.document_version_id
         assert ingested.chunk_count == 2
+        ingested_version_id = ingested.document_version_id
 
         semantic = KnowledgeRetrievalService(ollama, qdrant)
         reranked = RerankedKnowledgeRetrievalService(
@@ -261,5 +278,5 @@ def test_full_knowledge_e2e():
             organization_id="9b2e6b6a-4d8a-4b72-8c1e-9d8e5b8a7199",
         )
     finally:
-        _cleanup(connection)
+        _cleanup(connection, qdrant, ingested_version_id)
         connection.close()

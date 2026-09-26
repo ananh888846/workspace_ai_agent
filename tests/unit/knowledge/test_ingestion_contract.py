@@ -36,6 +36,12 @@ class Repo:
     def mark_unchanged(self, source_id):
         pass
 
+    def retire_previous_versions(self, source_id, current_version_id):
+        return []
+
+    def retire_source(self, source_id):
+        return []
+
 
 class Auth:
     def authorize_ingestion(self, **kwargs):
@@ -53,10 +59,16 @@ class Embedding:
 
 
 class Index:
+    def __init__(self):
+        self.reconciles = []
+
     def upsert(self, chunks, vectors, document_version_id=None, organization_id=None):
         pass
 
-    def reconcile(self, document_version_id):
+    def reconcile(self, document_version_id, active_chunk_indices=None):
+        self.reconciles.append((document_version_id, active_chunk_indices))
+
+    def delete_document_version(self, document_version_id):
         pass
 
 

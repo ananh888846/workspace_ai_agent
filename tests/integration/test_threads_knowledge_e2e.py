@@ -32,6 +32,12 @@ class Repo:
     def mark_unchanged(self, source_id):
         pass
 
+    def retire_previous_versions(self, source_id, current_version_id):
+        return []
+
+    def retire_source(self, source_id):
+        return []
+
 
 class Auth:
     def authorize_ingestion(self, **kwargs):
@@ -56,8 +62,8 @@ class Index:
     def upsert(self, chunks, vectors, document_version_id=None, organization_id=None):
         self.upserts.append((chunks, vectors))
 
-    def reconcile(self, document_version_id):
-        self.reconciled.append(document_version_id)
+    def reconcile(self, document_version_id, active_chunk_indices=None):
+        self.reconciled.append((document_version_id, active_chunk_indices))
 
 
 def threads_item(checksum="threads-checksum-1"):
@@ -82,7 +88,7 @@ def test_threads_source_item_reaches_knowledge_version_and_vector_boundary():
     assert result.chunk_count == 1
     assert repo.versions == 1
     assert index.upserts == [(["Hello from Threads"], [[0.1, 0.2]])]
-    assert index.reconciled == ["version-1"]
+    assert index.reconciled == [("version-1", [0])]
 
 
 def test_threads_source_checksum_is_idempotent():
