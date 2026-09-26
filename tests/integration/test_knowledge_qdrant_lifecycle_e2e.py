@@ -35,9 +35,12 @@ class AllowIngestion:
         return True
 
 
+VECTOR_SIZE = 768
+
+
 class DeterministicEmbedding:
     def embed(self, chunks):
-        return [[0.1, 0.2] for _ in chunks]
+        return [[0.1] * VECTOR_SIZE for _ in chunks]
 
 
 class ParagraphChunker:
@@ -57,6 +60,7 @@ def _connection():
 
 
 def _cleanup(connection, qdrant, version_ids=()):
+    connection.rollback()
     for version_id in version_ids:
         if version_id:
             qdrant.delete_document_version(version_id)
@@ -76,6 +80,7 @@ def _cleanup(connection, qdrant, version_ids=()):
             "DELETE FROM knowledge_document_version_sources WHERE organization_id = %s",
             [ORG_ID],
         )
+        cursor.execute("DELETE FROM knowledge_assets WHERE organization_id = %s", [ORG_ID])
         cursor.execute("DELETE FROM knowledge_chunks WHERE organization_id = %s", [ORG_ID])
         cursor.execute(
             "DELETE FROM knowledge_document_versions WHERE organization_id = %s",
@@ -183,7 +188,7 @@ def test_real_postgres_qdrant_lifecycle():
         point_ids_before = [str(point["id"]) for point in second_points]
         qdrant.upsert(
             [content_v2.split("\n\n")[0], content_v2.split("\n\n")[1]],
-            [[0.1, 0.2], [0.1, 0.2]],
+            [[0.1] * VECTOR_SIZE, [0.1] * VECTOR_SIZE],
             second.document_version_id,
             ORG_ID,
         )
@@ -197,7 +202,7 @@ def test_real_postgres_qdrant_lifecycle():
             {
                 "points": [{
                     "id": stale_id,
-                    "vector": [0.1, 0.2],
+                    "vector": [0.1] * VECTOR_SIZE,
                     "payload": {
                         "document_version_id": second.document_version_id,
                         "organization_id": ORG_ID,
