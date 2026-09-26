@@ -6,7 +6,8 @@ closely related concepts, while each query is paraphrased so it does not simply
 repeat the target document's keywords.
 
 It compares first-stage cosine retrieval from Ollama embeddings with BGE
-cross-encoder reranking. It does not modify PostgreSQL or Qdrant data.
+cross-encoder reranking using the same 30-candidate ceiling as the production
+Knowledge retrieval path. It does not modify PostgreSQL or Qdrant data.
 
 Run from the repository root:
     python scripts/knowledge_retrieval_benchmark.py
@@ -137,6 +138,11 @@ DOCUMENTS = (
     ("lifecycle_canonical", "PostgreSQL remains canonical while Qdrant is treated as rebuildable derived retrieval state."),
 )
 
+# Production retrieval keeps at least 30 candidates when reranking is enabled.
+# Limiting the benchmark to the same candidate ceiling makes the comparison
+# representative without requiring a live Qdrant collection.
+RERANK_CANDIDATE_LIMIT = 30
+
 
 def cosine(left: list[float], right: list[float]) -> float:
     numerator = sum(a * b for a, b in zip(left, right))
@@ -147,12 +153,16 @@ def cosine(left: list[float], right: list[float]) -> float:
     return numerator / (left_norm * right_norm)
 
 
-def reciprocal_rank(ids: list[str], relevant_id: str, k: int) -> float:
+def rank_of(ids: list[str], relevant_id: str) -> int | None:
     try:
-        rank = ids[:k].index(relevant_id) + 1
+        return ids.index(relevant_id) + 1
     except ValueError:
-        return 0.0
-    return 1.0 / rank
+        return None
+
+
+def reciprocal_rank(ids: list[str], relevant_id: str, k: int) -> float:
+    rank = rank_of(ids[:k], relevant_id)
+    return 0.0 if rank is None else 1.0 / rank
 
 
 def recall_at_k(ids: list[str], relevant_id: str, k: int) -> float:
@@ -164,11 +174,8 @@ def precision_at_k(ids: list[str], relevant_id: str, k: int) -> float:
 
 
 def ndcg_at_k(ids: list[str], relevant_id: str, k: int) -> float:
-    try:
-        rank = ids[:k].index(relevant_id) + 1
-    except ValueError:
-        return 0.0
-    return 1.0 / math.log2(rank + 1)
+    rank = rank_of(ids[:k], relevant_id)
+    return 0.0 if rank is None else 1.0 / math.log2(rank + 1)
 
 
 def mean_metric(
@@ -263,13 +270,14 @@ def main() -> int:
         )
     )
     reranked_cases = [
-        reranker.rerank(case.query, candidates)
+        reranker.rerank(case.query, candidates[:RERANK_CANDIDATE_LIMIT])
         for case, candidates in zip(CASES, baseline_cases)
     ]
 
     print("Knowledge Retrieval Quality Benchmark")
     print(f"Cases: {len(CASES)}")
     print(f"Fixture documents: {len(DOCUMENTS)}")
+    print(f"BGE candidate limit: {RERANK_CANDIDATE_LIMIT}")
     print("Corpus design: paraphrased queries + hard negatives")
     print(f"Ollama embedding model: {model}")
     print(f"BGE model: {reranker.model_name}")
@@ -278,10 +286,16 @@ def main() -> int:
     print()
 
     for case, baseline, reranked in zip(CASES, baseline_cases, reranked_cases):
+        baseline_ids = [candidate.point_id for candidate in baseline]
+        reranked_ids = [candidate.point_id for candidate in reranked]
         print(f"Query: {case.query}")
         print(f"  expected: {case.relevant_id}")
-        print("  baseline:", ", ".join(candidate.point_id for candidate in baseline[:10]))
-        print("  reranked:", ", ".join(candidate.point_id for candidate in reranked[:10]))
+        print(
+            f"  rank: baseline={rank_of(baseline_ids, case.relevant_id) or 'not found'} "
+            f"reranked={rank_of(reranked_ids, case.relevant_id) or 'not found'}"
+        )
+        print("  baseline:", ", ".join(baseline[:10][i].point_id for i in range(min(10, len(baseline)))))
+        print("  reranked:", ", ".join(reranked[:10][i].point_id for i in range(min(10, len(reranked)))))
         print()
 
     return 0
