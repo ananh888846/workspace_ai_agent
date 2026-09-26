@@ -207,6 +207,56 @@ class PostgresKnowledgeRepository:
 
                 cursor.execute(
                     """
+                    SELECT id, version_no
+                    FROM knowledge_document_versions
+                    WHERE knowledge_document_id = %s
+                      AND checksum = %s
+                      AND status = 'deleted'
+                    ORDER BY version_no DESC
+                    LIMIT 1
+                    """,
+                    [document_id, item.source_checksum],
+                )
+                deleted_version_row = cursor.fetchone()
+                if deleted_version_row is not None:
+                    version_id = str(deleted_version_row[0])
+                    version_no = int(deleted_version_row[1])
+                    cursor.execute(
+                        """
+                        UPDATE knowledge_document_versions
+                        SET source_revision = %s,
+                            canonical_content = %s,
+                            content_type = %s,
+                            status = 'active',
+                            metadata = %s,
+                            updated_at = now()
+                        WHERE id = %s
+                        """,
+                        [
+                            item.source_revision,
+                            item.content,
+                            item.mime_type or "text/plain",
+                            Json(item.metadata),
+                            version_id,
+                        ],
+                    )
+                    cursor.execute(
+                        """
+                        UPDATE knowledge_documents
+                        SET title = %s,
+                            version = %s,
+                            checksum = %s,
+                            status = 'active',
+                            updated_at = now()
+                        WHERE id = %s
+                        """,
+                        [item.title, str(version_no), item.source_checksum, document_id],
+                    )
+                    self._connection.commit()
+                    return KnowledgeDocumentVersionRecord(id=version_id)
+
+                cursor.execute(
+                    """
                     SELECT COALESCE(MAX(version_no), 0) + 1
                     FROM knowledge_document_versions
                     WHERE knowledge_document_id = %s
