@@ -1,9 +1,16 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Unit tests for Docling document parsing and plain-text handling.\n"""\n\nfrom app.infrastructure.knowledge.docling import DoclingDocumentParser
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7
+Main Function: Unit tests for Docling document parsing and plain-text handling.
+"""
+
+from app.infrastructure.knowledge.docling import DoclingDocumentParser
 
 
 class Document:
     def export_to_markdown(self):
-        return "# Parsed\\n\\nHello"
+        return "# Parsed\
+\
+Hello"
 
 
 class Result:
@@ -26,7 +33,9 @@ class Converter:
 def test_docling_parser_uses_document_stream_for_binary():
     converter = Converter()
     parser = DoclingDocumentParser(converter)
-    assert parser.parse(b"pdf", file_name="report.pdf", mime_type="application/pdf") == "# Parsed\\n\\nHello"
+    assert parser.parse(b"pdf", file_name="report.pdf", mime_type="application/pdf") == "# Parsed\
+\
+Hello"
     assert converter.calls[0][0] == "convert"
 
 
