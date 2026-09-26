@@ -100,6 +100,7 @@ def test_create_document_version_persists_canonical_content_and_primary_provenan
         None,       # document lookup through provenance
         None,       # legacy document lookup
         ("doc-1",), # document INSERT
+        None,       # no deleted version with this checksum
         (1,),       # next version number
         ("version-2",),  # version INSERT
     ])
