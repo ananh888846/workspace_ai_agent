@@ -66,6 +66,7 @@ class VectorIndexPort(Protocol):
         document_version_id: str | None = None,
         organization_id: str | None = None,
     ) -> None: ...
+    def is_indexed(self, document_version_id: str, expected_chunk_count: int) -> bool: ...
     def reconcile(
         self,
         document_version_id: str,
