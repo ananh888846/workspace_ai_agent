@@ -164,10 +164,10 @@ class QdrantVectorIndex:
         """
         if active_chunk_indices is None:
             return None
-        response = self._request(
-            "POST",
-            f"/collections/{self.collection}/points/scroll",
-            {
+        active = set(active_chunk_indices)
+        offset = None
+        while True:
+            payload = {
                 "limit": 1000,
                 "with_payload": True,
                 "with_vector": False,
@@ -179,21 +179,32 @@ class QdrantVectorIndex:
                         }
                     ]
                 },
-            },
-        )
-        points = response.get("result", {}).get("points", [])
-        active = set(active_chunk_indices)
-        stale_ids = [
-            str(point["id"])
-            for point in points
-            if int(point.get("payload", {}).get("chunk_index", -1)) not in active
-        ]
-        if stale_ids:
-            self._request(
+            }
+            if offset is not None:
+                payload["offset"] = offset
+
+            response = self._request(
                 "POST",
-                f"/collections/{self.collection}/points/delete?wait=true",
-                {"points": stale_ids},
+                f"/collections/{self.collection}/points/scroll",
+                payload,
             )
+            result = response.get("result", {})
+            points = result.get("points", [])
+            stale_ids = [
+                str(point["id"])
+                for point in points
+                if int(point.get("payload", {}).get("chunk_index", -1)) not in active
+            ]
+            if stale_ids:
+                self._request(
+                    "POST",
+                    f"/collections/{self.collection}/points/delete?wait=true",
+                    {"points": stale_ids},
+                )
+
+            offset = result.get("next_page_offset")
+            if offset is None:
+                break
 
     def delete_document_version(self, document_version_id: str) -> None:
         """Delete all derived points for one document version."""
