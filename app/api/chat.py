@@ -38,12 +38,33 @@ def classify_chat_request(request: ChatRequest) -> tuple[str, str | None, str | 
             return resource, request.capability, request.action or capability_action
         return "not_classified", request.capability, request.action
     text = request.message.casefold()
+    knowledge_words = (
+        "knowledge",
+        "kiến thức",
+        "tài liệu",
+        "tài liệu nội bộ",
+        "document",
+        "documents",
+        "docs",
+        "qdrant",
+        "ollama",
+        "embedding",
+        "vector",
+        "vector database",
+        "bge",
+        "rerank",
+        "reranking",
+        "nguồn dữ liệu",
+        "kho kiến thức",
+    )
     read_words = ("lịch", "calendar", "cuộc hẹn", "cuộc họp", "họp", "meeting", "sự kiện", "agenda", "schedule")
     write_words = ("tạo lịch", "tạo cuộc hẹn", "tạo cuộc họp", "tạo họp", "tạo meeting", "đặt lịch", "đặt cuộc họp", "thêm lịch", "thêm cuộc hẹn", "thêm cuộc họp", "sửa lịch", "sửa cuộc hẹn", "sửa cuộc họp", "cập nhật lịch", "cập nhật cuộc hẹn", "cập nhật cuộc họp", "xóa lịch", "xóa cuộc hẹn", "xóa cuộc họp", "xoá lịch", "xoá cuộc hẹn", "xoá cuộc họp", "huỷ lịch", "huỷ cuộc họp", "hủy lịch", "hủy cuộc họp")
     scheduling_words = (
         "tìm thời gian", "tìm giờ", "tìm lịch", "xếp lịch", "sắp xếp lịch",
         "lịch trống", "khung giờ", "slot", "thời gian phù hợp",
     )
+    if any(word in text for word in knowledge_words):
+        return "knowledge", "knowledge.read", "read"
     if any(word in text for word in scheduling_words) and not any(word in text for word in write_words):
         return "calendar", "calendar.read", "schedule"
     if not any(word in text for word in read_words):

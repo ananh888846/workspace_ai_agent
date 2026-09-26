@@ -61,12 +61,56 @@ class KnowledgeIngestionService:
             return IngestionResult(status="DELETED", source_id=source.id)
 
         current_checksum = self.repository.current_checksum(source.id)
+        chunks = self.chunker.chunk(item.content)
+
         if current_checksum == item.source_checksum:
-            self.repository.mark_unchanged(source.id)
-            return IngestionResult(status="SKIPPED_UNCHANGED", source_id=source.id)
+            version_id = self.repository.current_version_id(source.id)
+            if version_id is None:
+                raise RuntimeError("knowledge_current_version_missing")
+
+            if self.vector_index.is_indexed(version_id, len(chunks)):
+                self.repository.mark_unchanged(source.id)
+                return IngestionResult(
+                    status="SKIPPED_UNCHANGED",
+                    source_id=source.id,
+                    document_version_id=version_id,
+                    chunk_count=len(chunks),
+                )
+
+            # The canonical version exists, but its derived vector index is
+            # incomplete or stale. Re-persist chunks and rebuild the same
+            # deterministic Qdrant point IDs instead of creating a duplicate
+            # PostgreSQL version.
+            self.repository.create_chunks(
+                version_id,
+                item.organization_id,
+                chunks,
+            )
+            if item.assets:
+                self.repository.create_assets(
+                    version_id,
+                    item.organization_id,
+                    item.assets,
+                )
+            vectors = self.embedding.embed(chunks)
+            self.vector_index.upsert(
+                chunks,
+                vectors,
+                version_id,
+                item.organization_id,
+            )
+            self.vector_index.reconcile(
+                version_id,
+                list(range(len(chunks))),
+            )
+            return IngestionResult(
+                status="REPAIRED_INDEX",
+                source_id=source.id,
+                document_version_id=version_id,
+                chunk_count=len(chunks),
+            )
 
         version = self.repository.create_document_version(source.id, item)
-        chunks = self.chunker.chunk(item.content)
         self.repository.create_chunks(
             version.id,
             item.organization_id,

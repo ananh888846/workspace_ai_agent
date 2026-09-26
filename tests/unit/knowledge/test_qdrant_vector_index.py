@@ -109,3 +109,37 @@ def test_qdrant_delete_document_version_uses_version_filter(monkeypatch):
     assert calls[0][0] == "POST"
     assert calls[0][1].endswith("/points/delete?wait=true")
     assert calls[0][2]["filter"]["must"][0]["key"] == "document_version_id"
+
+
+def test_qdrant_is_indexed_requires_exact_chunk_indexes(monkeypatch):
+    index = QdrantVectorIndex("http://qdrant", "knowledge")
+    calls = []
+
+    def request(method, path, payload=None):
+        calls.append((method, path, payload))
+        if payload.get("offset") is None:
+            return {
+                "result": {
+                    "points": [
+                        {"id": "chunk-0", "payload": {"chunk_index": 0}},
+                    ],
+                    "next_page_offset": "page-2",
+                }
+            }
+        return {
+            "result": {
+                "points": [
+                    {"id": "chunk-1", "payload": {"chunk_index": 1}},
+                    {"id": "stale", "payload": {"chunk_index": 99}},
+                ],
+                "next_page_offset": None,
+            }
+        }
+
+    monkeypatch.setattr(index, "_request", request)
+
+    assert index.is_indexed(
+        "11111111-1111-1111-1111-111111111111",
+        expected_chunk_count=2,
+    ) is False
+    assert len(calls) == 2
