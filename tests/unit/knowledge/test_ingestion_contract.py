@@ -22,6 +22,9 @@ class Repo:
     def current_checksum(self, source_id):
         return "same" if self.versions == 1 else None
 
+    def current_version_id(self, source_id):
+        return "version-1"
+
     def create_document_version(self, source_id, item):
         self.versions += 1
         return type("Version", (), {"id": f"version-{self.versions}"})()
@@ -61,6 +64,10 @@ class Embedding:
 class Index:
     def __init__(self):
         self.reconciles = []
+        self.indexed = True
+
+    def is_indexed(self, document_version_id, expected_chunk_count):
+        return self.indexed
 
     def upsert(self, chunks, vectors, document_version_id=None, organization_id=None):
         pass
