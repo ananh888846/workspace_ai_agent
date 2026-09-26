@@ -1,4 +1,5 @@
-"""\nCreated/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Opt-in runtime smoke test for real Ollama embeddings and Qdrant vector indexing.\n"""\n\nimport os
+"""
+Created/Updated: 2026-09-24 20:32 GMT+7\nMain Function: Opt-in runtime smoke test for real Ollama embeddings and Qdrant vector indexing.\n"""\n\nimport os
 
 import pytest
 
