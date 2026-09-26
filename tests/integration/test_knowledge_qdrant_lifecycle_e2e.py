@@ -59,6 +59,19 @@ def _connection():
     )
 
 
+def _create_test_organization(connection):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            INSERT INTO organizations (id, name, organization_type)
+            VALUES (%s, 'Knowledge Qdrant Lifecycle E2E', 'workspace')
+            ON CONFLICT (id) DO NOTHING
+            """,
+            [ORG_ID],
+        )
+    connection.commit()
+
+
 def _cleanup(connection, qdrant, version_ids=()):
     connection.rollback()
     for version_id in version_ids:
@@ -88,6 +101,7 @@ def _cleanup(connection, qdrant, version_ids=()):
         )
         cursor.execute("DELETE FROM knowledge_sources WHERE organization_id = %s", [ORG_ID])
         cursor.execute("DELETE FROM knowledge_documents WHERE organization_id = %s", [ORG_ID])
+        cursor.execute("DELETE FROM organizations WHERE id = %s", [ORG_ID])
     connection.commit()
 
 
@@ -148,6 +162,7 @@ def test_real_postgres_qdrant_lifecycle():
     version_ids = []
     try:
         _cleanup(connection, qdrant)
+        _create_test_organization(connection)
 
         content_v1 = "canonical version one"
         content_v2 = "canonical version two\n\nsecond chunk"
@@ -254,6 +269,7 @@ def test_real_qdrant_reconcile_paginates_over_1000_points():
     version_ids = []
     try:
         _cleanup(connection, qdrant)
+        _create_test_organization(connection)
 
         content = "\n\n".join(f"chunk-{index}" for index in range(1001))
         repository = PostgresKnowledgeRepository(connection)
