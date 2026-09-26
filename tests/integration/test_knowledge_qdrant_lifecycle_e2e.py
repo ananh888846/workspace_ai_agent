@@ -60,6 +60,17 @@ def _cleanup(connection, qdrant, version_ids=()):
     for version_id in version_ids:
         if version_id:
             qdrant.delete_document_version(version_id)
+    qdrant._request(
+        "POST",
+        f"/collections/{qdrant.collection}/points/delete?wait=true",
+        {
+            "filter": {
+                "must": [
+                    {"key": "organization_id", "match": {"value": ORG_ID}}
+                ]
+            }
+        },
+    )
     with connection.cursor() as cursor:
         cursor.execute(
             "DELETE FROM knowledge_document_version_sources WHERE organization_id = %s",
