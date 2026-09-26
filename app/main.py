@@ -22,6 +22,7 @@ from app.infrastructure.oauth.google import GoogleOAuthService
 from app.config.settings import get_settings
 from app.api.errors import http_exception_handler, unhandled_exception_handler, validation_exception_handler
 from app.api.security import new_request_id, require_agent_server_context
+import app.api.security as agent_security
 
 settings = get_settings()
 app = FastAPI(title="Workspace AI Agent", version="2.1-phase3")
@@ -45,8 +46,10 @@ if settings.app_enforce_https:
 @app.middleware("http")
 async def agent_server_auth(request: Request, call_next):
     """Reject invalid server tokens before FastAPI validates request bodies."""
+    if request.method == "OPTIONS" or request.url.path not in {"/api/v1/agent/chat", "/api/agent/chat"}:
+        return await call_next(request)
     if request.url.path in {"/api/v1/agent/chat", "/api/agent/chat"}:
-        expected = settings.agent_server_token
+        expected = agent_security.get_settings().agent_server_token
         authorization = request.headers.get("authorization")
         supplied = authorization[7:].strip() if authorization and authorization.startswith("Bearer ") else ""
         if not expected:
