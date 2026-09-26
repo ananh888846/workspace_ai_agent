@@ -1,7 +1,9 @@
 """
 Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Unit test for BGE reranker scoring and ordering.
-"""\n\nimport sys
+"""
+
+import sys
 from types import SimpleNamespace
 
 from app.application.knowledge.retrieval import RetrievalCandidate
