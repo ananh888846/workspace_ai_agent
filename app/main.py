@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -251,8 +251,8 @@ _agent_runtime = AgentRuntime(
 
 @app.post("/api/v1/agent/chat")
 def agent_chat(
-    payload: AgentChatRequest,
     server_context: dict[str, str] = Depends(require_agent_server_context),
+    payload: AgentChatRequest = Body(...),
 ) -> dict:
     context = {
         "request_id": server_context["request_id"],
@@ -268,8 +268,8 @@ def agent_chat(
 # Canonical API remains /api/v1/agent/chat.
 @app.post("/api/agent/chat")
 def agent_chat_legacy(
-    payload: AgentChatRequest,
     server_context: dict[str, str] = Depends(require_agent_server_context),
+    payload: AgentChatRequest = Body(...),
 ) -> dict:
     return agent_chat(payload=payload, server_context=server_context)
 
