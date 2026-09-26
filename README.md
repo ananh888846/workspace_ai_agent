@@ -1,6 +1,6 @@
 # Workspace AI Agent — Local Development
 
-**Cập nhật:** 2026-09-24 20:45 (GMT+7, TP.HCM)
+**Cập nhật:** 2026-09-26 (GMT+7, TP.HCM)
 
 > Mục tiêu: mở file này là biết cách kéo code về Windows local, khởi động hạ tầng và chạy Workspace AI Agent.
 
@@ -197,7 +197,55 @@ Nếu script báo lỗi, xem:
 agent_api.log
 ~~~
 
-## 10. Chạy test
+## 10. Local Server lifecycle — L1/L2
+
+Có thể quản lý toàn bộ Local Server bằng PowerShell:
+
+```powershell
+cd D:\Project\workspace_ai_agent
+.\\scripts\\local-server.ps1 status
+.\\scripts\\local-server.ps1 start
+.\\scripts\\local-server.ps1 health
+.\\scripts\\local-server.ps1 stop
+```
+
+Có thể đặt đường dẫn Laravel qua biến môi trường:
+
+```powershell
+$env:WORKSPACE_AI_AGENT_WEB_PATH = "D:\\Project\\workspace_ai_agent_web"
+```
+
+`start` sẽ bật PostgreSQL + Qdrant, Agent FastAPI và Laravel Web nếu đường dẫn Web được cấu hình. Script không xóa Docker volume.
+
+Health tổng hợp của Agent: `GET /health/dependencies`.
+
+## 11. API hardening — L3
+
+Local mặc định:
+
+```env
+APP_ALLOWED_HOSTS=127.0.0.1,localhost
+APP_CORS_ORIGINS=http://127.0.0.1:8001,http://localhost:8001
+APP_ENFORCE_HTTPS=false
+```
+
+Agent có Trusted Host, CORS allowlist, security response headers và dependency health check. Không dùng `*` làm CORS allowlist.
+
+PostgreSQL và Qdrant Docker ports được bind vào `127.0.0.1`, không public ra LAN theo mặc định.
+
+Server-to-server `AGENT_SERVER_TOKEN` vẫn là secret của Laravel → Agent; không đưa token này vào Flutter/browser.
+
+## 12. Remote Access V1 — L4
+
+Remote access hiện được thiết kế theo hướng publish **Laravel Web qua HTTPS/reverse proxy**, còn Agent, PostgreSQL, Qdrant và Ollama giữ private.
+
+Template: `deploy/Caddyfile.example`.
+
+Decision/runbook: `deploy/REMOTE_ACCESS_V1.md`.
+
+Flutter direct-to-Agent chưa được publish ở L4 vì cần một user/client authentication contract riêng; không tái sử dụng server-to-server token.
+
+## 13. Chạy test
 
 Test nhanh toàn bộ unit:
 
@@ -216,7 +264,7 @@ Knowledge regression:
   tests/unit/knowledge/test_ingestion_contract.py
 ~~~
 
-## 11. K4 — File Storage + Docling
+## 14. K4 — File Storage + Docling
 
 K4 không cần Ollama.
 
@@ -227,7 +275,7 @@ $env:PYTHONPATH = (Get-Location).Path
   tests/unit/knowledge/test_docling_parser.py
 ~~~
 
-## 12. K5/K6 — Ollama + Qdrant
+## 15. K5/K6 — Ollama + Qdrant
 
 K5 dùng Ollama embedding; K6 dùng Qdrant.
 
@@ -258,7 +306,7 @@ $env:RUN_KNOWLEDGE_VECTOR_SMOKE = "1"
 
 K5/K6 runtime smoke phải có Ollama thật đang chạy. Unit test không thay thế runtime verification.
 
-## 13. Dừng hạ tầng
+## 16. Dừng hạ tầng
 
 Tắt container nhưng giữ dữ liệu:
 
@@ -274,7 +322,7 @@ docker compose start
 
 Không dùng docker compose down -v trừ khi cố ý xóa toàn bộ PostgreSQL/Qdrant local data.
 
-## 14. Quy trình làm việc chuẩn
+## 17. Quy trình làm việc chuẩn
 
 ~~~text
 1. cd workspace_ai_agent
@@ -298,7 +346,7 @@ Không dùng docker compose down -v trừ khi cố ý xóa toàn bộ PostgreSQL
 10. /health
 ~~~
 
-## 15. Khi code trên GitHub vừa được cập nhật
+## 18. Khi code trên GitHub vừa được cập nhật
 
 Luôn kiểm tra commit local:
 
@@ -309,7 +357,7 @@ git status
 
 Chỉ coi thay đổi là đã kiểm thử khi local đang đúng commit đã được kéo từ GitHub.
 
-## 16. Ranh giới repository
+## 19. Ranh giới repository
 
 ~~~text
 workspace_ai_agent
@@ -324,7 +372,7 @@ workspace-ai-agent-ecosystem
 
 Không trộn ba repository vào một runtime.
 
-## 17. Troubleshooting nhanh
+## 20. Troubleshooting nhanh
 
 ### python không nhận
 
@@ -375,7 +423,7 @@ Get-Content .\agent_api.log -Tail 100
 
 ---
 
-## 18. Source of truth
+## 21. Source of truth
 
 - Runtime/config: docs/CONFIGURATION.md
 - Development workflow: docs/DEVELOPMENT_WORKFLOW_V1.md
