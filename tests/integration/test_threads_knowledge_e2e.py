@@ -23,6 +23,12 @@ class Repo:
         self.checksum = item.source_checksum
         return type("Version", (), {"id": f"version-{self.versions}"})()
 
+    def create_chunks(self, document_version_id, organization_id, chunks):
+        return [f"{document_version_id}-chunk-{index}" for index, _ in enumerate(chunks)]
+
+    def create_assets(self, document_version_id, organization_id, assets):
+        return []
+
     def mark_unchanged(self, source_id):
         pass
 
@@ -47,7 +53,7 @@ class Index:
         self.upserts = []
         self.reconciled = []
 
-    def upsert(self, chunks, vectors):
+    def upsert(self, chunks, vectors, document_version_id=None, organization_id=None):
         self.upserts.append((chunks, vectors))
 
     def reconcile(self, document_version_id):
