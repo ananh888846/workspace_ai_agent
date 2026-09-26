@@ -49,11 +49,11 @@ class AuthorizedKnowledgeRetrievalService:
             organization_id=organization_id,
         ):
             return []
+        retrieval_limit = max(candidate_limit or limit, 1)
         candidates = self.retrieval.retrieve(
             query,
             organization_id=organization_id,
-            candidate_limit=max(candidate_limit or limit, 1),
-            limit=max(limit, 1),
+            limit=retrieval_limit,
         )
         authorized = self.authorization.filter_candidates(
             user_id=user_id,
