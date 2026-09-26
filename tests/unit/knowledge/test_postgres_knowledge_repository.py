@@ -1,7 +1,9 @@
 """
 Created/Updated: 2026-09-24 20:32 GMT+7
 Main Function: Unit tests for PostgreSQL Knowledge source, version, chunk, and asset persistence.
-"""\n\nfrom app.domain.knowledge.source import KnowledgeSourceItem
+"""
+
+from app.domain.knowledge.source import KnowledgeSourceItem
 from app.infrastructure.database.repositories.knowledge import (
     PostgresKnowledgeRepository,
 )
