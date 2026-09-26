@@ -56,6 +56,12 @@ class KnowledgeIngestionService:
         if source is None:
             source = self.repository.create_source(item)
 
+        if item.deleted:
+            version_ids = self.repository.retire_source(source.id)
+            for version_id in version_ids:
+                self.vector_index.delete_document_version(version_id)
+            return IngestionResult(status="DELETED", source_id=source.id)
+
         current_checksum = self.repository.current_checksum(source.id)
         if current_checksum == item.source_checksum:
             self.repository.mark_unchanged(source.id)
@@ -76,7 +82,14 @@ class KnowledgeIngestionService:
             )
         vectors = self.embedding.embed(chunks)
         self.vector_index.upsert(chunks, vectors, version.id, item.organization_id)
-        self.vector_index.reconcile(version.id)
+        self.vector_index.reconcile(version.id, list(range(len(chunks))))
+
+        previous_versions = self.repository.retire_previous_versions(
+            source.id,
+            version.id,
+        )
+        for previous_version_id in previous_versions:
+            self.vector_index.delete_document_version(previous_version_id)
 
         return IngestionResult(
             status="COMPLETED",
