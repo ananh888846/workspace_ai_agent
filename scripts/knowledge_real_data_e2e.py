@@ -22,6 +22,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.application.knowledge.ingest import KnowledgeIngestionService
+from app.config.settings import get_settings
 from app.domain.knowledge.source import KnowledgeSourceItem
 from app.infrastructure.database.repositories.knowledge import PostgresKnowledgeRepository
 from app.infrastructure.database.repositories.knowledge_authorization import (
@@ -71,7 +72,10 @@ def main() -> int:
 
     organization_id = required_env("KNOWLEDGE_REAL_ORGANIZATION_ID")
     user_id = required_env("KNOWLEDGE_REAL_USER_ID")
-    agent_token = required_env("AGENT_SERVER_TOKEN")
+    settings = get_settings()
+    agent_token = settings.agent_server_token
+    if not agent_token:
+        raise SystemExit("Missing AGENT_SERVER_TOKEN in environment or local .env")
     agent_base_url = os.getenv("AGENT_BASE_URL", "http://127.0.0.1:8000")
     external_id = args.external_id or f"local-file:{path.as_posix()}"
     title = args.title or path.name
@@ -84,7 +88,10 @@ def main() -> int:
     print(f"external_id: {external_id}")
     print(f"bytes: {len(content.encode('utf-8'))}")
 
-    with psycopg.connect(required_env("DATABASE_URL")) as connection:
+    if not settings.database_url:
+        raise SystemExit("Missing DATABASE_URL in environment or local .env")
+
+    with psycopg.connect(settings.database_url) as connection:
         authorization = PostgresKnowledgeAuthorizationRepository(connection)
         if not authorization.authorize_query(
             user_id=user_id, organization_id=organization_id
@@ -95,12 +102,12 @@ def main() -> int:
 
         repository = PostgresKnowledgeRepository(connection)
         qdrant = QdrantVectorIndex(
-            base_url=os.getenv("QDRANT_URL", "http://127.0.0.1:6333"),
-            collection=os.getenv("QDRANT_COLLECTION", "knowledge_v1"),
+            base_url=settings.qdrant_url,
+            collection=settings.qdrant_collection,
         )
         embedding = OllamaEmbeddingProvider(
-            base_url=os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
-            model=os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text-v2-moe"),
+            base_url=settings.ollama_base_url,
+            model=settings.ollama_embedding_model,
         )
 
         item = KnowledgeSourceItem(
